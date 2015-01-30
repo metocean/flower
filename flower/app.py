@@ -11,7 +11,6 @@ from flower.events import Events
 from flower.state import State
 from flower.urls import handlers
 
-
 class Flower(tornado.web.Application):
     def __init__(self, celery_app=None, events=None, state=None,
                  io_loop=None, options=None, **kwargs):

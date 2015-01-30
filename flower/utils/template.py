@@ -11,7 +11,7 @@ else:
     text_type = unicode
     string_types = (str, unicode)
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 KEYWORDS_UP = ('ssl', 'uri', 'url', 'uuid', 'eta')
 KEYWORDS_DOWN = ('args', 'kwargs')
@@ -20,15 +20,24 @@ UUID_REGEX = re.compile(r'^[\w]{8}(-[\w]{4}){3}-[\w]{12}$')
 
 def format_time(time):
     dt = datetime.fromtimestamp(time)
-    return '%s.%s' % (
-        dt.strftime("%Y-%m-%d %H:%M:%S"), dt.microsecond)
+    return '%s' % (
+        dt.strftime("%d-%m-%Y %H:%M:%S"))
 
+def format_progress(progress):
+    return progress*100
+
+def seconds_to_timedelta(time):
+    dt = timedelta(seconds=round(time)) if isinstance(time, (int,float)) else '-'
+    return '%s' % dt
 
 def humanize(obj, type=None, length=None):
     if obj is None:
         obj = ''
     elif type == 'time':
-        obj = format_time(float(obj)) if obj else '-'
+        try:
+            obj = format_time(float(obj)) if obj else '-'
+        except ValueError:
+            pass
     elif isinstance(obj, string_types) and not re.match(UUID_REGEX, obj):
         obj = obj.replace('-', ' ').replace('_', ' ')
         obj = re.sub('|'.join(KEYWORDS_UP),

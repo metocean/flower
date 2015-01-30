@@ -1,7 +1,13 @@
 from __future__ import absolute_import
 from __future__ import with_statement
 
+import ast
+import os
+
 from celery.events.state import Task as _Task
+
+from scheduler.core import discover_actions
+from scheduler.settings import LOGDIR
 
 try:
     from collections import OrderedDict
@@ -106,7 +112,8 @@ class TaskModel(BaseModel):
             return task
 
     @classmethod
-    def iter_tasks(cls, app, limit=None, type=None, worker=None, state=None):
+    def iter_tasks(cls, app, limit=None, type=None, worker=None, state=None,
+                   action_type=None, actions=None, cycles=[]):
         i = 0
         events_state = app.events.state
         for uuid, task in events_state.tasks_by_timestamp():
@@ -114,8 +121,27 @@ class TaskModel(BaseModel):
                 continue
             if worker and task.worker and task.worker.hostname != worker:
                 continue
-            if state and task.state != state:
+
+            if state and task.state not in state:
                 continue
+
+            task.kwargs = ast.literal_eval(str(task.kwargs))
+
+            if cycles and task.kwargs.has_key('cycle_dt')\
+            and task.kwargs['cycle_dt'] not in cycles:
+                continue
+
+            if (actions != None and task.kwargs and\
+                task.kwargs.has_key('action_id') and \
+                task.kwargs['action_id'] not in actions) or\
+                (actions != None and task.kwargs and not\
+                 task.kwargs.has_key('action_id')):
+                continue
+
+            if action_type and task.kwargs.has_key('action_id')\
+            and action_type not in task.kwargs['action_id']:
+                continue
+
             yield uuid, task
             i += 1
             if i == limit:
@@ -128,6 +154,31 @@ class TaskModel(BaseModel):
     def __dir__(self):
         return self._fields
 
+class ActionModel(BaseModel):
+    def __init__(self, action_id):
+        self.action_id = action_id
+
+    @classmethod
+    def get_action_conf(cls, action_id):
+        actions = discover_actions()
+        if actions.has_key(action_id):
+            with open(actions[action_id]) as oa:
+                action_conf = oa.read()
+        else:
+            action_conf = None
+        
+        return action_conf
+
+    @classmethod
+    def get_log_file(cls, action_id):
+        logdir = os.path.join(LOGDIR, 'actions')
+        logpath = os.path.join(logdir, '%s.log' % action_id)
+        if os.path.exists(logpath):
+            with open(logpath) as oa:
+                logfile = oa.read()
+        else:
+            logfile = None
+        return logfile
 
 class BrokerModel(BaseModel):
     def __init__(self, app):

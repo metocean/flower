@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block navbar %}
+  {% module Template("navbar.html", active_tab="cycles", absolute_url=absolute_url) %}
+{% end %}
+
+{% block extra_styles %}
+  <style type="text/css">
+    #task-filter-form, #task-filter-form .form-actions {
+      margin-bottom: 0;
+    }
+    #task-filter-form-accordion .accordion-inner {
+      padding-left: 0;
+      padding-right: 0;
+      padding-bottom: 0;
+    }
+  </style>
+{% end %}
+
+
+{% block container %}
+<div class="container-fluid">
+  <a href="{{ absolute_url('/cycles') }}?cycle_state={{ cycle_state }}" class="btn {% if action_type=='All' %} active {% end %}" role="button">All</a>
+  <a href="{{ absolute_url('/cycles') }}?cycle_state={{ cycle_state }}&action_type=down" class="btn {% if action_type=='down' %} active {% end %}" role="button">Downloads</a>
+  <a href="{{ absolute_url('/cycles') }}?cycle_state={{ cycle_state }}&action_type=model" class="btn {% if action_type=='model' %} active {% end %}" role="button">Forecast</a>
+  <a href="{{ absolute_url('/cycles') }}?cycle_state={{ cycle_state }}&action_type=prod" class="btn {% if action_type=='prod' %} active {% end %}" role="button">Products</a>
+    </br></br>
+</div>
+
+<div class="container-fluid">
+  <div id="task-filter-form-accordion" class="accordion">
+    <div class="accordion-group">
+      <div class="accordion-heading">
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#task-filter-form-accordion" href="#task-filter-form-container">
+          Filter tasks
+        </a>
+      </div>
+      <div id="task-filter-form-container" class="accordion-body in collapse">
+        <div class="accordion-inner" style="padding-left: 0; padding-right: 0;">
+            <form id="task-filter-form" class="form-horizontal" action="{{ absolute_url('/cycles') }}" method="GET">
+            <div class="control-group">
+              <label class="control-label" for="input-limit">Limit:</label>
+              <div class="controls">
+                <input name="limit" type="text" class="input-small" id="input-limit"
+                       value="{{ limit or 200 }}">
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="select-cycle">Cycles:</label>
+              <div class="controls">
+                <select name="cycle_dt" id="select-cycle">
+                  <option>All</option>
+                  {% for cycle in cycles_dts %}
+                  <option {% if cycle==cycle_dt %} selected {% end %}>{{ cycle }}</option>
+                  {% end %}
+                </select>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="select-task">Actions:</label>
+
+              <div class="controls">
+                <select name="type" id="select-task">
+                  <option>All</option>
+                  {% for name in task_types %}
+                  <option {% if name==type %} selected {% end %}>{{ name }}</option>
+                  {% end %}
+                </select>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="select-worker">Workers:</label>
+              <div class="controls">
+                <select name="worker" id="select-worker">
+                  <option>All</option>
+                  {% for name in workers %}
+                  <option {% if name==worker %} selected {% end %}>{{ name }}</option>
+                  {% end %}
+                </select>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="select-state">State:</label>
+
+              <div class="controls">
+                <select name="state" id="select-state">
+                  <option>All</option>
+                  {% for name in all_states %}
+                  <option {% if name==state %} selected {% end %}>{{ name }}</option>
+                  {% end %}
+                </select>
+              </div>
+            </div>
+            <input name="cycle_state" type="hidden" value="{{ cycle_state }}">
+            <input name="action_type" type="hidden" value="{{ action_type }}">
+            <div class="form-actions">
+              <button class="btn btn-primary" type="submit">Apply filter</button>
+              <button class="btn" onclick="flower.on_cancel_task_filter(event)">Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container-fluid">
+    <h2>Cycles </h2>
+        <a href="{{ absolute_url('/cycles?cycle_state=SUCCESS') }}&action_type={{ action_type }}" class="btn {% if cycle_state=='SUCCESS' %} active {% end %}" role="button">Previous</a>
+        <a href="{{ absolute_url('/cycles?cycle_state=[STARTED,RUNNING]') }}&action_type={{ action_type }}" class="btn {% if cycle_state=='[STARTED,RUNNING]' %} active {% end %}" role="button">Current</a>
+        <a href="{{ absolute_url('/cycles?cycle_state=PENDING') }}&action_type={{ action_type }}" class="btn {% if cycle_state =='PENDING' %} active {% end %}" role="button">Queued</a>
+      </br>
+  </div> 
+
+  <table class="table table-bordered table-striped">
+    <thead>
+    <tr>
+      <th>Action ID</th>
+      <th>Cycle</th>
+      <th>State</th>
+      <th>Received</th>
+      <th>Scheduled</th>
+      <th>Started</th>
+      <th>Timestamp</th>
+      <th>Run Time</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for uuid, task in tasks %}
+    <tr>
+      <td><a href="{{ absolute_url('/task/' + task.uuid) }}">{{ task.kwargs['action_id'] }}</a></td>
+      <td>{{ task.kwargs['cycle_dt'] }}</td>
+      <td>
+        {% if isinstance(task.result, dict) and task.result.has_key('progress') %}
+          <div class="progress">
+            <div class="bar" style="width: {{format_progress(task.result['progress'])}}%;">{{round(format_progress(task.result['progress']),1)}}%
+            {% if task.result['status'] %} - {{task.result['status']}}{%end%}</div>
+          </div>
+          
+        {% else %}
+          {% if task.state == "SUCCESS" %}
+            <span class="label label-success">{{ task.state }}</span>
+          {% elif task.state in ["FAILURE","RETRY"] %}
+            <span class="label label-important">{{ task.state }}</span>
+          {% elif task.state in ["STARTED","RUNNING"] %}
+            <span class="label label-info">{{ task.state }}</span>
+          {% else %}
+            <span class="label label-default">{{ task.state }}</span>
+          {% end %}
+        {% end %}
+      </td>
+      <td>{{ humanize(task.received, type='time') }}</td>
+      <td>{%if task.eta%}{{ task.eta }}{%else%}Now{%end%}</td>
+      <td>{{ humanize(task.started, type='time') }}</td>
+      <td>{{ humanize(task.timestamp, type='time') }}</td>
+      <td>{%if task.runtime%}{{ seconds_to_timedelta(task.runtime) }}{%else%} - {%end%}</td>
+    </tr>
+    {% end %}
+  </table>
+  <div>
+{% end %}

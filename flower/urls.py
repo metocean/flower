@@ -10,6 +10,8 @@ from .views.workers import (
 from .views.tasks import (
     TaskView,
     TasksView,
+    CyclesView,
+    CrontabView,
 )
 
 from .views.broker import (
@@ -35,6 +37,7 @@ from .views.monitor import (
     BrokerMonitor,
 )
 
+from .views.docs import SphinxViewer
 
 from .views.error import NotFoundErrorHandler
 from .settings import APP_SETTINGS
@@ -47,6 +50,8 @@ handlers = [
     (r"/worker/(.+)", WorkerView),
     (r"/task/(.+)", TaskView),
     (r"/tasks", TasksView),
+    (r"/cycles", CyclesView),
+    (r"/crontab", CrontabView),
     (r"/broker", BrokerView),
     # Worker API
     (r"/api/workers", workers.ListWorkers),
@@ -62,6 +67,7 @@ handlers = [
     (r"/api/tasks", tasks.ListTasks),
     (r"/api/task/info/(.*)", tasks.TaskInfo),
     (r"/api/task/async-apply/(.+)", tasks.TaskAsyncApply),
+    (r"/api/task/retry/(.+)", tasks.TaskRetry),
     (r"/api/task/send-task/(.+)", tasks.TaskSend),
     (r"/api/task/result/(.+)", tasks.TaskResult),
     (r"/api/task/timeout/(.+)", control.TaskTimout),
@@ -75,7 +81,9 @@ handlers = [
     (r"/api/task/events/task-failed/(.*)", events.TaskFailed),
     (r"/api/task/events/task-revoked/(.*)", events.TaskRevoked),
     (r"/api/task/events/task-retried/(.*)", events.TaskRetried),
+    (r"/api/task/events/task-running/(.*)", events.TaskRunning),
     # WebSocket Updates
+    (r"/update-tasks", UpdateTasks),
     (r"/update-workers", UpdateWorkers),
     # Monitors
     (r"/monitor", Monitor),
@@ -89,7 +97,8 @@ handlers = [
     # Auth
     (r"/login", auth.LoginHandler),
     (r"/logout", auth.LogoutHandler),
-
+    # Docs
+    (r"/docs/.*", SphinxViewer),
     # Error
     (r".*", NotFoundErrorHandler),
 ]

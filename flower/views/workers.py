@@ -12,7 +12,9 @@ class WorkersView(BaseHandler):
         app = self.application
         workers = WorkersModel.get_latest(app).workers
         broker = app.celery_app.connection().as_uri()
-
+        for name, info in workers.items():
+            if 'dedicated' in name and not info['status']:
+                workers.pop(name)
         self.render("workers.html", workers=workers, broker=broker)
 
 

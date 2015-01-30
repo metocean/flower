@@ -109,6 +109,71 @@ Execute a task
             response.update(state=result.state)
         self.write(response)
 
+class TaskRetry(BaseTaskHandler):
+    @web.authenticated
+    def post(self, taskid):
+        """
+Revoke a task
+
+**Example request**:
+
+.. sourcecode:: http
+
+  POST /api/task/retry/1480b55c-b8b2-462c-985e-24af3e9158f9?action_id=down.ncep.gfs_glob0.5&cycle_dt=20140921_00z
+  Content-Length: 0
+  Content-Type: application/x-www-form-urlencoded; charset=utf-8
+  Host: localhost:5555
+
+**Example response**:
+
+.. sourcecode:: http
+
+  HTTP/1.1 200 OK
+  Content-Length: 61
+  Content-Type: application/json; charset=UTF-8
+
+  {
+      "message": "task-id 'a230b44c-42-462c-875e-24af3e9158f9'"
+  }
+
+:query args: a list of arguments
+:query kwargs: a dictionary of arguments
+:reqheader Authorization: optional OAuth token to authenticate
+:statuscode 200: no error
+:statuscode 401: unauthorized request
+:statuscode 404: unknown task
+        """
+        logger.info("Retrying task '%s'", taskid)
+        celery = self.application.celery_app
+
+        task = self.get_argument('task', None)
+        action_id = self.get_argument('action_id', '')
+        cycle_dt = self.get_argument('cycle_dt', '')
+        routing_key = self.get_argument('routing_key', '')
+
+        try:
+            task = celery.tasks[task]
+        except KeyError:
+            raise HTTPError(404, "Unknown task '%s'" % task)
+
+        kwargs = {'action_id' : action_id}
+        if cycle_dt: kwargs['cycle_dt'] = cycle_dt
+        if routing_key: kwargs['routing_key'] = routing_key
+
+        options = {}
+        result = task.apply_async(args=[], kwargs=kwargs, **options)
+
+        response = {'task-id': result.task_id}
+
+        if self.backend_configured(result):
+            response.update(state=result.state)
+
+        response.update(message=\
+'''Action %s retryied, new task uuid: <a href='/task/%s'> %s </a>'''%\
+             (action_id, result.task_id, result.task_id))
+
+        self.write(response)
+
 
 class TaskSend(BaseTaskHandler):
     @web.authenticated
@@ -206,8 +271,9 @@ Get a task result
                                  'traceback': result.traceback})
             else:
                 response.update({'result': self.safe_result(result.result)})
+        else:
+            response.update({'result': result.result})
         self.write(response)
-
 
 class ListTasks(BaseTaskHandler):
     @web.authenticated

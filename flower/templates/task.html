@@ -5,29 +5,74 @@
 {% end %}
 
 {% block container %}
+  <script>
+    function on_task_status_running(update) {
+        var pbar = $('.bar'),
+            progress = ($(update).attr('result').progress*100).toFixed(1)+'%',
+            message = $(update).attr('result').status;
+        pbar.attr('style', "width: " + progress+';');
+        if (message) {
+          var text = progress + ' - ' + message;
+        } else {
+          var text = progress;
+        } 
+        pbar.text(text);
+    }
+    var ws = new WebSocket('ws://localhost:5555/api/task/events/{{task.uuid}}');
+    ws.onmessage = function (event) {
+      var update = $.parseJSON(event.data);
+      console.log(event.data);
+      on_task_status_running(update);
+    }
+  </script>
   <div id='task-page' class="container-fluid">
     <div class="row-fluid">
       <div class="span12">
         <div class="page-header">
           <p id="taskid" class="hidden">{{ task.uuid }}</p>
-          <h2>{{ getattr(task, 'name', None) }}
+          <p id="task" class="hidden">{{ task.name }}</p>
+          <p id="action_id" class="hidden">{{ action_id }}</p>
+          <p id="cycle_dt" class="hidden">{{ cycle_dt }}</p>
+          <p id="routing_key" class="hidden">{%if routing_key%}{{ routing_key }}{%end%}</p>
+          <h2>{% if action_id %}{{ action_id }}{% else %}{{ getattr(task, 'name', None) }}{% end %}
             <small>{{ task.uuid }}</small>
-            {% if task.state == "STARTED" %}
+            {% if task.state in ["STARTED","RUNNING"] %}
                 <button style="float: right" class="btn btn-danger" onclick="flower.on_task_terminate(event)">Terminate</button>
             {% elif task.state == "RECEIVED" or task.state == "RETRY" %}
                 <button  style="float: right" class="btn btn-danger" onclick="flower.on_task_revoke(event)">Revoke</button>
+            {% elif task.state == "FAILURE" and action_id %}
+                <button  style="float: right" class="btn btn-danger" onclick="flower.on_task_retry(event)">Retry</button>
             {% end %}
           </h2>
         </div>
         <div class="row-fluid">
           <div class="span6">
-            <table class="table table-bordered table-striped">
+            <table id="basic" class="table table-bordered table-striped">
               <caption>Basic task options</caption>
               <tbody>
+              {% if action_id %}
               <tr>
-                <td>Name</td>
-                <td>{{ getattr(task, 'name', None) }}</td>
+                <td>Action</td>
+                <td> {{ action_id }}</td>
               </tr>
+              {% end %}
+              {% if cycle_dt %}
+              <tr>
+                <td>Cycle</td>
+                <td> {{ cycle_dt }}</td>
+              </tr>
+              {% end %}
+              <tr>
+                <td>Task</td>
+                <td>{{ task.name }}</td>
+              </tr>
+              
+              {% if routing_key %}
+              <tr>
+                <td>Routing Key</td>
+                <td> {{ routing_key }}</td>
+              </tr>
+              {% end %}
               <tr>
                 <td>UUID</td>
                 <td>{{ task.uuid }}</td>
@@ -36,11 +81,13 @@
                 <td>State</td>
                 <td>
                   {% if task.state == "SUCCESS" %}
-                  <span class="label label-success">{{ task.state }}</span>
-                  {% elif task.state == "FAILURE" %}
-                  <span class="label label-important">{{ task.state }}</span>
+                    <span class="label label-success">{{ task.state }}</span>
+                  {% elif task.state in ["FAILURE","RETRY"] %}
+                    <span class="label label-important">{{ task.state }}</span>
+                  {% elif task.state in ["STARTED","RUNNING"] %}
+                    <span class="label label-info">{{ task.state }}</span>
                   {% else %}
-                  <span class="label label-default">{{ task.state }}</span>
+                    <span class="label label-default">{{ task.state }}</span>
                   {% end %}
                 </td>
               </tr>
@@ -54,14 +101,26 @@
               </tr>
               <tr>
                 <td>Result</td>
-                <td>{{ getattr(task, 'result', None) }}</td>
+                <td>{% if isinstance(task.result, dict) and task.result.has_key('progress') %}
+                  <div class="progress">
+                    <div class="bar" style="width: {{format_progress(task.result['progress'])}}%;">
+                    {{round(format_progress(task.result['progress']),1)}}%
+                    {% if task.result['status'] %}
+                     - {{task.result['status']}}
+                    {%end%}
+                    </div>
+                    {{task.result}}
+                  </div>
+                {% else %}
+                  {{ getattr(task, 'result', None) }}
+                {% end %}</td>
               </tr>
               </tbody>
             </table>
           </div>
 
           <div class="span6">
-            <table class="table table-bordered table-striped">
+            <table id="advanced" class="table table-bordered table-striped">
               <caption>Advanced task options</caption>
               <tbody>
               {% for name in task._fields %}
@@ -89,5 +148,15 @@
         </div>
       </div>
     </div>
+    {% if action_id %}
+    {% block action %}
+        {% module Template("action.html", 
+                            action_id=action_id,
+                            action_conf=action_conf,
+                            logfile=logfile,
+                            absolute_url=absolute_url) %}
+    {% end %}
+    {% end %}
+    
   </div>
 {% end %}

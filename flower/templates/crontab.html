@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block navbar %}
+  {% module Template("navbar.html", active_tab="crontab", absolute_url=absolute_url) %}
+{% end %}
+
+{% block extra_styles %}
+  <style type="text/css">
+    #task-filter-form, #task-filter-form .form-actions {
+      margin-bottom: 0;
+    }
+    #task-filter-form-accordion .accordion-inner {
+      padding-left: 0;
+      padding-right: 0;
+      padding-bottom: 0;
+    }
+  </style>
+{% end %}
+
+
+{% block container %}
+<div class="container-fluid">
+  <a href="{{ absolute_url('/crontab') }}?crontab_state={{ crontab_state }}" class="btn {% if action_type=='All' %} active {% end %}" role="button">All</a>
+  <a href="{{ absolute_url('/crontab') }}?crontab_state={{ crontab_state }}&action_type=down" class="btn {% if action_type=='down' %} active {% end %}" role="button">Downloads</a>
+  <a href="{{ absolute_url('/crontab') }}?crontab_state={{ crontab_state }}&action_type=model" class="btn {% if action_type=='transfer' %} active {% end %}" role="button">Transfers</a>
+  <a href="{{ absolute_url('/crontab') }}?crontab_state={{ crontab_state }}&action_type=prod" class="btn {% if action_type=='prod' %} active {% end %}" role="button">Products</a>
+    </br></br>
+</div>
+
+<div class="container-fluid">
+  <div id="task-filter-form-accordion" class="accordion">
+    <div class="accordion-group">
+      <div class="accordion-heading">
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#task-filter-form-accordion" href="#task-filter-form-container">
+          Filter tasks
+        </a>
+      </div>
+      <div id="task-filter-form-container" class="accordion-body in collapse">
+        <div class="accordion-inner" style="padding-left: 0; padding-right: 0;">
+            <form id="task-filter-form" class="form-horizontal" action="{{ absolute_url('/crontab') }}" method="GET">
+            <div class="control-group">
+              <label class="control-label" for="input-limit">Limit:</label>
+              <div class="controls">
+                <input name="limit" type="text" class="input-small" id="input-limit"
+                       value="{{ limit or 200 }}">
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="select-action">Actions:</label>
+              <div class="controls">
+                <select name="action_id" id="select-action">
+                  <option>All</option>
+                  {% for a_id in crontab_actions %}
+                  <option {% if a_id==action_id %} selected {% end %}>{{ a_id }}</option>
+                  {% end %}
+                </select>
+              </div>
+            </div>
+            <div class="control-group">
+            <div class="control-group">
+              <label class="control-label" for="select-worker">Workers:</label>
+              <div class="controls">
+                <select name="worker" id="select-worker">
+                  <option>All</option>
+                  {% for name in workers %}
+                  <option {% if name==worker %} selected {% end %}>{{ name }}</option>
+                  {% end %}
+                </select>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="select-state">State:</label>
+
+              <div class="controls">
+                <select name="state" id="select-state">
+                  <option>All</option>
+                  {% for name in all_states %}
+                  <option {% if name==state %} selected {% end %}>{{ name }}</option>
+                  {% end %}
+                </select>
+              </div>
+            </div>
+            <input name="crontab_state" type="hidden" value="{{ crontab_state }}">
+            <input name="action_type" type="hidden" value="{{ action_type }}">
+            <div class="form-actions">
+              <button class="btn btn-primary" type="submit">Apply filter</button>
+              <button class="btn" onclick="flower.on_cancel_task_filter(event)">Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container-fluid">
+    <h2>Crontabs</h2>
+      <a href="{{ absolute_url('/crontab?crontab_state=All') }}&action_type={{ action_type }}" class="btn {% if not crontab_state %} active {% end %}" role="button">All</a>
+      <a href="{{ absolute_url('/crontab?crontab_state=[SUCCESS,FAILURE,REVOKED]') }}&action_type={{ action_type }}" class="btn {% if crontab_state=='[SUCCESS,FAILURE,REVOKED]' %} active {% end %}" role="button">Completed</a>
+      <a href="{{ absolute_url('/crontab?crontab_state=[STARTED,RUNNING,RETRY,RECEIVED]') }}&action_type={{ action_type }}" class="btn {% if crontab_state=='[STARTED,RUNNING,RETRY,RECEIVED]' %} active {% end %}" role="button">Current</a>
+      <a href="{{ absolute_url('/crontab?crontab_state=PENDING') }}&action_type={{ action_type }}" class="btn {% if crontab_state=='PENDING' %} active {% end %}" role="button">Queued</a>
+      </br>
+  </div>
+
+  <table class="table table-bordered table-striped">
+    {% if not crontab_state %}
+    <thead>
+    <tr>
+      <th>Action ID</th>
+      <th>Crontab</th>
+      <th>Next Run</th>
+    </thead>
+    <tbody>
+    {% for action in tasks %}
+    <tr>
+      <td>{{ action['action_id'] }}</td>
+      <td>{{ action['crontab'] }}</td>
+      <td>{{ humanize(action['next_run'], type='time') }}</td>
+    </tr>
+    {% end %}
+    {% else %}
+    <thead>
+    <tr>
+      <th>Action ID</th>
+      <th>Crontab</th>
+      <th>State</th>
+      <th>Received</th>
+      <th>ETA</th>
+      <th>Started</th>
+      <th>Timestamp</th>
+      <th>Run Time</th>
+      <th>Next Run</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for uuid, task in tasks %}
+    <tr>
+      <td><a href="{{ absolute_url('/task/' + task.uuid) }}">{{ task.kwargs['action_id'] }}</a></td>
+      <td>{{ task.crontab }}</td>
+      <td>
+        {% if task.state == "SUCCESS" %}
+          <span class="label label-success">{{ task.state }}</span>
+        {% elif task.state in ["FAILURE","RETRY"] %}
+          <span class="label label-important">{{ task.state }}</span>
+        {% elif task.state in ["STARTED","RUNNING"] %}
+          <span class="label label-info">{{ task.state }}</span>
+        {% else %}
+          <span class="label label-default">{{ task.state }}</span>
+        {% end %}
+      </td>
+      <td>{{ humanize(task.received, type='time') }}</td>
+      <td>{%if task.eta%}{{ task.eta }}{%else%}ASAP{%end%}</td>
+      <td>{{ humanize(task.started, type='time') }}</td>
+      <td>{{ humanize(task.timestamp, type='time') }}</td>
+      <td>{%if task.runtime%}{{ seconds_to_timedelta(task.runtime) }}{%else%} - {%end%}</td>
+      <td>{{ humanize(task.next_run, type='time') }}</td>
+    </tr>
+    {% end %}
+  {% end %}  
+  </table>
+  <div>
+{% end %}

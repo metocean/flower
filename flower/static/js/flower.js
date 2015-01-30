@@ -319,6 +319,35 @@ var flower = (function () {
         });
     }
 
+    function on_task_retry(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        var taskid = $('#taskid').text(),
+            task = $('#task').text(),
+            action_id = $('#action_id').text(),
+            cycle_dt = $('#cycle_dt').text(),
+            routing_key = $('#routing_key').text();
+
+        $.ajax({
+            type: 'POST',
+            url: url_prefix() + '/api/task/retry/' + taskid,
+            dataType: 'json',
+            data: {
+                'task': task,
+                'action_id': action_id,
+                'cycle_dt': cycle_dt,
+                'routing_key': routing_key,
+            },
+            success: function (data) {
+                show_success_alert(data.message);
+            },
+            error: function (data) {    
+                show_error_alert(data.responseText);
+            }
+        });
+    }
+
     function on_workers_table_update(update) {
         $.each(update, function (name) {
             var id = encodeURIComponent(name),
@@ -474,6 +503,10 @@ var flower = (function () {
                 var update = $.parseJSON(event.data);
                 on_workers_table_update(update);
             };
+            $(window).on('beforeunload', function(){
+                ws.close();
+            });
+
         }
 
         //https://github.com/twitter/bootstrap/issues/1768
@@ -595,6 +628,7 @@ var flower = (function () {
         on_task_rate_limit: on_task_rate_limit,
         on_cancel_task_filter: on_cancel_task_filter,
         on_task_revoke: on_task_revoke,
+        on_task_retry: on_task_retry,
         on_task_terminate: on_task_terminate,
     };
 

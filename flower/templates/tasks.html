@@ -19,6 +19,13 @@
 
 
 {% block container %}
+<script>
+var ws = new WebSocket('ws://localhost:5555/api/task/events/tasks/');
+    ws.onmessage = function (event) {
+      var update = $.parseJSON(event.data);
+      console.log(event.data);
+    }
+</script>
 <div class="container-fluid">
   <div id="task-filter-form-accordion" class="accordion">
     <div class="accordion-group">
@@ -83,8 +90,6 @@
       </div>
     </div>
   </div>
-
-
   <table class="table table-bordered table-striped">
     <thead>
     <tr>
@@ -95,30 +100,52 @@
       <th>kwargs</th>
       <th>Result</th>
       <th>Received</th>
+      <th>ETA</th>
       <th>Started</th>
+      <th>Succeeded</th>
+      <th>Run Time</th>
     </tr>
     </thead>
     <tbody>
     {% for uuid, task in tasks %}
-    <tr>
+    <tr id={{uuid}}>
       <td>{{ getattr(task, 'name', None) }}</td>
-      <td><a href="{{ absolute_url('/task/' + task.uuid) }}">{{ task.uuid }}</a></td>
+      <td><a href="{{ absolute_url('/task/' + task.uuid) }}">{{ humanize(task.uuid, length=11) }}</a></td>
       <td>
         {% if task.state == "SUCCESS" %}
           <span class="label label-success">{{ task.state }}</span>
-        {% elif task.state == "FAILURE" %}
+        {% elif task.state in ["FAILURE","RETRY"] %}
           <span class="label label-important">{{ task.state }}</span>
+        {% elif task.state in ["STARTED","RUNNING"] %}
+          <span class="label label-info">{{ task.state }}</span>
         {% else %}
           <span class="label label-default">{{ task.state }}</span>
         {% end %}
       </td>
-      <td>{{ humanize(task.args, length=20) }}</td>
-      <td>{{ humanize(task.kwargs, length=20) }}</td>
-      <td>{{ task.result }}</td>
+      <td>{{ task.args }}</td>
+      <td>{{ task.kwargs }}</td>
+      <td>{% if isinstance(task.result, dict) and task.result.has_key('progress') %}
+          <div class="progress">
+            <div class="bar" style="width: {{format_progress(task.result['progress'])}}%;">{{round(format_progress(task.result['progress']),1)}}%
+            {% if task.result['status'] %} - {{task.result['status']}}{%end%}</div>
+          </div>
+          
+          {% else %}
+            {{ task.result }}
+          {% end %}
+      </td>
       <td>{{ humanize(task.received, type='time') }}</td>
+      <td>{%if task.eta%}{{ task.eta }}{%else%}ASAP{%end%}</td>
       <td>{{ humanize(task.started, type='time') }}</td>
+      <td>{{ humanize(task.succeeded, type='time') }}</td>
+      <td>{%if task.runtime %}{{ seconds_to_timedelta(task.runtime) }}{%else%} - {%end%}</td>
     </tr>
     {% end %}
   </table>
+  <div class="progress">
+      <div class="progress-bar" role="progressbar" aria-valuenow="70"
+       aria-valuemin="0" aria-valuemax="100" style="width: 10%;">
+      </div>
+    </div>
   <div>
 {% end %}

@@ -35,7 +35,7 @@ class EventsState(State):
         cls = getattr(api.events, classname, None)
         if cls:
             cls.send_message(event)
-
+        
         # Save the event
         super(EventsState, self).event(event)
 
