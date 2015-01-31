@@ -494,7 +494,72 @@ var flower = (function () {
         return results && results[1] || 0;
     }
 
+    function on_received(update) {
+        console.log('received');
+        var uuids = [],
+            rows = document.getElementsByTagName("tr");
+
+        for(var i=2;i< rows.length;i++){uuids.push(rows[i].id);}
+
+        if (($.inArray(update.uuid, uuids) == -1)) {
+            console.log('clonnig');
+            var tr = $('#row-template').clone();
+            tr.appendTo('tbody');
+            tr.removeClass('hidden').attr('id', update.uuid).appendTo('tbody');
+            tr.children('td:eq(0)').text(update.name);
+            tr.children('td:eq(1)').children('a').attr('href', url_prefix() + '/task/' + update.uuid).text(update.uuid.substr(0,8)+' ...');   
+        } else {
+            var tr = $('#'+update.uuid);
+        }
+        tr.children('td:eq(2)').children('span').removeClass().addClass("label label-default").text('RECEIVED');
+        tr.children('td:eq(3)').text(update.args);
+        tr.children('td:eq(4)').text(update.kwargs);
+        var timestamp = moment.unix(update.local_received);
+        tr.children('td:eq(6)').text(timestamp.format('DD-MM-YYYY HH:mm:ss'));
+        tr.children('td:eq(7)').text(update.eta ? update.eta : "");
+    }
+
+    function on_started(update) {
+        console.log('started');
+        console.log(update);
+        var tr = $('#'+update.uuid);
+        tr.children('td:eq(2)').children('span').removeClass().addClass("label label-info").text('STARTED');
+        var timestamp = moment.unix(update.timestamp);
+        tr.children('td:eq(8)').text(timestamp.format('DD-MM-YYYY HH:mm:ss'));
+    }
+    function on_succeeded(update) {
+        console.log('success')
+        console.log(update);
+        var tr = $('#'+update.uuid);
+        tr.children('td:eq(2)').children('span').removeClass().addClass("label label-success").text('SUCCESS');
+        var timestamp = moment.unix(update.timestamp);
+        tr.children('td:eq(9)').text(timestamp.format('DD-MM-YYYY HH:mm:ss'));
+        tr.children('td:eq(5)').text(update.result);
+        tr.children('td:eq(10)').text(update.runtime.toFixed(2));
+    }
+    function on_failed(update) {
+        console.log('failed')
+        console.log(update);
+        var tr = $('#'+update.uuid);
+        tr.children('td:eq(2)').children('span').removeClass().addClass("label label-important").text('FAILURE');
+        tr.children('td:eq(5)').text(update.result);
+    }
+    function on_revoked(update) {
+        console.log('revoked')
+    }
+    function on_retried(update) {
+        console.log('retried')
+        console.log(update);
+        var tr = $('#'+update.uuid);
+        tr.children('td:eq(2)').children('span').removeClass().addClass("label label-important").text('RETRY');
+        tr.children('td:eq(5)').text(update.result);
+    }
+    function on_running(update) {
+        console.log('running')
+    }
+
     $(document).ready(function () {
+        console.log($(location).attr('pathname'));
         if ($.inArray($(location).attr('pathname'), [url_prefix(), url_prefix() + '/workers'])) {
             var host = $(location).attr('host'),
                 protocol = $(location).attr('protocol') == 'http:' ? 'ws://' : 'wss://',
@@ -507,6 +572,30 @@ var flower = (function () {
                 ws.close();
             });
 
+        } 
+        if ($(location).attr('pathname') == '/tasks') {
+            console.log('hiii');
+            var host = $(location).attr('host'),
+                protocol = $(location).attr('protocol') == 'http:' ? 'ws://' : 'wss://',
+                events = ['task-received', 'task-started', 'task-succeeded',
+                          'task-failed', 'task-revoked', 'task-retried', 'task-running'],
+                events_funcs = [on_received, on_started, on_succeeded, on_failed, on_revoked,
+                                on_retried, on_running],
+                sockets = [];
+
+            events.forEach(function(task_event, idx) {
+                ws = new WebSocket(protocol + host + url_prefix() + '/api/task/events/' + task_event +'/');
+                ws.onmessage = function (event) {
+                    var update = $.parseJSON(event.data);
+                    events_funcs[idx](update);
+                };
+            });
+            
+            $(window).on('beforeunload', function(){
+                for (ws in sockets) {
+                    ws.close();
+                }
+            });
         }
 
         //https://github.com/twitter/bootstrap/issues/1768
