@@ -494,68 +494,175 @@ var flower = (function () {
         return results && results[1] || 0;
     }
 
-    function on_received(update) {
-        console.log('received');
-        var uuids = [],
+    function on_tasks_update(update) {
+        if (update.type == 'task-received') {
+            var uuids = [],
             rows = document.getElementsByTagName("tr");
 
-        for(var i=2;i< rows.length;i++){uuids.push(rows[i].id);}
+            for(var i=2;i< rows.length;i++){uuids.push(rows[i].id);}
 
-        if (($.inArray(update.uuid, uuids) == -1)) {
-            console.log('clonnig');
-            var tr = $('#row-template').clone();
-            tr.appendTo('tbody');
-            tr.removeClass('hidden').attr('id', update.uuid).appendTo('tbody');
-            tr.children('td:eq(0)').text(update.name);
-            tr.children('td:eq(1)').children('a').attr('href', url_prefix() + '/task/' + update.uuid).text(update.uuid.substr(0,8)+' ...');   
-        } else {
+            if (($.inArray(update.uuid, uuids) == -1)) {
+                console.log('clonnig');
+                var tr = $('#row-template').clone();
+                tr.appendTo('tbody');
+                tr.removeClass('hidden').attr('id', update.uuid).appendTo('tbody');
+                tr.children('td:eq(0)').text(update.name);
+                tr.children('td:eq(1)').children('a').attr('href', url_prefix() + '/task/' + update.uuid).text(update.uuid.substr(0,8)+' ...');   
+            } else {
+                var tr = $('#'+update.uuid);
+            }
+            tr.children('td:eq(2)').children('span').removeClass().addClass("label label-default").text('RECEIVED');
+            tr.children('td:eq(3)').text(update.args);
+            tr.children('td:eq(4)').text(update.kwargs);
+            var timestamp = moment.unix(update.local_received);
+            tr.children('td:eq(6)').text(timestamp.format('DD-MM-YYYY HH:mm:ss'));
+            tr.children('td:eq(7)').text(update.eta ? update.eta : "");
+        } else if (update.type == 'task-started') {
             var tr = $('#'+update.uuid);
+            tr.children('td:eq(2)').children('span').removeClass().addClass("label label-info").text('STARTED');
+            var timestamp = moment.unix(update.timestamp);
+            tr.children('td:eq(8)').text(timestamp.format('DD-MM-YYYY HH:mm:ss'));
+        } else if (update.type == 'task-succeeded') {
+            tr.children('td:eq(2)').children('span').removeClass().addClass("label label-success").text('SUCCESS');
+            var timestamp = moment.unix(update.timestamp);
+            tr.children('td:eq(9)').text(timestamp.format('DD-MM-YYYY HH:mm:ss'));
+            tr.children('td:eq(5)').text(update.result);
+            tr.children('td:eq(10)').text(update.runtime.toFixed(2));
+        } else if (update.type == 'task-succeeded') {
+            var tr = $('#'+update.uuid);
+            tr.children('td:eq(2)').children('span').removeClass().addClass("label label-important").text('FAILURE');
+            tr.children('td:eq(5)').text(update.result);
+        } else if (update.type == 'task-failed') {
+            var tr = $('#'+update.uuid);
+            tr.children('td:eq(2)').children('span').removeClass().addClass("label label-important").text('FAILURE');
+            tr.children('td:eq(5)').text(update.result);
+        } else if (update.type == 'task-revoked') {
+            tr.children('td:eq(2)').children('span').removeClass().addClass("label label-important").text('REVOKED');
+        } else if (update.type == 'task-revoked') {
+            var tr = $('#'+update.uuid);
+            tr.children('td:eq(2)').children('span').removeClass().addClass("label label-important").text('RETRY');
+            tr.children('td:eq(5)').text(update.result);
+        } else if (update.type == 'task-running') {
+            var tr = $('#'+update.uuid),
+                progress = update.result['progress']*100,
+                state = update.result['state'];
+            tr.children('td:eq(2)').children('span').removeClass().addClass("label label-info").text('RUNNING');
+            tr.children('td:eq(5)').text("");
+            if (tr.children('td:eq(5)').children().length == 0) {
+                $('#'+update.uuid+' td:eq(5)').prepend('<div class="progress"></div>');
+                $('#'+update.uuid+' td:eq(5) .progress').prepend('<div class="bar" style="width:' + 
+                                                                  progress + '%;">'+'</div>');
+                $('#'+update.uuid+' td:eq(5) .progress .bar').text(progress.toFixed(2)+'%');
+            } else {
+                $('#'+update.uuid+' td:eq(5) .progress .bar').css('width:'+progress+'%');
+                $('#'+update.uuid+' td:eq(5) .progress .bar').text(progress.toFixed(2)+'%');
+            }
         }
-        tr.children('td:eq(2)').children('span').removeClass().addClass("label label-default").text('RECEIVED');
-        tr.children('td:eq(3)').text(update.args);
-        tr.children('td:eq(4)').text(update.kwargs);
-        var timestamp = moment.unix(update.local_received);
-        tr.children('td:eq(6)').text(timestamp.format('DD-MM-YYYY HH:mm:ss'));
-        tr.children('td:eq(7)').text(update.eta ? update.eta : "");
     }
 
-    function on_started(update) {
-        console.log('started');
-        console.log(update);
-        var tr = $('#'+update.uuid);
-        tr.children('td:eq(2)').children('span').removeClass().addClass("label label-info").text('STARTED');
+    function on_task_update(update) {
         var timestamp = moment.unix(update.timestamp);
-        tr.children('td:eq(8)').text(timestamp.format('DD-MM-YYYY HH:mm:ss'));
+        if (update.type == 'task-received') {
+            $("#state td:eq(1)").children('span').removeClass().addClass("label label-default").text('RECEIVED');
+            $("#received td:eq(1)").text(timestamp.format('DD-MM-YYYY HH:mm:ss'))
+            $("#eta td:eq(1)").text(update.eta ? update.eta : "");
+        } else if (update.type == 'task-started') {
+            $("#state td:eq(1)").children('span').removeClass().addClass("label label-info").text('STARTED');
+            $("#started td:eq(1)").text(timestamp.format('DD-MM-YYYY HH:mm:ss'));
+        } else if (update.type == 'task-succeeded') {
+            $("#state td:eq(1)").children('span').removeClass().addClass("label label-success").text('SUCCESS');
+            $("#result td:eq(1)").text(update.result);
+            if ($("#succeeded").length == 0){
+                $('#started').after('<tr><td id="#succedded">Succeeded</td><td>'+ 
+                                     timestamp.format('DD-MM-YYYY HH:mm:ss') +'</td>')
+            } else {
+                $("#succedded td:eq(1)").text(timestamp.format('DD-MM-YYYY HH:mm:ss'))
+            }
+            if ($("#runtime").length == 0){
+                $('#clock').before('<tr><td id="#runtime">Runtime</td><td>'+update.runtime+'</td>')
+            } else {
+                $("#runtime").text(update.runtime)
+            }
+            $('h2 button').remove()
+        } else if (update.type == 'task-failed') {
+            $("#state td:eq(1)").children('span').removeClass().addClass("label label-important").text('FAILURE');
+            $("#result td:eq(1)").text("None");
+        } else if (update.type == 'task-revoked') {
+            $("#state td:eq(1)").children('span').removeClass().addClass("label label-important").text('REVOKED');
+            if ($("#revoked").length == 0){
+                $('#expires').before('<tr><td id="#revoked">Revoked</td><td>'+ 
+                                     timestamp.format('DD-MM-YYYY HH:mm:ss') +'</td>')
+            } else {
+                $("#revoked td:eq(1)").text(timestamp.format('DD-MM-YYYY HH:mm:ss'))
+            }
+            $('h2 button').remove()
+            $('h2').append('<button class="btn btn-danger" onclick="flower.on_task_retry(event)" style="float: right">Retry</button>')
+        } else if (update.type == 'task-retried') {
+            $("#state td:eq(1)").children('span').removeClass().addClass("label label-important").text('RETRY');
+            $("#state td:eq(1)").text(update.result);
+            if ($("#retried").length == 0){
+                $('#started').after('<tr><td id="#retried">Retried</td><td>'+ 
+                                     timestamp.format('DD-MM-YYYY HH:mm:ss') +'</td>')
+            } else {
+                $("#retried td:eq(1)").text(timestamp.format('DD-MM-YYYY HH:mm:ss'))
+            }
+        } else if (update.type == 'task-running') {
+            var progress = update.result['progress']*100,
+                state = update.result['state'];
+            $("#state td:eq(1)").children('span').removeClass().addClass("label label-info").text('RUNNING');
+            $("#result td:eq(1)").text("");
+            if ($("#result td:eq(1)").children().length == 0) {
+                $("#result td:eq(1)").prepend('<div class="progress"></div>');
+                $("#result td:eq(1) .progress").prepend('<div class="bar" style="width:' + 
+                                                                  progress + '%;">'+'</div>');
+            } else {
+                $("#result td:eq(1) .progress .bar").css('width:'+progress+'%');
+            }
+            if (state) {
+              var text = progress.toFixed(2)+'%' + ' - ' + state;
+            } else {
+              var text = progress.toFixed(2)+'%'
+            }
+            $("#result td:eq(1) .progress .bar").text(text);
+        }
+        if ($.inArray(update.type, ['task-retried', 'task-failed']) != -1){
+            if ($("#traceback").length == 0){
+                $('#clock').before('<td id="traceback">Traceback</td><td><pre>'+ update.traceback +'</pre></td>')
+            } else {
+                $("#traceback td:eq(1)").text(update.traceback)
+            }
+            if ($("#exception").length == 0){
+                $('#worker').after('<td id="exception">Exception</td><td>'+update.exception+'</td>')
+            } else {
+                $("#exception td:eq(1)").text(update.exception)
+            }
+        }
+        $("#timestamp td:eq(1)").text(timestamp.format('DD-MM-YYYY HH:mm:ss'));
+        $("#clock td:eq(1)").text(update.clock);
     }
-    function on_succeeded(update) {
-        console.log('success')
-        console.log(update);
-        var tr = $('#'+update.uuid);
-        tr.children('td:eq(2)').children('span').removeClass().addClass("label label-success").text('SUCCESS');
-        var timestamp = moment.unix(update.timestamp);
-        tr.children('td:eq(9)').text(timestamp.format('DD-MM-YYYY HH:mm:ss'));
-        tr.children('td:eq(5)').text(update.result);
-        tr.children('td:eq(10)').text(update.runtime.toFixed(2));
-    }
-    function on_failed(update) {
-        console.log('failed')
-        console.log(update);
-        var tr = $('#'+update.uuid);
-        tr.children('td:eq(2)').children('span').removeClass().addClass("label label-important").text('FAILURE');
-        tr.children('td:eq(5)').text(update.result);
-    }
-    function on_revoked(update) {
-        console.log('revoked')
-    }
-    function on_retried(update) {
-        console.log('retried')
-        console.log(update);
-        var tr = $('#'+update.uuid);
-        tr.children('td:eq(2)').children('span').removeClass().addClass("label label-important").text('RETRY');
-        tr.children('td:eq(5)').text(update.result);
-    }
-    function on_running(update) {
-        console.log('running')
+
+    function connect_tasks_socket(update_function, uuid) {
+        var host = $(location).attr('host'),
+                protocol = $(location).attr('protocol') == 'http:' ? 'ws://' : 'wss://',
+                events = ['task-received', 'task-started', 'task-succeeded',
+                          'task-failed', 'task-revoked', 'task-retried', 'task-running'],
+                sockets = [];
+
+        events.forEach(function(task_event, idx) {
+            var ws = new WebSocket(protocol + host + url_prefix() + '/api/task/events/' + task_event +'/' + uuid);
+            ws.onmessage = function (event) {
+                var update = $.parseJSON(event.data);
+                console.log(update);
+                update_function(update);
+            };
+            sockets.push(ws)
+        });
+        
+        $(window).on('beforeunload', function(){
+            for (ws in sockets) {
+                ws.close();
+            }
+        });
     }
 
     $(document).ready(function () {
@@ -573,29 +680,12 @@ var flower = (function () {
             });
 
         } 
-        if ($(location).attr('pathname') == '/tasks') {
-            console.log('hiii');
-            var host = $(location).attr('host'),
-                protocol = $(location).attr('protocol') == 'http:' ? 'ws://' : 'wss://',
-                events = ['task-received', 'task-started', 'task-succeeded',
-                          'task-failed', 'task-revoked', 'task-retried', 'task-running'],
-                events_funcs = [on_received, on_started, on_succeeded, on_failed, on_revoked,
-                                on_retried, on_running],
-                sockets = [];
 
-            events.forEach(function(task_event, idx) {
-                ws = new WebSocket(protocol + host + url_prefix() + '/api/task/events/' + task_event +'/');
-                ws.onmessage = function (event) {
-                    var update = $.parseJSON(event.data);
-                    events_funcs[idx](update);
-                };
-            });
-            
-            $(window).on('beforeunload', function(){
-                for (ws in sockets) {
-                    ws.close();
-                }
-            });
+        if ($(location).attr('pathname') == '/tasks') {
+            connect_tasks_socket(on_tasks_update, "")
+        } else if ($.inArray('task', $(location).attr('pathname').split('/'))) {
+            var uuid = $(location).attr('pathname').split('/')[2]
+            connect_tasks_socket(on_task_update, uuid)
         }
 
         //https://github.com/twitter/bootstrap/issues/1768

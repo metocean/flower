@@ -5,26 +5,6 @@
 {% end %}
 
 {% block container %}
-  <script>
-    function on_task_status_running(update) {
-        var pbar = $('.bar'),
-            progress = ($(update).attr('result').progress*100).toFixed(1)+'%',
-            message = $(update).attr('result').status;
-        pbar.attr('style', "width: " + progress+';');
-        if (message) {
-          var text = progress + ' - ' + message;
-        } else {
-          var text = progress;
-        } 
-        pbar.text(text);
-    }
-    var ws = new WebSocket('ws://localhost:5555/api/task/events/{{task.uuid}}');
-    ws.onmessage = function (event) {
-      var update = $.parseJSON(event.data);
-      console.log(event.data);
-      on_task_status_running(update);
-    }
-  </script>
   <div id='task-page' class="container-fluid">
     <div class="row-fluid">
       <div class="span12">
@@ -51,33 +31,33 @@
               <caption>Basic task options</caption>
               <tbody>
               {% if action_id %}
-              <tr>
+              <tr id="action">
                 <td>Action</td>
                 <td> {{ action_id }}</td>
               </tr>
               {% end %}
               {% if cycle_dt %}
-              <tr>
+              <tr id="cycle">
                 <td>Cycle</td>
                 <td> {{ cycle_dt }}</td>
               </tr>
               {% end %}
-              <tr>
+              <tr id="task">
                 <td>Task</td>
                 <td>{{ task.name }}</td>
               </tr>
               
               {% if routing_key %}
-              <tr>
+              <tr id="routing_key">
                 <td>Routing Key</td>
                 <td> {{ routing_key }}</td>
               </tr>
               {% end %}
-              <tr>
+              <tr id="uuid">
                 <td>UUID</td>
                 <td>{{ task.uuid }}</td>
               </tr>
-              <tr>
+              <tr id="state">
                 <td>State</td>
                 <td>
                   {% if task.state == "SUCCESS" %}
@@ -91,15 +71,15 @@
                   {% end %}
                 </td>
               </tr>
-              <tr>
+              <tr id="args">
                 <td>args</td>
                 <td>{{ task.args }}</td>
               </tr>
-              <tr>
+              <tr id="kwargs">
                 <td>kwargs</td>
                 <td>{{ task.kwargs }}</td>
               </tr>
-              <tr>
+              <tr id="result">
                 <td>Result</td>
                 <td>{% if isinstance(task.result, dict) and task.result.has_key('progress') %}
                   <div class="progress">
@@ -125,10 +105,10 @@
               <tbody>
               {% for name in task._fields %}
                 {% if name not in ['name', 'uuid', 'state', 'args', 'kwargs', 'result'] and getattr(task, name, None) is not None %}
-                <tr>
+                <tr id="{{ humanize(name).lower() }}">
                   <td>{{ humanize(name) }}</td>
                   <td>
-                    {% if name in ['sent', 'received', 'started', 'succeeded', 'retried', 'timestamp'] %}
+                    {% if name in ['sent', 'received', 'started', 'revoked','succeeded', 'retried', 'timestamp'] %}
                     {{ humanize(getattr(task, name, None), type='time') }}
                     {% elif name == 'worker' %}
                     <a
