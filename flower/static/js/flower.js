@@ -495,17 +495,16 @@ var flower = (function () {
     }
 
     function on_tasks_update(update) {
+        var tr = $('#'+update.uuid);
         if (update.type == 'task-received') {
             var uuids = [],
             rows = document.getElementsByTagName("tr");
-
             for(var i=2;i< rows.length;i++){uuids.push(rows[i].id);}
-
             if (($.inArray(update.uuid, uuids) == -1)) {
                 console.log('clonnig');
                 var tr = $('#row-template').clone();
                 tr.appendTo('tbody');
-                tr.removeClass('hidden').attr('id', update.uuid).appendTo('tbody');
+                tr.removeClass('hidden').attr('id', update.uuid).prependTo('tbody');
                 tr.children('td:eq(0)').text(update.name);
                 tr.children('td:eq(1)').children('a').attr('href', url_prefix() + '/task/' + update.uuid).text(update.uuid.substr(0,8)+' ...');   
             } else {
@@ -528,10 +527,6 @@ var flower = (function () {
             tr.children('td:eq(9)').text(timestamp.format('DD-MM-YYYY HH:mm:ss'));
             tr.children('td:eq(5)').text(update.result);
             tr.children('td:eq(10)').text(update.runtime.toFixed(2));
-        } else if (update.type == 'task-succeeded') {
-            var tr = $('#'+update.uuid);
-            tr.children('td:eq(2)').children('span').removeClass().addClass("label label-important").text('FAILURE');
-            tr.children('td:eq(5)').text(update.result);
         } else if (update.type == 'task-failed') {
             var tr = $('#'+update.uuid);
             tr.children('td:eq(2)').children('span').removeClass().addClass("label label-important").text('FAILURE');
@@ -539,12 +534,10 @@ var flower = (function () {
         } else if (update.type == 'task-revoked') {
             tr.children('td:eq(2)').children('span').removeClass().addClass("label label-important").text('REVOKED');
         } else if (update.type == 'task-revoked') {
-            var tr = $('#'+update.uuid);
             tr.children('td:eq(2)').children('span').removeClass().addClass("label label-important").text('RETRY');
             tr.children('td:eq(5)').text(update.result);
         } else if (update.type == 'task-running') {
-            var tr = $('#'+update.uuid),
-                progress = update.result['progress']*100,
+            var progress = update.result['progress']*100,
                 state = update.result['state'];
             tr.children('td:eq(2)').children('span').removeClass().addClass("label label-info").text('RUNNING');
             tr.children('td:eq(5)').text("");
@@ -643,25 +636,24 @@ var flower = (function () {
 
     function connect_tasks_socket(update_function, uuid) {
         var host = $(location).attr('host'),
-                protocol = $(location).attr('protocol') == 'http:' ? 'ws://' : 'wss://',
-                events = ['task-received', 'task-started', 'task-succeeded',
-                          'task-failed', 'task-revoked', 'task-retried', 'task-running'],
-                sockets = [];
+            protocol = $(location).attr('protocol') == 'http:' ? 'ws://' : 'wss://',
+            events = ['task-received', 'task-started', 'task-succeeded',
+                      'task-failed', 'task-revoked', 'task-retried', 'task-running'],
+            sockets = [];
 
         events.forEach(function(task_event, idx) {
             var ws = new WebSocket(protocol + host + url_prefix() + '/api/task/events/' + task_event +'/' + uuid);
             ws.onmessage = function (event) {
                 var update = $.parseJSON(event.data);
-                console.log(update);
                 update_function(update);
             };
             sockets.push(ws)
         });
         
         $(window).on('beforeunload', function(){
-            for (ws in sockets) {
-                ws.close();
-            }
+            sockets.forEach(function(ws){
+                ws.close()    
+            });
         });
     }
 
