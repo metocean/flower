@@ -50,7 +50,7 @@
               <div class="controls">
                 <select name="cycle_dt" id="select-cycle">
                   <option>All</option>
-                  {% for cycle in cycles_dts %}
+                  {% for cycle,uuid,task in cycles_tasks %}
                   <option {% if cycle==cycle_dt %} selected {% end %}>{{ cycle }}</option>
                   {% end %}
                 </select>
@@ -104,11 +104,17 @@
     </div>
   </div>
   <div class="container-fluid">
-    <h2>Cycles </h2>
-        <a href="{{ absolute_url('/cycles?cycle_state=SUCCESS') }}&action_type={{ action_type }}" class="btn {% if cycle_state=='SUCCESS' %} active {% end %}" role="button">Previous</a>
-        <a href="{{ absolute_url('/cycles?cycle_state=[STARTED,RUNNING]') }}&action_type={{ action_type }}" class="btn {% if cycle_state=='[STARTED,RUNNING]' %} active {% end %}" role="button">Current</a>
-        <a href="{{ absolute_url('/cycles?cycle_state=PENDING') }}&action_type={{ action_type }}" class="btn {% if cycle_state =='PENDING' %} active {% end %}" role="button">Queued</a>
+      <h2 id="cycles">Cycles <small>{% for cycle,uuid,task in cycles_tasks[:4] %} | {{cycle}} {% end %}{% if len(cycles_tasks) > 4 %}...{%end%}</small>  </h2>
+      <a href="{{ absolute_url('/cycles?cycle_state=SUCCESS') }}&action_type={{ action_type }}" class="btn {% if cycle_state=='SUCCESS' %} active {% end %}" role="button">Previous</a>
+      <a href="{{ absolute_url('/cycles?cycle_state=[STARTED,RUNNING]') }}&action_type={{ action_type }}" class="btn {% if cycle_state=='[STARTED,RUNNING]' %} active {% end %}" role="button">Current</a>
+      <a href="{{ absolute_url('/cycles?cycle_state=PENDING') }}&action_type={{ action_type }}" class="btn {% if cycle_state =='PENDING' %} active {% end %}" role="button">Queued</a>
       </br>
+    <ul class="hidden">
+      <li id="cli-template"> cycle </li>
+    {% for cycle,uuid,task in cycles_tasks %}
+      <li id="#{{uuid}}">{{ cycle }}</li>
+    {% end %}
+    </ul>
   </div> 
 
   <table class="table table-bordered table-striped">

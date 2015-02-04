@@ -497,7 +497,6 @@ var flower = (function () {
     function on_cycles_update(update) {
         var tr = $('#'+update.uuid);
         if (tr) {
-            console.log(update);
             if (update.type == 'task-received') {
                 tr.children('td:eq(2)').children('span').removeClass().addClass("label label-default").text('RECEIVED');
                 tr.children('td:eq(4)').text(update.eta ? update.eta : "");
@@ -530,19 +529,23 @@ var flower = (function () {
             var timestamp = moment.unix(update.timestamp);
             tr.children("td:eq(6)").text(timestamp.format('DD-MM-YYYY HH:mm:ss'));
         }
+        console.log(update)
+        if ( update.hostname.indexOf("perform") &&
+             $.inArray(update.type, 
+                       ['task-received','task-succeeded','task-failed']) != -1 ) {
+            console.log(update);
+            window.location.reload();
+        }
     }
 
     function on_tasks_update(update) {
-        console.log(update);
         var tr = $('#'+update.uuid);
         if (update.type == 'task-received') {
             var uuids = [],
             rows = document.getElementsByTagName("tr");
             for(var i=2;i< rows.length;i++){uuids.push(rows[i].id);}
             if (($.inArray(update.uuid, uuids) == -1)) {
-                console.log('clonnig');
                 var tr = $('#row-template').clone();
-                tr.appendTo('tbody');
                 tr.removeClass('hidden').attr('id', update.uuid).prependTo('tbody');
                 tr.children('td:eq(0)').text(update.name);
                 tr.children('td:eq(1)').children('a').attr('href', url_prefix() + '/task/' + update.uuid).text(update.uuid.substr(0,8)+' ...');   

@@ -118,7 +118,7 @@ class CyclesView(BaseHandler):
                                      worker=worker, 
                                      state=cycle_state)
 
-        icycles = []
+        cycle_tasks = []
         workflow = []
         cycles_dts = []
         for uuid,task in cycles:
@@ -128,8 +128,7 @@ class CyclesView(BaseHandler):
             for action_id in task.kwargs['workflow']:
                 if action_id not in workflow:
                     workflow.append(action_id)
-            icycles.append((cycle, uuid, task))
-            cycles_dts.append(cycle)
+            cycle_tasks.append((cycle, uuid, task))
         
         if action_type:
             all_types = []
@@ -140,15 +139,15 @@ class CyclesView(BaseHandler):
             all_types = workflow
 
         workflow = workflow if not type_ else [type_]
-        cycles_dts.sort()
-        cycles_dts.reverse()
+        cycle_tasks.sort()
+        cycle_tasks.reverse()
         cyclic_tasks = TaskModel.iter_tasks(app, limit=limit, 
                                      type=['act.MSLAct','act.SimpleAct'],
                                      worker=worker, 
                                      state=state, 
                                      actions=workflow,
                                      action_type=action_type,
-                                     cycles=cycles_dts)
+                                     cycles=[c[0] for c in cycle_tasks])
 
         workers = WorkersModel.get_workers(app)
         workers.sort()
@@ -158,9 +157,8 @@ class CyclesView(BaseHandler):
                     tasks=cyclic_tasks,
                     task_types=all_types,
                     action_type=action_type,
-                    cycles=icycles,
+                    cycles_tasks=cycle_tasks,
                     cycle_state=cycle_state,
-                    cycles_dts=cycles_dts,
                     cycle_dt=cycle_dt,
                     all_states=celery.states.ALL_STATES,
                     workers=workers,
