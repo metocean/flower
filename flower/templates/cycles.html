@@ -125,8 +125,18 @@
     </tr>
     </thead>
     <tbody>
+      <tr id="row-template" class='hidden'>
+        <td><a href="">Action ID</a></td>
+        <td>cycle_dt</td>
+        <td><span class="label label-success">State</span></td>
+        <td>received</td>
+        <td>scheduled</td>
+        <td>started</td>
+        <td>timestamp</td>
+        <td>runtime</td>
+      </tr>
     {% for uuid, task in tasks %}
-    <tr>
+    <tr id="{{ uuid }}">
       <td><a href="{{ absolute_url('/task/' + task.uuid) }}">{{ task.kwargs['action_id'] }}</a></td>
       <td>{{ task.kwargs['cycle_dt'] }}</td>
       <td>

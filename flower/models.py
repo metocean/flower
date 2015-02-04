@@ -117,8 +117,11 @@ class TaskModel(BaseModel):
         i = 0
         events_state = app.events.state
         for uuid, task in events_state.tasks_by_timestamp():
-            if type and task.name != type:
+
+            if (isinstance(type, str) and task.name != type) or \
+               (isinstance(type, list) and task.name not in type):
                 continue
+
             if worker and task.worker and task.worker.hostname != worker:
                 continue
 

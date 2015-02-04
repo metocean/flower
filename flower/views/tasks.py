@@ -143,7 +143,7 @@ class CyclesView(BaseHandler):
         cycles_dts.sort()
         cycles_dts.reverse()
         cyclic_tasks = TaskModel.iter_tasks(app, limit=limit, 
-                                     type='act.MSLAct',
+                                     type=['act.MSLAct','act.SimpleAct'],
                                      worker=worker, 
                                      state=state, 
                                      actions=workflow,

@@ -63,6 +63,7 @@ class Events(threading.Thread):
             state = shelve.open(self._db)
             if state:
                 self.state = state['events']
+                self.last_sync = time.time()
             state.close()
 
         if not self.state:
@@ -77,12 +78,16 @@ class Events(threading.Thread):
         if celery.VERSION[0] > 2:
             self._timer.start()
 
-    def stop(self):
+    def sync_db(self):
         if self._persistent:
             logger.debug("Saving state to '%s'...", self._db)
             state = shelve.open(self._db)
             state['events'] = self.state
             state.close()
+            self.last_sync = time.time()
+
+    def stop(self):
+        self.sync_db()
 
     def run(self):
         try_interval = 1
@@ -122,3 +127,5 @@ class Events(threading.Thread):
     def on_event(self, event):
         # Call EventsState.event in ioloop thread to avoid synchronization
         self._io_loop.add_callback(partial(self.state.event, event))
+        if self._persistent and time.time() - self.last_sync > 5:
+            self.sync_db()
