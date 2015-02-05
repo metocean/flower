@@ -494,6 +494,10 @@ var flower = (function () {
         return results && results[1] || 0;
     }
 
+    function reload() {
+        window.location.reload();
+    }
+
     function on_cycles_update(update) {
         var tr = $('#'+update.uuid);
         if (tr) {
@@ -530,11 +534,9 @@ var flower = (function () {
             tr.children("td:eq(6)").text(timestamp.format('DD-MM-YYYY HH:mm:ss'));
         }
         console.log(update)
-        if ( update.hostname.indexOf("perform") &&
-             $.inArray(update.type, 
-                       ['task-received','task-succeeded','task-failed']) != -1 ) {
-            console.log(update);
-            window.location.reload();
+        if ( update.hostname.indexOf("performer") > -1 &&
+             $.inArray(update.type, ['task-started','task-succeeded','task-failed']) > -1 ) {
+            setTimeout(reload , 5000);
         }
     }
 
