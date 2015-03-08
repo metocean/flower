@@ -46,7 +46,11 @@ class WorkersModel(BaseModel):
 
     @classmethod
     def get_latest(cls, app):
-        return WorkersModel(app)
+        workers = WorkersModel(app)
+        for name, info in workers.workers.items():
+            if 'dedicated' in name and not info['status']:
+                workers.workers.pop(name)
+        return workers
 
     @classmethod
     def get_workers(cls, app):
