@@ -41,53 +41,51 @@ class EventsState(State):
 
 
 class Events(threading.Thread):
+    events_enable_interval = 5000
 
-    def __init__(self, celery_app, db=None, persistent=False,
-                 io_loop=None, **kwargs):
+    def __init__(self, capp, db=None, persistent=False,
+                 enable_events=True, io_loop=None, **kwargs):
         threading.Thread.__init__(self)
         self.daemon = True
 
-        self._io_loop = io_loop or IOLoop.instance()
-        self._celery_app = celery_app
-        self._db = db
-        self._persistent = persistent
+        self.io_loop = io_loop or IOLoop.instance()
+        self.capp = capp
+
+        self.db = db
+        self.persistent = persistent
+        self.enable_events = enable_events
         self.state = None
 
-        if self._persistent and celery.__version__ < '3.0.15':
+        if self.persistent and celery.__version__ < '3.0.15':
             logger.warning('Persistent mode is available with '
                            'Celery 3.0.15 and later')
-            self._persistent = False
+            self.persistent = False
 
-        if self._persistent:
-            logger.debug("Loading state from '%s'...", db)
-            state = shelve.open(self._db)
+        if self.persistent:
+            logger.debug("Loading state from '%s'...", self.db)
+            state = shelve.open(self.db)
             if state:
                 self.state = state['events']
-                self.last_sync = time.time()
             state.close()
 
         if not self.state:
             self.state = EventsState(**kwargs)
 
-        self._timer = PeriodicCallback(self.on_enable_events,
-                                       CELERY_EVENTS_ENABLE_INTERVAL)
+        self.timer = PeriodicCallback(self.on_enable_events,
+                                      self.events_enable_interval)
 
     def start(self):
         threading.Thread.start(self)
-        # Celery versions prior to 3 don't support enable_events
-        if celery.VERSION[0] > 2:
-            self._timer.start()
-
-    def sync_db(self):
-        if self._persistent:
-            logger.debug("Saving state to '%s'...", self._db)
-            state = shelve.open(self._db)
-            state['events'] = self.state
-            state.close()
-            self.last_sync = time.time()
+        # Celery versions prior to 2 don't support enable_events
+        if self.enable_events and celery.VERSION[0] > 2:
+            self.timer.start()
 
     def stop(self):
-        self.sync_db()
+        if self.persistent:
+            logger.debug("Saving state to '%s'...", self.db)
+            state = shelve.open(self.db)
+            state['events'] = self.state
+            state.close()
 
     def run(self):
         try_interval = 1
@@ -95,11 +93,11 @@ class Events(threading.Thread):
             try:
                 try_interval *= 2
 
-                with self._celery_app.connection() as conn:
+                with self.capp.connection() as conn:
                     recv = EventReceiver(conn,
                                          handlers={"*": self.on_event},
-                                         app=self._celery_app)
-                    recv.capture(limit=None, timeout=None)
+                                         app=self.capp)
+                    recv.capture(limit=None, timeout=None, wakeup=True)
 
                 try_interval = 1
             except (KeyboardInterrupt, SystemExit):
@@ -118,14 +116,11 @@ class Events(threading.Thread):
     def on_enable_events(self):
         # Periodically enable events for workers
         # launched after flower
-        logger.debug('Enabling events')
         try:
-            self._celery_app.control.enable_events()
+            self.capp.control.enable_events()
         except Exception as e:
             logger.debug("Failed to enable events: '%s'", e)
 
     def on_event(self, event):
         # Call EventsState.event in ioloop thread to avoid synchronization
-        self._io_loop.add_callback(partial(self.state.event, event))
-        if self._persistent and time.time() - self.last_sync > 5:
-            self.sync_db()
+        self.io_loop.add_callback(partial(self.state.event, event))
