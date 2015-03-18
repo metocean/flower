@@ -105,7 +105,7 @@
   </div>
   <div class="container-fluid">
       <h2 id="cycles">Cycles <small>{% for cycle,uuid,task in cycles_tasks[:4] %} | {{cycle}} {% end %}{% if len(cycles_tasks) > 4 %}...{%end%}</small>  </h2>
-      <a href="{{ absolute_url('/cycles?cycle_state=SUCCESS') }}&action_type={{ action_type }}" class="btn {% if cycle_state=='SUCCESS' %} active {% end %}" role="button">Previous</a>
+      <a href="{{ absolute_url('/cycles?cycle_state=[SUCCESS,FAILURE]') }}&action_type={{ action_type }}" class="btn {% if cycle_state=='[SUCCESS,FAILURE]' %} active {% end %}" role="button">Previous</a>
       <a href="{{ absolute_url('/cycles?cycle_state=[STARTED,RUNNING]') }}&action_type={{ action_type }}" class="btn {% if cycle_state=='[STARTED,RUNNING]' %} active {% end %}" role="button">Current</a>
       <a href="{{ absolute_url('/cycles?cycle_state=PENDING') }}&action_type={{ action_type }}" class="btn {% if cycle_state =='PENDING' %} active {% end %}" role="button">Queued</a>
       </br>
@@ -146,7 +146,7 @@
       <td><a href="{{ absolute_url('/task/' + task.uuid) }}">{{ task.kwargs['action_id'] }}</a></td>
       <td>{{ task.kwargs['cycle_dt'] }}</td>
       <td>
-        {% if isinstance(task.result, dict) and task.result.has_key('progress') %}
+        {% if isinstance(task.result, dict) and task.result.has_key('progress') and task.result['progress'] > 0%}
           <div class="progress">
             <div class="bar" style="width: {{format_progress(task.result['progress'])}}%;">{{round(format_progress(task.result['progress']),1)}}%
             {% if task.result['status'] %} - {{task.result['status']}}{%end%}</div>
