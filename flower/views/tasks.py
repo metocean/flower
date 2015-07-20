@@ -137,7 +137,7 @@ class CyclesView(BaseHandler):
                     all_types.append(action_id)
         else:
             all_types = workflow
-
+        all_types.sort()
         workflow = workflow if not type_ else [type_]
         cycle_tasks.sort()
         cycle_tasks.reverse()

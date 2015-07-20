@@ -144,7 +144,7 @@
     {% for uuid, task in tasks %}
     <tr id="{{ uuid }}">
       <td><a href="{{ absolute_url('/task/' + task.uuid) }}">{{ task.kwargs['action_id'] }}</a></td>
-      <td>{{ task.kwargs['cycle_dt'] }}</td>
+      <td>{% if task.kwargs.has_key('cycle_dt')%} {{ task.kwargs['cycle_dt'] }} {%else%}None{%end%}</td>
       <td>
         {% if isinstance(task.result, dict) and task.result.has_key('progress') and task.result['progress'] > 0%}
           <div class="progress">
