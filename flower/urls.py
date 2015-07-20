@@ -97,7 +97,9 @@ handlers = [
     (r"/login", auth.LoginHandler),
     (r"/logout", auth.LogoutHandler),
     # Docs
-    (r"/docs/.*", SphinxViewer),
+    (r"/docs/*", SphinxViewer),
+    (r"/docs/(.*)", StaticFileHandler, 
+     {'path': APP_SETTINGS['docs_path']}),
     # Error
     (r".*", NotFoundErrorHandler),
 ]

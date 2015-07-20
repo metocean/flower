@@ -9,6 +9,7 @@ PROJECT_ROOT = abspath(dirname(__file__))
 
 APP_SETTINGS = dict(
     template_path=join(PROJECT_ROOT, "templates"),
+    docs_path=join(PROJECT_ROOT, 'templates', 'docs'),
     static_path=join(PROJECT_ROOT, "static"),
     cookie_secret=gen_cookie_secret(),
     login_url='/login',

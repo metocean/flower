@@ -114,7 +114,7 @@ class CyclesView(BaseHandler):
 
         cycles = TaskModel.iter_tasks(app, 
                                      limit=limit, 
-                                     type='perform.CyclePerformer',
+                                     type='cycle.CycleTask',
                                      worker=worker, 
                                      state=cycle_state)
 
@@ -142,7 +142,7 @@ class CyclesView(BaseHandler):
         cycle_tasks.sort()
         cycle_tasks.reverse()
         cyclic_tasks = TaskModel.iter_tasks(app, limit=limit, 
-                                     type=['act.MSLAct','act.SimpleAct'],
+                                     type=['tasks.WrapperTask','tasks.PythonTask'],
                                      worker=worker, 
                                      state=state, 
                                      actions=workflow,
