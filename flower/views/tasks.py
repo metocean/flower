@@ -11,7 +11,7 @@ from celery.result import AsyncResult
 from tornado import web
 
 from ..views import BaseHandler
-from ..models import TaskModel, WorkersModel, ActionModel
+from ..models import TaskModel, WorkersModel, ActionModel, CycleModel
 
 from scheduler.flow import CrontabFlow
 
@@ -30,6 +30,8 @@ class TaskView(BaseHandler):
                 action_id = task.kwargs['action_id']
                 action_conf = ActionModel.get_action_conf(action_id)
                 logfile = ActionModel.get_log_file(action_id)
+            
+
             else:
                 action_id = None
                 action_conf = None
@@ -38,6 +40,12 @@ class TaskView(BaseHandler):
             cycle_dt = task.kwargs['cycle_dt'] if \
                                          task.kwargs.has_key('cycle_dt') and \
                                          task.kwargs['cycle_dt'] else None
+            if task.kwargs.has_key('workflow'):
+                logfile = CycleModel.get_log_file(cycle_dt)
+                workflow = task.kwargs['workflow']
+            else:
+                workflow = None
+
             routing_key = task.kwargs['routing_key'] if \
                                     task.kwargs.has_key('routing_key') else None
         else:
@@ -46,10 +54,12 @@ class TaskView(BaseHandler):
             logfile = None
             cycle_dt=None
             routing_key=None
+            workflow = None
 
         self.render("task.html", task=task, 
                                  action_id=action_id,
                                  action_conf=action_conf,
+                                 workflow=workflow,
                                  logfile=logfile,
                                  cycle_dt=cycle_dt,
                                  routing_key=routing_key)
@@ -57,13 +67,19 @@ class TaskView(BaseHandler):
 class ActionView(BaseHandler):
     @web.authenticated
     def get(self, action_id):
-        #import pdb; pdb.set_trace()
         action_path = ActionModel.get_action_conf(action_id)
         logfile = ActionModel.get_log_file(action_id)
         self.render("actions.html", action_id=action_id,
                                     action_path=action_path,
                                     logfile=logfile)
 
+class CycleView(BaseHandler):
+    @web.authenticated
+    def get(self, cycle):
+        logfile = CycleModel.get_log_file(cycle)
+        self.render("cycle.html", cycle=action_id,
+                                  workflow=workflow,
+                                  logfile=logfile)
 
 class TasksView(BaseHandler):
     @web.authenticated

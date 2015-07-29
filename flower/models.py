@@ -3,6 +3,7 @@ from __future__ import with_statement
 
 import ast
 import os
+import tailer
 
 from celery.events.state import Task as _Task
 
@@ -161,6 +162,19 @@ class TaskModel(BaseModel):
     def __dir__(self):
         return self._fields
 
+class CycleModel(BaseModel):
+
+    @classmethod
+    def get_log_file(cls, cycle_dt):
+        logdir = os.path.join(LOGDIR, 'cycles')
+        logpath = os.path.join(logdir, 'cycle_%s.log' % cycle_dt)
+        if os.path.exists(logpath):
+            with open(logpath) as log:
+                logfile = os.linesep.join(tailer.tail(log, 500))
+        else:
+            logfile = None
+        return logfile
+
 class ActionModel(BaseModel):
     def __init__(self, action_id):
         self.action_id = action_id
@@ -169,8 +183,8 @@ class ActionModel(BaseModel):
     def get_action_conf(cls, action_id):
         actions = discover_actions()
         if actions.has_key(action_id):
-            with open(actions[action_id]) as oa:
-                action_conf = oa.read()
+            with open(actions[action_id]) as conf:
+                action_conf = conf.read()
         else:
             action_conf = None
         
@@ -181,8 +195,8 @@ class ActionModel(BaseModel):
         logdir = os.path.join(LOGDIR, 'actions')
         logpath = os.path.join(logdir, '%s.log' % action_id)
         if os.path.exists(logpath):
-            with open(logpath) as oa:
-                logfile = oa.read()
+            with open(logpath) as log:
+                logfile = os.linesep.join(tailer.tail(log, 500))
         else:
             logfile = None
         return logfile

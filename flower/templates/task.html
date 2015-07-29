@@ -137,6 +137,12 @@
                             absolute_url=absolute_url) %}
     {% end %}
     {% end %}
+    {% if workflow %}
+      {% module Template("cycle.html",
+                         workflow=workflow,
+                         cycle_dt=cycle_dt,
+                         logfile=logfile) %}
+    {% end %}
     
   </div>
 {% end %}
