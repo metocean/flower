@@ -494,6 +494,30 @@ var flower = (function () {
         return results && results[1] || 0;
     }
 
+    function update_progress(container, update){
+        var progress = update.result['progress']*100,
+            state = update.result['status'];
+        console.log(container)
+        if (container.children().length == 0) {
+            container.text("");
+            container.prepend('<div class="progress"></div>');
+            container.children().prepend('<div class="bar" style="width:' + 
+                                                              progress + '%'+state+'></div>');
+            if (state) {
+                container.children().children().text(progress.toFixed(1)+'%-'+state);
+            } else {
+                container.children().children().text(progress.toFixed(1)+'%');
+            }
+        } else {
+            container.children().children().css('width:'+progress+'%');
+            if (state) {
+                container.children().children().text(progress.toFixed(1)+'%-'+state);
+            } else {
+                container.children().children().text(progress.toFixed(1)+'%');
+            }
+        }
+    }
+
     function reload() {
         window.location.reload();
     }
@@ -517,18 +541,8 @@ var flower = (function () {
                 tr.children('td:eq(2)').children('span').removeClass().addClass("label label-important").text('RETRY');
                 tr.children('td:eq(4)').text(update.eta ? update.eta : "");
             } else if (update.type == 'task-running') {
-                var progress = update.result['progress']*100,
-                    state = update.result['state'];
-                tr.children('td:eq(2)').text("");
-                if (tr.children('td:eq(2)').children().length == 0) {
-                    $('#'+update.uuid+' td:eq(2)').prepend('<div class="progress"></div>');
-                    $('#'+update.uuid+' td:eq(2) .progress').prepend('<div class="bar" style="width:' + 
-                                                                      progress + '%;">'+'</div>');
-                    $('#'+update.uuid+' td:eq(2) .progress .bar').text(progress.toFixed(2)+'%');
-                } else {
-                    $('#'+update.uuid+' td:eq(2) .progress .bar').css('width:'+progress+'%');
-                    $('#'+update.uuid+' td:eq(2) .progress .bar').text(progress.toFixed(2)+'%');
-                }
+                var container = $('#'+update.uuid+' td:eq(2)');
+                update_progress(container, update);
             }
             var timestamp = moment.unix(update.timestamp);
             tr.children("td:eq(6)").text(timestamp.format('DD-MM-YYYY HH:mm:ss'));
@@ -541,6 +555,7 @@ var flower = (function () {
     }
 
     function on_tasks_update(update) {
+        console.log('update');
         var tr = $('#'+update.uuid);
         if (update.type == 'task-received') {
             var uuids = [],
@@ -581,19 +596,8 @@ var flower = (function () {
             tr.children('td:eq(2)').children('span').removeClass().addClass("label label-important").text('RETRY');
             tr.children('td:eq(5)').text(update.result);
         } else if (update.type == 'task-running') {
-            var progress = update.result['progress']*100,
-                state = update.result['state'];
-            tr.children('td:eq(2)').children('span').removeClass().addClass("label label-info").text('RUNNING');
-            tr.children('td:eq(5)').text("");
-            if (tr.children('td:eq(5)').children().length == 0) {
-                $('#'+update.uuid+' td:eq(5)').prepend('<div class="progress"></div>');
-                $('#'+update.uuid+' td:eq(5) .progress').prepend('<div class="bar" style="width:' + 
-                                                                  progress + '%;">'+'</div>');
-                $('#'+update.uuid+' td:eq(5) .progress .bar').text(progress.toFixed(2)+'%');
-            } else {
-                $('#'+update.uuid+' td:eq(5) .progress .bar').css('width:'+progress+'%');
-                $('#'+update.uuid+' td:eq(5) .progress .bar').text(progress.toFixed(2)+'%');
-            }
+            var container = $('#'+update.uuid+' td:eq(5)');
+            update_progress(container, update);
         }
     }
 
@@ -644,23 +648,8 @@ var flower = (function () {
                 $("#retried td:eq(1)").text(timestamp.format('DD-MM-YYYY HH:mm:ss'))
             }
         } else if (update.type == 'task-running') {
-            var progress = update.result['progress']*100,
-                state = update.result['state'];
-            $("#state td:eq(1)").children('span').removeClass().addClass("label label-info").text('RUNNING');
-            $("#result td:eq(1)").text("");
-            if ($("#result td:eq(1)").children().length == 0) {
-                $("#result td:eq(1)").prepend('<div class="progress"></div>');
-                $("#result td:eq(1) .progress").prepend('<div class="bar" style="width:' + 
-                                                                  progress + '%;">'+'</div>');
-            } else {
-                $("#result td:eq(1) .progress .bar").css('width:'+progress+'%');
-            }
-            if (state) {
-              var text = progress.toFixed(2)+'%' + ' - ' + state;
-            } else {
-              var text = progress.toFixed(2)+'%'
-            }
-            $("#result td:eq(1) .progress .bar").text(text);
+            var container = $("#result td:eq(1)");
+                update_progress(container, update);
         }
         if ($.inArray(update.type, ['task-retried', 'task-failed']) != -1){
             if ($("#traceback").length == 0){
