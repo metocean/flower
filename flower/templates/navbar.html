@@ -1,3 +1,10 @@
+
+<script>
+window.setInterval(function(){
+  $('#clock').text(moment().utc().format('DD/MM/YYYY hh:mm:ss UTC'));  
+}, 1000);
+</script>
+
 <div class="navbar navbar-fixed-top">
   <div class="navbar-inner">
     <div class="container-fluid">
@@ -7,6 +14,7 @@
         <span class="icon-bar"></span>
       </a>
       <a class="brand" href="{{ absolute_url('/') }}">MSL Scheduler Flower</a>
+      <div id="clock"></div>
       <div class="nav-collapse">
         <ul class="nav">
             <li {% if active_tab == "workers" %}class="active"{% end %}><a href="{{ absolute_url('/workers') }}">Workers</a></li>

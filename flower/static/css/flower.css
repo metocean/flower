@@ -92,6 +92,13 @@
 .graph .legend .label.disabled {
 	opacity: 0.4;
 }
+
+#clock {
+    display: block;
+    float: right;
+    padding: 10px 5px;
+}
+
 #renderer_form.toggler {
 	display: block;
 	margin: 0;
