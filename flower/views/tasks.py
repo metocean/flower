@@ -27,34 +27,37 @@ class TaskView(BaseHandler):
         #result = self.application.celery_app.backend.get_result(task_id)
         task.kwargs = ast.literal_eval(str(task.kwargs))
         if task.kwargs:
-            if task.kwargs.has_key('action_id'):
-                action_id = task.kwargs['action_id']
-                action_conf = ActionModel.get_action_conf(action_id)
-                logfile, logpath = ActionModel.get_log_file(action_id)
-            else:
-                action_id = None
-                action_conf = None
-                #logfile, logpath = None, None
 
             cycle_dt = task.kwargs['cycle_dt'] if \
                                          task.kwargs.has_key('cycle_dt') and \
                                          task.kwargs['cycle_dt'] else None
-            if task.kwargs.has_key('workflow'):
+
+            if task.kwargs.has_key('action_id'):
+                action_id = task.kwargs['action_id']
+                action_conf = ActionModel.get_action_conf(action_id)
+                logfile, logpath = ActionModel.get_log_file(action_id)
+                workflow = None
+            elif task.kwargs.has_key('workflow'):
                 logfile, logpath = CycleModel.get_log_file(cycle_dt)
                 workflow = task.kwargs['workflow']
+                action_id = None
+                action_conf = None
             else:
+                action_id = None
+                action_conf = None
+                routing_key=None
                 workflow = None
-                #logfile, logpath = None, None
+                logfile, logpath = None
 
             routing_key = task.kwargs['routing_key'] if \
                                     task.kwargs.has_key('routing_key') else None
         else:
-            action_id = "Unknown Task"
+            action_id = None
             action_conf = None
             cycle_dt=None
             routing_key=None
             workflow = None
-        print logpath
+            logfile, logpath = None
 
         self.render("task.html", task=task, 
                                  action_id=action_id,
