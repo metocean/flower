@@ -1,8 +1,11 @@
 
 <script>
-window.setInterval(function(){
-  $('#clock').text(moment().utc().format('DD/MM/YYYY HH:mm:ss UTC'));  
-}, 1000);
+$( document ).ready(function() {
+  $('#utc').text(moment().utc().format('DD/MM/YYYY HH:mm:ss UTC'));
+  window.setInterval(function(){
+    $('#utc').text(moment().utc().format('DD/MM/YYYY HH:mm:ss UTC'));  
+  }, 1000);
+});
 </script>
 
 <div class="navbar navbar-fixed-top">
@@ -14,7 +17,7 @@ window.setInterval(function(){
         <span class="icon-bar"></span>
       </a>
       <a class="brand" href="{{ absolute_url('/') }}">MSL Scheduler Flower</a>
-      <div id="clock"></div>
+      <div id="utc"></div>
       <div class="nav-collapse">
         <ul class="nav">
             <li {% if active_tab == "workers" %}class="active"{% end %}><a href="{{ absolute_url('/workers') }}">Workers</a></li>

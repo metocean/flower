@@ -26,7 +26,8 @@ from .api import tasks
 from .api import workers
 
 from .views.update import (
-    UpdateWorkers
+    UpdateWorkers,
+    UpdateLogfile
 )
 
 from .views.monitor import (
@@ -84,6 +85,7 @@ handlers = [
     (r"/api/task/events/task-running/(.*)", events.TaskRunning),
     # WebSocket Updates
     (r"/update-workers", UpdateWorkers),
+    (r"/update-logfile/(.*)", UpdateLogfile),
     # Monitors
     (r"/monitor", Monitor),
     (r"/monitor/succeeded-tasks", SucceededTaskMonitor),

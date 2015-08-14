@@ -497,21 +497,21 @@ var flower = (function () {
     function update_progress(container, update){
         var progress = update.result['progress']*100,
             state = update.result['status'];
-        console.log(container)
-        if (container.children().length == 0) {
+    
+        if (container.children('.progress').length == 0) {
             container.text("");
             container.prepend('<div class="progress"></div>');
-            container.children().prepend('<div class="bar" style="width:' + 
+            container.children().prepend('<div class="bar" style="width:'+ 
                                                               progress + '%'+state+'></div>');
             if (state) {
-                container.children().children().text(progress.toFixed(1)+'%-'+state);
+                container.children().children().text(progress.toFixed(1)+'% - '+state);
             } else {
                 container.children().children().text(progress.toFixed(1)+'%');
             }
         } else {
-            container.children().children().css('width:'+progress+'%');
+            container.children().children().css('width', progress+'%');
             if (state) {
-                container.children().children().text(progress.toFixed(1)+'%-'+state);
+                container.children().children().text(progress.toFixed(1)+'% - '+state);
             } else {
                 container.children().children().text(progress.toFixed(1)+'%');
             }
@@ -541,6 +541,7 @@ var flower = (function () {
                 tr.children('td:eq(2)').children('span').removeClass().addClass("label label-important").text('RETRY');
                 tr.children('td:eq(4)').text(update.eta ? update.eta : "");
             } else if (update.type == 'task-running') {
+                tr.children('td:eq(2)').children('span').removeClass().addClass("label label-info").text('RUNNING');
                 var container = $('#'+update.uuid+' td:eq(2)');
                 update_progress(container, update);
             }
@@ -596,6 +597,7 @@ var flower = (function () {
             tr.children('td:eq(2)').children('span').removeClass().addClass("label label-important").text('RETRY');
             tr.children('td:eq(5)').text(update.result);
         } else if (update.type == 'task-running') {
+            tr.children('td:eq(2)').children('span').removeClass().addClass("label label-info").text('RUNNING');
             var container = $('#'+update.uuid+' td:eq(5)');
             update_progress(container, update);
         }
@@ -649,7 +651,8 @@ var flower = (function () {
             }
         } else if (update.type == 'task-running') {
             var container = $("#result td:eq(1)");
-                update_progress(container, update);
+            $("#state td:eq(1)").children('span').removeClass().addClass("label label-info").text('RUNNING');
+            update_progress(container, update);
         }
         if ($.inArray(update.type, ['task-retried', 'task-failed']) != -1){
             if ($("#traceback").length == 0){
@@ -690,6 +693,28 @@ var flower = (function () {
         });
     }
 
+    function logfile_update(update){
+        var logheight = $('#logfile')[0].scrollTopMax,
+            scrollpos = $('#logfile')[0].scrollTop;
+        $('#logfile').append(update);
+        if (scrollpos == logheight) {
+            $('#logfile').scrollTop($('#logfile')[0].scrollTopMax);
+        }
+    }
+
+    function connect_tail_socket(logfile) {
+        var host = $(location).attr('host'),
+            protocol = $(location).attr('protocol') == 'http:' ? 'ws://' : 'wss://';
+
+        var ws = new WebSocket(protocol + host + url_prefix() + '/update-logfile/' + logfile);
+        ws.onmessage = function (event) {
+                logfile_update(event.data+'<br>');
+            };
+        $(window).on('beforeunload', function(){
+            ws.close()    
+        });
+    }
+
     $(document).ready(function () {
         console.log($(location).attr('pathname'));
         if ($.inArray($(location).attr('pathname'), [url_prefix(), url_prefix() + '/workers'])) {
@@ -710,8 +735,13 @@ var flower = (function () {
         } else if ($(location).attr('pathname') == '/cycles') {
             connect_tasks_socket(on_cycles_update, "")
         } else if ($.inArray('task', $(location).attr('pathname').split('/'))) {
-            var uuid = $(location).attr('pathname').split('/')[2]
+            var uuid = $(location).attr('pathname').split('/')[2],
+                logpath = $('#logpath').text()
             connect_tasks_socket(on_task_update, uuid)
+            if (logpath){
+                connect_tail_socket(logpath)
+            }
+
         }
 
         //https://github.com/twitter/bootstrap/issues/1768

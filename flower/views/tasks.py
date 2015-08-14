@@ -5,6 +5,7 @@ import time
 import pytz
 import ast
 import celery
+import tailer
 from celery.schedules import crontab
 from celery.result import AsyncResult
 
@@ -29,38 +30,38 @@ class TaskView(BaseHandler):
             if task.kwargs.has_key('action_id'):
                 action_id = task.kwargs['action_id']
                 action_conf = ActionModel.get_action_conf(action_id)
-                logfile = ActionModel.get_log_file(action_id)
-            
-
+                logfile, logpath = ActionModel.get_log_file(action_id)
             else:
                 action_id = None
                 action_conf = None
-                logfile = None
+                #logfile, logpath = None, None
 
             cycle_dt = task.kwargs['cycle_dt'] if \
                                          task.kwargs.has_key('cycle_dt') and \
                                          task.kwargs['cycle_dt'] else None
             if task.kwargs.has_key('workflow'):
-                logfile = CycleModel.get_log_file(cycle_dt)
+                logfile, logpath = CycleModel.get_log_file(cycle_dt)
                 workflow = task.kwargs['workflow']
             else:
                 workflow = None
+                #logfile, logpath = None, None
 
             routing_key = task.kwargs['routing_key'] if \
                                     task.kwargs.has_key('routing_key') else None
         else:
             action_id = "Unknown Task"
             action_conf = None
-            logfile = None
             cycle_dt=None
             routing_key=None
             workflow = None
+        print logpath
 
         self.render("task.html", task=task, 
                                  action_id=action_id,
                                  action_conf=action_conf,
                                  workflow=workflow,
                                  logfile=logfile,
+                                 logpath=logpath,
                                  cycle_dt=cycle_dt,
                                  routing_key=routing_key)
 
@@ -102,7 +103,7 @@ class TasksView(BaseHandler):
 
         self.render("tasks.html", tasks=tasks,
                     task_types=seen_task_types,
-                    all_states=celery.states.ALL_STATES.union({'PROGRESS'}),
+                    all_states=celery.states.ALL_STATES.union({'RUNNING'}),
                     workers=workers,
                     limit=limit,
                     worker=worker,
@@ -160,7 +161,9 @@ class CyclesView(BaseHandler):
         cyclic_tasks = TaskModel.iter_tasks(app, limit=limit, 
                                      type=['tasks.WrapperTask',
                                            'tasks.PythonTask',
-                                           'tasks.SubprocessTask',],
+                                           'tasks.SubprocessTask'
+                                           'chain.AllocateChainTask',
+                                           'chain.ChainGroupTask'],
                                      worker=worker, 
                                      state=state, 
                                      actions=workflow,

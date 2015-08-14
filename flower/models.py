@@ -173,7 +173,8 @@ class CycleModel(BaseModel):
                 logfile = os.linesep.join(tailer.tail(log, 500))
         else:
             logfile = None
-        return logfile
+            logpath = None
+        return logfile, logpath
 
 class ActionModel(BaseModel):
     def __init__(self, action_id):
@@ -199,7 +200,8 @@ class ActionModel(BaseModel):
                 logfile = os.linesep.join(tailer.tail(log, 500))
         else:
             logfile = None
-        return logfile
+            logpath = None
+        return logfile, logpath
 
 class BrokerModel(BaseModel):
     def __init__(self, app):
