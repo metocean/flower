@@ -47,7 +47,7 @@ class TaskView(BaseHandler):
                 action_conf = None
                 routing_key=None
                 workflow = None
-                logfile, logpath = None
+                logfile, logpath = None, None
 
             routing_key = task.kwargs['routing_key'] if \
                                     task.kwargs.has_key('routing_key') else None
@@ -57,7 +57,7 @@ class TaskView(BaseHandler):
             cycle_dt=None
             routing_key=None
             workflow = None
-            logfile, logpath = None
+            logfile, logpath = None, None
 
         self.render("task.html", task=task, 
                                  action_id=action_id,
