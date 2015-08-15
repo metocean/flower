@@ -16,6 +16,8 @@ from ..models import TaskModel, WorkersModel, ActionModel, CycleModel
 
 from scheduler.flow import CrontabFlow
 
+STATES = celery.states.ALL_STATES.union({'RUNNING'})
+
 class TaskView(BaseHandler):
     @web.authenticated
     def get(self, task_id):
@@ -105,7 +107,7 @@ class TasksView(BaseHandler):
 
         self.render("tasks.html", tasks=tasks,
                     task_types=seen_task_types,
-                    all_states=celery.states.ALL_STATES.union({'RUNNING'}),
+                    all_states=STATES,
                     workers=workers,
                     limit=limit,
                     worker=worker,
@@ -195,7 +197,7 @@ class CyclesView(BaseHandler):
                     cycles_tasks=cycle_tasks,
                     cycle_state=cycle_state,
                     cycle_dt=cycle_dt,
-                    all_states=celery.states.ALL_STATES,
+                    all_states=STATES,
                     workers=workers,
                     limit=limit,
                     worker=worker,
@@ -274,7 +276,7 @@ class CrontabView(BaseHandler):
                     action_type=action_type,
                     action_id=action_id,
                     crontab_state=crontab_state,
-                    all_states=celery.states.ALL_STATES,
+                    all_states=STATES,
                     workers=workers,
                     limit=limit,
                     worker=worker,

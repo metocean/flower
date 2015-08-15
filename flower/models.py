@@ -55,7 +55,7 @@ class WorkersModel(BaseModel):
 
     @classmethod
     def get_workers(cls, app):
-        return list(app.state.stats.keys())
+        return [w for w in app.state.stats.keys() if 'dedicated' not in w]
 
     @classmethod
     def is_worker(cls, app, workername):
@@ -122,7 +122,7 @@ class TaskModel(BaseModel):
         i = 0
         events_state = app.events.state
         for uuid, task in events_state.tasks_by_timestamp():
-    
+
             if (isinstance(type, str) and task.name != type) or \
                (isinstance(type, list) and task.name not in type):
                 continue
