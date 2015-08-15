@@ -113,6 +113,18 @@ class TasksView(BaseHandler):
                     state=state)
 
 class CyclesView(BaseHandler):
+
+    def _smash_allocation(self, tasks):
+        # Get tasks allocating and 
+        filter_tasks = []
+        for uuid, task in tasks:
+            if task.name == 'chain.AllocateChainTask' and task.state in ['STARTED', 'RUNNING', 'SUCCESS']:
+                continue
+            else:
+                filter_tasks.append((uuid, task))
+        return filter_tasks
+
+
     @web.authenticated
     def get(self):
         app = self.application
@@ -171,7 +183,7 @@ class CyclesView(BaseHandler):
                                      actions=workflow,
                                      action_type=action_type,
                                      cycles=[c[0] for c in cycle_tasks])
-
+        cyclic_tasks = self._smash_allocation(cyclic_tasks)
         workers = WorkersModel.get_workers(app)
         workers.sort()
         action_type = action_type if action_type != None else 'All'

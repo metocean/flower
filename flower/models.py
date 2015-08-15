@@ -122,7 +122,7 @@ class TaskModel(BaseModel):
         i = 0
         events_state = app.events.state
         for uuid, task in events_state.tasks_by_timestamp():
-
+    
             if (isinstance(type, str) and task.name != type) or \
                (isinstance(type, list) and task.name not in type):
                 continue
