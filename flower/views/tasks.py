@@ -177,7 +177,7 @@ class CyclesView(BaseHandler):
         cyclic_tasks = TaskModel.iter_tasks(app, limit=limit, 
                                      type=['tasks.WrapperTask',
                                            'tasks.PythonTask',
-                                           'tasks.SubprocessTask'
+                                           'tasks.SubprocessTask',
                                            'chain.AllocateChainTask',
                                            'chain.ChainGroupTask'],
                                      worker=worker, 
