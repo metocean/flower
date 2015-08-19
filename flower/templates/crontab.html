@@ -97,8 +97,6 @@
       <a href="{{ absolute_url('/crontab?crontab_state=All') }}&action_type={{ action_type }}" class="btn {% if not crontab_state %} active {% end %}" role="button">All</a>
       <a href="{{ absolute_url('/crontab?crontab_state=[SUCCESS,FAILURE,REVOKED]') }}&action_type={{ action_type }}" class="btn {% if crontab_state=='[SUCCESS,FAILURE,REVOKED]' %} active {% end %}" role="button">Completed</a>
       <a href="{{ absolute_url('/crontab?crontab_state=[STARTED,RUNNING,RETRY,RECEIVED]') }}&action_type={{ action_type }}" class="btn {% if crontab_state=='[STARTED,RUNNING,RETRY,RECEIVED]' %} active {% end %}" role="button">Current</a>
-      <a href="{{ absolute_url('/crontab?crontab_state=PENDING') }}&action_type={{ action_type }}" class="btn {% if crontab_state=='PENDING' %} active {% end %}" role="button">Queued</a>
-      </br>
   </div>
 
   <table class="table table-bordered table-striped">

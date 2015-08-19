@@ -104,11 +104,9 @@
     </div>
   </div>
   <div class="container-fluid">
-      <h2 id="cycles">Cycles <small>{% for cycle,uuid,task in cycles_tasks[:4] %} | {{cycle}} {% end %}{% if len(cycles_tasks) > 4 %}...{%end%}</small>  </h2>
+      <h2 id="cycles">Cycles <small>{% for cycle,uuid,task in cycles_tasks[:4] %} | <a href="{{ absolute_url('/task/' + task.uuid) }}">{{cycle}}</a> {% end %}{% if len(cycles_tasks) > 4 %}...{%end%}</small>  </h2>
       <a href="{{ absolute_url('/cycles?cycle_state=[SUCCESS,FAILURE]') }}&action_type={{ action_type }}" class="btn {% if cycle_state=='[SUCCESS,FAILURE]' %} active {% end %}" role="button">Previous</a>
       <a href="{{ absolute_url('/cycles?cycle_state=[STARTED,RUNNING]') }}&action_type={{ action_type }}" class="btn {% if cycle_state=='[STARTED,RUNNING]' %} active {% end %}" role="button">Current</a>
-      <a href="{{ absolute_url('/cycles?cycle_state=PENDING') }}&action_type={{ action_type }}" class="btn {% if cycle_state =='PENDING' %} active {% end %}" role="button">Queued</a>
-      </br>
     <ul class="hidden">
       <li id="cli-template"> cycle </li>
     {% for cycle,uuid,task in cycles_tasks %}
