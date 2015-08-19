@@ -16,7 +16,7 @@
           <p id="routing_key" class="hidden">{%if routing_key%}{{ routing_key }}{%end%}</p>
           <h2>{% if action_id %}{{ action_id }}{% else %}{{ getattr(task, 'name', None) }}{% end %}
             <small>{{ task.uuid }}</small>
-            {% if task.state in ["STARTED","RUNNING"] %}
+            {% if task.state in ["STARTED","RUNNING","ALLOCATING"] %}
                 <button style="float: right" class="btn btn-danger" onclick="flower.on_task_terminate(event)">Terminate</button>
             {% elif task.state == "RECEIVED" or task.state == "RETRY" %}
                 <button  style="float: right" class="btn btn-danger" onclick="flower.on_task_revoke(event)">Revoke</button>
