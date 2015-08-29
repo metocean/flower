@@ -161,7 +161,7 @@ Revoke a task
         if routing_key: kwargs['routing_key'] = routing_key
 
         options = {}
-        result = task.apply_async(args=[], kwargs=kwargs, **options)
+        result = task.apply_async(args=[], kwargs=kwargs, task_id=taskid, **options)
 
         response = {'task-id': result.task_id}
 
