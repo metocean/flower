@@ -5,7 +5,7 @@ import logging
 from tornado import web
 
 from ..views import BaseHandler
-from ..models import WorkersModel
+from ..models import WorkersModel, TaskModel
 
 
 logger = logging.getLogger(__name__)
@@ -396,6 +396,48 @@ Stop consuming from a queue
                     workername, self.error_reason(workername, response)
                 ))
 
+
+class TaskTerminate(BaseHandler):
+    @web.authenticated
+    def post(self, taskid):
+        """
+Revoke a task
+
+**Example request**:
+
+.. sourcecode:: http
+
+  POST /api/task/revoke/1480b55c-b8b2-462c-985e-24af3e9158f9?terminate=true
+  Content-Length: 0
+  Content-Type: application/x-www-form-urlencoded; charset=utf-8
+  Host: localhost:5555
+
+**Example response**:
+
+.. sourcecode:: http
+
+  HTTP/1.1 200 OK
+  Content-Length: 61
+  Content-Type: application/json; charset=UTF-8
+
+  {
+      "message": "Revoked '1480b55c-b8b2-462c-985e-24af3e9158f9'"
+  }
+
+:query terminate: terminate the task if it is running
+:reqheader Authorization: optional OAuth token to authenticate
+:statuscode 200: no error
+:statuscode 401: unauthorized request
+        """
+        logger.info("Terminating task task '%s'", taskid)
+        celery = self.application.celery_app
+        task = TaskModel.get_task_by_id(self.application, taskid)
+        destination = self.get_argument('destination', default=None)
+        celery.control.broadcast('terminate', destination=[destination], 
+                                  reply=True,
+                                  arguments={'task_id':taskid,
+                                             'signal': 'TERM'})
+        self.write(dict(message="Terminated '%s'" % taskid))
 
 class TaskRevoke(BaseHandler):
     @web.authenticated

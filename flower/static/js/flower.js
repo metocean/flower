@@ -302,13 +302,14 @@ var flower = (function () {
         event.stopPropagation();
 
         var taskid = $('#taskid').text();
+        var destination = $('#worker').children('td:eq(1)').text();
 
         $.ajax({
             type: 'POST',
-            url: url_prefix() + '/api/task/revoke/' + taskid,
+            url: url_prefix() + '/api/task/terminate/' + taskid,
             dataType: 'json',
             data: {
-                'terminate': true,
+                'destination': destination,
             },
             success: function (data) {
                 show_success_alert(data.message);

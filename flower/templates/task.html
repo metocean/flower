@@ -20,7 +20,7 @@
                 <button style="float: right" class="btn btn-danger" onclick="flower.on_task_terminate(event)">Terminate</button>
             {% elif task.state == "RECEIVED" or task.state == "RETRY" %}
                 <button  style="float: right" class="btn btn-danger" onclick="flower.on_task_revoke(event)">Revoke</button>
-            {% elif task.state == "FAILURE" and action_id %}
+            {% elif task.state == "FAILURE" or task.state == "REVOKED" and action_id %}
                 <button  style="float: right" class="btn btn-danger" onclick="flower.on_task_retry(event)">Retry</button>
             {% end %}
           </h2>

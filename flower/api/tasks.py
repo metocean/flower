@@ -161,7 +161,12 @@ Revoke a task
         if routing_key: kwargs['routing_key'] = routing_key
 
         options = {}
-        result = task.apply_async(args=[], kwargs=kwargs, task_id=taskid, **options)
+
+        self.application.events.state.tasks[taskid].state = 'RETRY'
+        #import pdb; pdb.set_trace()
+        retries = self.application.events.state.tasks[taskid].retries + 1
+        
+        result = task.apply_async(args=[], kwargs=kwargs, task_id=taskid, retries=retries, **options)
 
         response = {'task-id': result.task_id}
 
