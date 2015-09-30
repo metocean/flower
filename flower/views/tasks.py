@@ -119,11 +119,19 @@ class CyclesView(BaseHandler):
     def _smash_allocation(self, tasks):
         # Get tasks allocating and 
         filter_tasks = []
+        alloc_actions = []
         for uuid, task in tasks:
+            if task.name == 'chain.AllocateChainTask':
+                alloc_actions.append(task.kwargs['action_id'])
             if task.name == 'chain.AllocateChainTask' and task.state in ['STARTED', 'RUNNING', 'SUCCESS']:
                 continue
             else:
                 filter_tasks.append((uuid, task))
+        for uuid, task in filter_tasks:
+            if 'tasks.' in task.name \
+            and task.kwargs['action_id'] in alloc_actions \
+            and task.state in ['FAILURE']:
+                filter_tasks.remove((uuid,task))
         return filter_tasks
 
 
