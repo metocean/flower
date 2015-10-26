@@ -549,7 +549,6 @@ var flower = (function () {
             var timestamp = moment.unix(update.timestamp);
             tr.children("td:eq(6)").text(timestamp.format('DD-MM-YYYY HH:mm:ss'));
         }
-        console.log(update)
         if ( update.hostname.indexOf("performer") > -1 &&
              $.inArray(update.type, ['task-started','task-succeeded','task-failed']) > -1 ) {
             setTimeout(reload , 5000);
@@ -557,7 +556,6 @@ var flower = (function () {
     }
 
     function on_tasks_update(update) {
-        console.log('update');
         var tr = $('#'+update.uuid);
         if (update.type == 'task-received') {
             var uuids = [],
@@ -717,7 +715,6 @@ var flower = (function () {
     }
 
     $(document).ready(function () {
-        console.log($(location).attr('pathname'));
         if ($.inArray($(location).attr('pathname'), [url_prefix(), url_prefix() + '/workers'])) {
             var host = $(location).attr('host'),
                 protocol = $(location).attr('protocol') == 'http:' ? 'ws://' : 'wss://',
@@ -843,7 +840,6 @@ var flower = (function () {
 
                 },
             });
-
         }
 
     });

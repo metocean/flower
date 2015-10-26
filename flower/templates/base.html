@@ -14,11 +14,13 @@
       body { padding-top: 60px; }
     </style>
 
+    <link href="{{ static_url('css/tablesorter.css') }}" rel="stylesheet">
     <link href="{{ static_url('css/bootstrap.css') }}" rel="stylesheet">
     <link href="{{ static_url('css/bootstrap-responsive.css') }}" rel="stylesheet">
     <link href="{{ static_url('css/rickshaw.min.css') }}" rel="stylesheet">
     <link href="{{ static_url('css/jquery-ui.css') }}" rel="stylesheet">
     <link href="{{ static_url('css/flower.css') }}" rel="stylesheet">
+
 
     {% block extra_styles %}
     {% end %}
@@ -75,6 +77,9 @@
     <script src="{{ static_url('js/d3.layout.min.js') }}"></script>
     <script src="{{ static_url('js/rickshaw.min.js') }}"></script>
     <script src="{{ static_url('js/moment.min.js') }}"></script>
+    <script src="{{ static_url('js/jquery.metadata.js') }}"></script>
+    <script src="{{ static_url('js/jquery.tablesorter.min.js') }}"></script>
+    <script src="{{ static_url('js/jquery.tablesorter.pager.js') }}"></script>
     <script src="{{ static_url('js/flower.js') }}"></script>
   </body>
 </html>

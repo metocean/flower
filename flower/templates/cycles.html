@@ -115,7 +115,7 @@
     </ul>
   </div> 
 
-  <table class="table table-bordered table-striped">
+  <table id="tasks-table" class="table table-bordered table-striped tablesorter">
     <thead>
     <tr>
       <th>Action ID</th>
@@ -170,5 +170,10 @@
     </tr>
     {% end %}
   </table>
+  <script type="text/javascript">
+    $(document).ready(function () {
+      $('#tasks-table').tablesorter({sortList: [[6,0]]});
+    });
+  </script>
   <div>
 {% end %}

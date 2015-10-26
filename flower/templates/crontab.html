@@ -99,7 +99,7 @@
       <a href="{{ absolute_url('/crontab?crontab_state=[STARTED,RUNNING,RETRY,RECEIVED]') }}&action_type={{ action_type }}" class="btn {% if crontab_state=='[STARTED,RUNNING,RETRY,RECEIVED]' %} active {% end %}" role="button">Current</a>
   </div>
 
-  <table class="table table-bordered table-striped">
+  <table id="tasks-table"  class="table table-bordered table-striped tablesorter">
     {% if not crontab_state %}
     <thead>
     <tr>
@@ -155,5 +155,10 @@
     {% end %}
   {% end %}  
   </table>
+  <script type="text/javascript">
+    $(document).ready(function () {
+      $('#tasks-table').tablesorter({sortList: [[6,0]]});
+    });
+  </script>
   <div>
 {% end %}
