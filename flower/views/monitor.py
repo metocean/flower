@@ -19,7 +19,9 @@ class SucceededTaskMonitor(BaseHandler):
     def get(self):
         timestamp = self.get_argument('lastquery', type=float)
         state = self.application.events.state
-
+        for worker in state.workers:
+            if 'dedicated' in worker:
+                state.workers.pop(worker)
         data = defaultdict(int)
         for _, task in state.itertasks():
             utcoffset = getattr(task, 'utcoffset', 0)
@@ -38,7 +40,9 @@ class TimeToCompletionMonitor(BaseHandler):
     def get(self):
         timestamp = self.get_argument('lastquery', type=float)
         state = self.application.events.state
-
+        for worker in state.workers:
+            if 'dedicated' in worker:
+                state.workers.pop(worker)
         execute_time = 0
         queue_time = 0
         num_tasks = 0
@@ -73,7 +77,9 @@ class FailedTaskMonitor(BaseHandler):
     def get(self):
         timestamp = self.get_argument('lastquery', type=float)
         state = self.application.events.state
-
+        for worker in state.workers:
+            if 'dedicated' in worker:
+                state.workers.pop(worker)
         data = defaultdict(int)
         for _, task in state.itertasks():
             utcoffset = getattr(task, 'utcoffset', 0)
@@ -91,7 +97,6 @@ class BrokerMonitor(BaseHandler):
     @web.authenticated
     def get(self):
         state = self.application.state
-
         data = defaultdict(int)
         for queue in state.broker_queues:
             data[queue['name']] = queue['messages']
