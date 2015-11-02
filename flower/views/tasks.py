@@ -187,7 +187,7 @@ class CyclesView(BaseHandler):
                                            'tasks.PythonTask',
                                            'tasks.SubprocessTask',
                                            'chain.AllocateChainTask',
-                                           'chain.ChainGroupTask'],
+                                           'chain.GroupChainTask'],
                                      worker=worker, 
                                      state=state, 
                                      actions=workflow,
