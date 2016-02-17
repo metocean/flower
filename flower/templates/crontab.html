@@ -50,7 +50,7 @@
               <div class="controls">
                 <select name="action_id" id="select-action">
                   <option>All</option>
-                  {% for a_id in crontab_actions %}
+                  {% for a_id in all_actions %}
                   <option {% if a_id==action_id %} selected {% end %}>{{ a_id }}</option>
                   {% end %}
                 </select>

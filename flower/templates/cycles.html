@@ -50,7 +50,7 @@
               <div class="controls">
                 <select name="cycle_dt" id="select-cycle">
                   <option>All</option>
-                  {% for cycle,uuid,task in cycles_tasks %}
+                  {% for cycle in all_cycles %}
                   <option {% if cycle==cycle_dt %} selected {% end %}>{{ cycle }}</option>
                   {% end %}
                 </select>

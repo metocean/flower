@@ -6,6 +6,7 @@ import pytz
 import ast
 import celery
 import tailer
+import copy
 from celery.schedules import crontab
 from celery.result import AsyncResult
 
@@ -162,8 +163,10 @@ class CyclesView(BaseHandler):
         cycle_tasks = []
         workflow = []
         cycles_dts = []
+        all_cycles = []
         for uuid,task in cycles:
             cycle = task.kwargs['cycle_dt']
+            all_cycles.append(cycle)
             if cycle_dt and cycle != cycle_dt:
                 continue
             for action_id in task.kwargs['workflow']:
@@ -182,6 +185,8 @@ class CyclesView(BaseHandler):
         workflow = workflow if not type_ else [type_]
         cycle_tasks.sort()
         cycle_tasks.reverse()
+        all_cycles.sort()
+        all_cycles.reverse()
         cyclic_tasks = TaskModel.iter_tasks(app, limit=limit, 
                                      type=['tasks.WrapperTask',
                                            'tasks.PythonTask',
@@ -205,6 +210,7 @@ class CyclesView(BaseHandler):
                     cycles_tasks=cycle_tasks,
                     cycle_state=cycle_state,
                     cycle_dt=cycle_dt,
+                    all_cycles=all_cycles,
                     all_states=STATES,
                     workers=workers,
                     limit=limit,
@@ -243,6 +249,7 @@ class CrontabView(BaseHandler):
             crontab_actions = [action_id]
         else:
             crontab_actions = cronflow.crontab_actions.keys()
+        all_actions = cronflow.crontab_actions.keys()
 
         crontab_tasks = TaskModel.iter_tasks(app, limit=limit,
                                      type=type_,
@@ -276,6 +283,7 @@ class CrontabView(BaseHandler):
         workers = WorkersModel.get_workers(app)
         workers.sort()
         crontab_actions.sort()
+        all_actions.sort()
         action_type = action_type if action_type != None else 'All'
         
         self.render("crontab.html",
@@ -284,6 +292,7 @@ class CrontabView(BaseHandler):
                     action_type=action_type,
                     action_id=action_id,
                     crontab_state=crontab_state,
+                    all_actions=all_actions,
                     all_states=STATES,
                     workers=workers,
                     limit=limit,
