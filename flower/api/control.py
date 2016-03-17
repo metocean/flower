@@ -436,7 +436,7 @@ Revoke a task
         celery.control.broadcast('terminate', destination=[destination], 
                                   reply=True,
                                   arguments={'task_id':taskid,
-                                             'signal': 'TERM'})
+                                             'signal': 'USR1'})
         self.write(dict(message="Terminated '%s'" % taskid))
 
 class TaskRevoke(BaseHandler):

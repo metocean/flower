@@ -17,7 +17,7 @@ from ..models import TaskModel, WorkersModel, ActionModel, CycleModel
 
 from scheduler.flow import CrontabFlow
 
-STATES = celery.states.ALL_STATES.union({'RUNNING'})
+STATES = celery.states.ALL_STATES.union({'RUNNING','ALLOCATING','WAITING'})
 
 class TaskView(BaseHandler):
     @web.authenticated

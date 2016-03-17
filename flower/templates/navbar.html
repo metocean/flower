@@ -26,8 +26,8 @@ $( document ).ready(function() {
             <li {% if active_tab == "crontab" %}class="active"{% end %}><a href="{{ absolute_url('/crontab?limit=100&crontab_state=[SUCCESS,FAILURE,REVOKED]') }}">Crontab</a></li>
             <li {% if active_tab == "broker" %}class="active"{% end %}><a href="{{ absolute_url('/broker') }}">Broker</a></li>
             <li {% if active_tab == "monitor" %}class="active"{% end %}><a href="{{ absolute_url('/monitor') }}">Monitor</a></li>
-          <li {% if active_tab == "docs" %}class="active"{% end %}><a href="{{ absolute_url('/docs/') }}" target="_blank">Docs</a></li>
-          <li><a href="https://github.com/mher/flower" target="_blank">About</a></li>
+            <li {% if active_tab == "docs" %}class="active"{% end %}><a href="https://www.github.com/metocean/scheduler/wiki/" target="_blank">Docs</a></li>
+            <li><a href="https://github.com/metocean/scheduler" target="_blank">Code</a></li>
         </ul>
       </div>
     </div>

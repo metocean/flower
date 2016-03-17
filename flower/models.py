@@ -122,8 +122,7 @@ class TaskModel(BaseModel):
         i = 0
         events_state = app.events.state
         for uuid, task in events_state.tasks_by_timestamp():
-
-            if (isinstance(type, str) and task.name != type) or \
+            if (isinstance(type, (str,unicode)) and task.name != type) or \
                (isinstance(type, list) and task.name not in type):
                 continue
 
@@ -132,8 +131,10 @@ class TaskModel(BaseModel):
 
             if state and task.state not in state:
                 continue
-
-            task.kwargs = ast.literal_eval(str(task.kwargs))
+            try:    
+                task.kwargs = ast.literal_eval(str(task.kwargs))
+            except:
+                pass
 
             if cycles and task.kwargs.has_key('cycle_dt')\
             and task.kwargs['cycle_dt'] not in cycles:
