@@ -582,7 +582,7 @@ var flower = (function () {
             tr.children('td:eq(8)').text(timestamp.format('DD-MM-YYYY HH:mm:ss'));
         } else if (update.type == 'task-succeeded') {
             tr.children('td:eq(2)').children('span').removeClass().addClass("label label-success").text('SUCCESS');
-            var timestamp = moment.unix(update.timestamp);
+            var timestamp = moment.unix(update.timestamp).utc();
             tr.children('td:eq(9)').text(timestamp.format('DD-MM-YYYY HH:mm:ss'));
             tr.children('td:eq(5)').text(update.result);
             tr.children('td:eq(10)').text(update.runtime.toFixed(2));
@@ -603,7 +603,7 @@ var flower = (function () {
     }
 
     function on_task_update(update) {
-        var timestamp = moment.unix(update.timestamp);
+        var timestamp = moment.unix(update.timestamp).utc();
         if (update.type == 'task-received') {
             $("#state td:eq(1)").children('span').removeClass().addClass("label label-default").text('RECEIVED');
             $("#received td:eq(1)").text(timestamp.format('DD-MM-YYYY HH:mm:ss'))
@@ -672,7 +672,7 @@ var flower = (function () {
     function connect_tasks_socket(update_function, uuid) {
         var host = $(location).attr('host'),
             protocol = $(location).attr('protocol') == 'http:' ? 'ws://' : 'wss://',
-            events = ['task-received', 'task-started', 'task-succeeded',
+            events = ['task-received', 'task-started', 'task-succeeded','task-waiting',
                       'task-failed', 'task-revoked', 'task-retried', 'task-running'],
             sockets = [];
 

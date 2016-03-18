@@ -19,6 +19,11 @@ from celery.events.state import State
 from . import api
 from .settings import CELERY_EVENTS_ENABLE_INTERVAL
 
+PRECEDENCE = celery.states.PRECEDENCE
+PRECEDENCE.append('WAITING')
+PRECEDENCE.insert(PRECEDENCE.index('STARTED'),'RUNNING')
+PRECEDENCE.insert(PRECEDENCE.index('RUNNING'),'ALLOCATING')
+celery.states.PRECEDENCE_LOOKUP = dict(zip(PRECEDENCE, range(0, len(PRECEDENCE))))
 
 logger = logging.getLogger(__name__)
 

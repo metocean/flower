@@ -84,6 +84,7 @@ handlers = [
     (r"/api/task/events/task-revoked/(.*)", events.TaskRevoked),
     (r"/api/task/events/task-retried/(.*)", events.TaskRetried),
     (r"/api/task/events/task-running/(.*)", events.TaskRunning),
+    (r"/api/task/events/task-waiting/(.*)", events.TaskWaiting),
     # WebSocket Updates
     (r"/update-workers", UpdateWorkers),
     (r"/update-logfile/(.*)", UpdateLogfile),

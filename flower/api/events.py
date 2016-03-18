@@ -17,8 +17,8 @@ class EventsApiHandler(BaseWebSocketHandler):
                 l.write_message(event)
 
 
-EVENTS = ('task-sent', 'task-received', 'task-started', 'task-succeeded',
-          'task-failed', 'task-revoked', 'task-retried', 'task-running')
+EVENTS = ('task-waiting', 'task-sent', 'task-received', 'task-started', 'task-running',
+          'task-succeeded', 'task-failed', 'task-revoked', 'task-retried')
 
 
 def getClassName(eventname):
