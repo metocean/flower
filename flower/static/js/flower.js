@@ -755,7 +755,7 @@ var flower = (function () {
     });
 
     $(document).ready(function () {
-        if ($.inArray($(location).attr('pathname'), ['/', '/dashboard', '/broker', '/monitor']) !== -1) {
+        if ($.inArray($(location).attr('pathname'), ['/', '/dashboard', '/broker', '/monitor', '/cycles']) !== -1) {
             return;
         }
 
