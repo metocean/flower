@@ -692,7 +692,10 @@ var flower = (function () {
                 serverSide: true,
                 colReorder: true,
                 ajax: {
-                    url: url_prefix() + '/cycles/datatable'
+                    url: url_prefix() + '/cycles/datatable',
+                    data: function ( d ) {
+                        d.cycle_dt = $('#select-cycle option:selected').text();
+                    }   
                 },
                 order: [
                     [7, "asc"]
@@ -706,7 +709,7 @@ var flower = (function () {
                     visible: isColumnVisible('action_id'),
                     orderable: false,
                     render: function (data, type, full, meta) {
-                        return data;
+                        return '<a href="' + url_prefix() + '/task/' + full.uuid + '">' + data + '</a>';
                     }
                 },{
                     targets: 1,
@@ -781,6 +784,11 @@ var flower = (function () {
                     data: 'retries',
                     visible: isColumnVisible('retries')
                 },],
+            });
+            $('#select-cycle').change(function(){
+                console.log('click');
+                var table = $('#cycles-table').DataTable();
+                table.draw();
             });
         } else { return }
 
