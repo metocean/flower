@@ -8,8 +8,17 @@
 {% block container %}
 <input type="hidden" value="{{ time }}" id='time'>
 <input type="hidden" value="{{ columns }}" id='columns'>
+<input type="hidden" value="{{ cycles_dt }}" id='cycles'>
 
 <div class="container-fluid">
+  <h2>Cycles</h2> 
+  <div class="controls">
+    <select id="select-cycle" name="cycle_dt" id="select-cycle">
+      {% for cycle in cycles_dt %}
+      <option {% if cycle==cycle_dt %} selected {% end %}>{{ cycle }}</option>
+      {% end %}
+    </select>
+  </div>
   <table id="cycles-table" class="table table-bordered table-striped">
     <thead>
     <tr>
