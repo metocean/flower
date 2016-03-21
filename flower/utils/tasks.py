@@ -39,8 +39,10 @@ def iter_tasks(events, limit=None, type=None, worker=None, state=None,
         if started_end and task.started and\
                 task.started > convert(started_end):
             continue
+
         if not satisfies_search_terms(task, search_terms):
             continue
+            
         yield uuid, task
         i += 1
         if i == limit:

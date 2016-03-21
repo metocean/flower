@@ -923,6 +923,7 @@ var flower = (function () {
                 },{
                     targets: 1,
                     data: 'cycle_dt',
+                    orderable: false,
                     visible: isColumnVisible('cycle_dt')
                 }, {
                     targets: 2,
