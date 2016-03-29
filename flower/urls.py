@@ -16,6 +16,8 @@ from .views.tasks import TaskView, TasksView, TasksDataTable
 from .views.cycles import CyclesView, CyclesDataTable
 from .views.error import NotFoundErrorHandler
 from .views.dashboard import DashboardView, DashboardUpdateHandler
+from .views.tailer import UpdateLogfile
+from .views.action import ActionView
 from .utils import gen_cookie_secret
 
 
@@ -34,6 +36,7 @@ handlers = [
     url(r"/dashboard", DashboardView, name='dashboard'),
     url(r"/worker/(.+)", WorkerView, name='worker'),
     url(r"/task/(.+)", TaskView, name='task'),
+    url(r"/action/(.+)", ActionView, name='task'),
     url(r"/tasks", TasksView, name='tasks'),
     url(r"/cycles", CyclesView, name='cycles'),
     url(r"/cycles/datatable", CyclesDataTable),
@@ -74,6 +77,7 @@ handlers = [
     (r"/api/task/events/update-tasks/", events.TasksUpdate),
     # WebSocket Updates
     (r"/update-dashboard", DashboardUpdateHandler),
+    (r"/update-logfile/(.*)", UpdateLogfile),
     # Monitors
     url(r"/monitor", monitor.Monitor, name='monitor'),
     (r"/monitor/succeeded-tasks", monitor.SucceededTaskMonitor),
