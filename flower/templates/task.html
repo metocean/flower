@@ -14,6 +14,8 @@
             <small>{{ task.uuid }}</small>
             {% if task.state in ["STARTED","RUNNING","ALLOCATING"] %}
                 <button style="float: right" class="btn btn-danger" onclick="flower.on_task_terminate(event)">Terminate</button>
+            {% elif task.state == "FAILURE" %}
+                <button  style="float: right" class="btn btn-danger" onclick="flower.on_task_retry(event)">Retry</button>
             {% elif task.state == "RECEIVED" or task.state == "RETRY" %}
                 <button  style="float: right" class="btn btn-danger" onclick="flower.on_task_revoke(event)">Revoke</button>
             {% end %}
@@ -24,15 +26,15 @@
             <table class="table table-bordered table-striped">
               <caption>Basic task options</caption>
               <tbody>
-              <tr>
+              <tr id='name'>
                 <td>Name</td>
                 <td>{{ getattr(task, 'name', None) }}</td>
               </tr>
-              <tr>
+              <tr id='uuid'>
                 <td>UUID</td>
                 <td>{{ task.uuid }}</td>
               </tr>
-              <tr>
+              <tr id='state'>
                 <td>State</td>
                 <td>
                   {% if task.state == "SUCCESS" %}
@@ -44,15 +46,15 @@
                   {% end %}
                 </td>
               </tr>
-              <tr>
+              <tr id='args'>
                 <td>args</td>
-                <td><pre>{{ pprint.pformat(task.args) }}</pre></td>
+                <td><pre>{{ json.dumps(task.args) }}</pre></td>
               </tr>
-              <tr>
+              <tr id='kwargs'>
                 <td>kwargs</td>
-                <td><pre>{{ pprint.pformat(task.kwargs) }}</pre></td>
+                <td><pre>{{ json.dumps(task.kwargs) }}</pre></td>
               </tr>
-              <tr>
+              <tr id='result'>
                 <td>Result</td>
                 <td>{{ getattr(task, 'result', None) }}</td>
               </tr>
