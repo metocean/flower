@@ -65,6 +65,7 @@ handlers = [
     (r"/api/task/timeout/(.+)", control.TaskTimout),
     (r"/api/task/rate-limit/(.+)", control.TaskRateLimit),
     (r"/api/task/revoke/(.+)", control.TaskRevoke),
+    (r"/api/task/terminate/(.+)", control.TaskTerminate),
     # Events WebSocket API
     (r"/api/task/events/task-sent/(.*)", events.TaskSent),
     (r"/api/task/events/task-received/(.*)", events.TaskReceived),
