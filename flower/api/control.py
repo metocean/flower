@@ -550,8 +550,10 @@ Retry a task
 :statuscode 401: unauthorized request
 :statuscode 404: unknown task
         """
-        
-        stats = self.application.events.state.tasks[taskid]
+        try:
+          stats = self.application.events.state.tasks[taskid]
+        except KeyError:
+          raise HTTPError(404, "Unknown task '%s'" % task_id)
 
         taskname = stats.name
         args = ast.literal_eval(stats.args) if not isinstance(stats.args, (list,tuple)) else stats.args
@@ -562,13 +564,8 @@ Retry a task
         logger.debug("Invoking a task '%s' with '%s' and '%s'",
                      taskname, args, kwargs)
 
-        try:
-            task = self.capp.tasks[taskname]
-        except KeyError:
-            raise HTTPError(404, "Unknown task '%s'" % taskname)
-
+        task = self.capp.tasks[taskname]
         retries = stats.retries + 1
-
         stats.state = 'RETRY'
 
         result = task.apply_async(args=args, kwargs=kwargs, 
@@ -576,7 +573,7 @@ Retry a task
                                   retries=retries,
                                   routing_key=routing_key, 
                                   exchange=exchange)
-        
+
         stats.retried = stats.sent
 
         self.write(dict(message="Retried '%s'" % taskid))
