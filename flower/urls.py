@@ -34,7 +34,6 @@ handlers = [
     url(r"/dashboard", DashboardView, name='dashboard'),
     url(r"/worker/(.+)", WorkerView, name='worker'),
     url(r"/task/(.+)", TaskView, name='task'),
-    url(r"/action/(.+)", ActionView, name='task'),
     url(r"/tasks", TasksView, name='tasks'),
     url(r"/cycles", CyclesView, name='cycles'),
     url(r"/cycles/datatable", CyclesDataTable),

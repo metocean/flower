@@ -98,15 +98,49 @@
               </tbody>
             </table>
           </div>
+
+           
+      </div>
+    <div class="row-fluid">
+      <div class="span6">
+          {% if action_conf %}
+          <h3>Action configuration</h3>
+          <pre class="prettyprint linenums languague-css">
+            {{ action_conf }}
+          </pre>
+          {% end %}
+          {% if workflow %}
+          <h3>Workflow</h3>
+          <pre class="prettyprint linenums languague-css">
+            {% for action_id in workflow %}
+              - {{ action_id }}
+            {% end %}
+          </pre>
+          {% end %}
+        </div>
+
+        <div class="span6">
+          {% if logfile %}
+          <h3>Logfile
+            <div id="logpath" hidden>{{ logpath }}</div>
+            <span style="float: right">
+              <button style="line-height: 11px; padding: 3px 7px;" class="btn-small" onclick="$('#logfile').scrollTop(0)" name="top">
+                <span class="icon-circle-arrow-up"></span>
+              </button>
+              <button style="line-height: 11px;  padding: 3px 7px;" class="btn-small" onclick="$('#logfile').scrollTop($('#logfile')[0].scrollHeight)" name="bottom">
+                <span class="icon-circle-arrow-down"></span>
+              </button>
+            </span>
+          </h3>
+          <pre id='logfile' class="prettyprint linenums languague-css" style="overflow-y: scroll; max-height:500px">
+            {{ logfile }}
+          </pre>
+          {% else %}
+          <h3>Logfile <small> Not found </small></h3>
+          {% end %}
         </div>
       </div>
     </div>
   </div>
-{% if action_id %}
-  {% module Template("action.html", 
-                      action_id=action_id,
-                      action_conf=action_conf,
-                      logfile=logfile,
-                      logpath=logpath) %}
-{% end %}
+</div>
 {% end %}
