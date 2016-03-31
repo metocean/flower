@@ -11,8 +11,7 @@
 <input type="hidden" value="{{ cycles_dt }}" id='cycles'>
 
 <div class="container-fluid">
-  <h2>Cycles</h2> 
-  <div class="controls">
+  <div class="controls">Cycle 
     <select id="select-cycle" name="cycle_dt" id="select-cycle">
       {% for cycle in cycles_dt %}
       <option {% if cycle==cycle_dt %} selected {% end %}>{{ cycle }}</option>
