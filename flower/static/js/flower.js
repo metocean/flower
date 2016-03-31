@@ -29,6 +29,27 @@ var flower = (function () {
         });
     }
 
+
+    function render_status(data, type, full, meta) {
+        switch (data) {
+        case 'SUCCESS':
+            return '<span class="label label-success">' + data + '</span>';
+        case 'FAILURE':
+            return '<span class="label label-important">' + data + '</span>';
+        case 'RUNNING':
+            if (full.result.hasOwnProperty('progress')){
+                var progress = full.result.progress * 100,
+                    status = '- ' + full.result.status;
+                return '<div class="progress"><div class="bar" style="width: '+progress+'%;">'+progress.toFixed(1)+'% '+status+'</div>'
+            } else {
+            return '<span class="label label-default">' + data + '</span>';
+            }
+        default:
+            return '<span class="label label-default">' + data + '</span>';
+        }
+    }
+
+
     function url_prefix() {
         var url_prefix = $('#url_prefix').val();
         if (url_prefix) {
@@ -843,16 +864,7 @@ var flower = (function () {
                     targets: 2,
                     data: 'state',
                     visible: isColumnVisible('state'),
-                    render: function (data, type, full, meta) {
-                        switch (data) {
-                        case 'SUCCESS':
-                            return '<span class="label label-success">' + data + '</span>';
-                        case 'FAILURE':
-                            return '<span class="label label-important">' + data + '</span>';
-                        default:
-                            return '<span class="label label-default">' + data + '</span>';
-                        }
-                    }
+                    render: render_status
                 }, {
                     targets: 3,
                     data: 'args',
@@ -966,24 +978,7 @@ var flower = (function () {
                     targets: 2,
                     data: 'state',
                     visible: isColumnVisible('state'),
-                    render: function (data, type, full, meta) {
-                        switch (data) {
-                        case 'SUCCESS':
-                            return '<span class="label label-success">' + data + '</span>';
-                        case 'FAILURE':
-                            return '<span class="label label-important">' + data + '</span>';
-                        case 'RUNNING':
-                            if (full.result.hasOwnProperty('progress')){
-                                var progress = full.result.progress * 100,
-                                    status = '- ' + full.result.status;
-                                return '<div class="progress"><div class="bar" style="width: '+progress+'%;">'+progress.toFixed(1)+'% '+status+'</div>'
-                            } else {
-                            return '<span class="label label-default">' + data + '</span>';
-                            }
-                        default:
-                            return '<span class="label label-default">' + data + '</span>';
-                        }
-                    }
+                    render: render_status
                 }, {
                     targets: 3,
                     data: 'received',
@@ -1044,6 +1039,113 @@ var flower = (function () {
                     targets: 10,
                     data: 'retries',
                     visible: isColumnVisible('retries')
+                },],
+            });
+            $('#select-cycle').change(function(){
+                console.log('click');
+                var table = $('#cycles-table').DataTable();
+                table.draw();
+            });
+        } else if ($.inArray($(location).attr('pathname'), ['/crontab']) !== -1) {
+            $('#crontab-table').DataTable({
+                rowId: 'uuid',
+                searching: true,
+                paginate: true,
+                scrollX: true,
+                scrollCollapse: true,
+                processing: true,
+                serverSide: true,
+                colReorder: true,
+                ajax: {
+                    url: url_prefix() + '/crontab/datatable',
+                },
+                order: [
+                    [7, "asc"]
+                ],
+                oSearch: {
+                    "sSearch": $.urlParam('state') ? 'state:' + $.urlParam('state') : ''
+                },
+                columnDefs: [{
+                    targets: 0,
+                    data: 'action_id',
+                    visible: isColumnVisible('action_id'),
+                    orderable: false,
+                    render: function (data, type, full, meta) {
+                        return '<a href="' + url_prefix() + '/task/' + full.uuid + '">' + data + '</a>';
+                    }
+                },{
+                    targets: 1,
+                    data: 'cycle_dt',
+                    orderable: false,
+                    visible: isColumnVisible('cycle_dt')
+                }, {
+                    targets: 2,
+                    data: 'state',
+                    visible: isColumnVisible('state'),
+                    render: render_status
+                }, {
+                    targets: 3,
+                    data: 'received',
+                    visible: isColumnVisible('received'),
+                    render: function (data, type, full, meta) {
+                        if (data) {
+                            return format_time(data);
+                        }
+                        return data;
+                    }
+
+                }, {
+                    targets: 5,
+                    data: 'eta',
+                    visible: isColumnVisible('eta'),
+                    render: function (data, type, full, meta) {
+                        if (data) {
+                            return format_isotime(data);
+                        }
+                        return data;
+                    }
+                }, {
+                    targets: 4,
+                    data: 'started',
+                    visible: isColumnVisible('started'),
+                    render: function (data, type, full, meta) {
+                        if (data) {
+                            return format_time(data);
+                        }
+                        return data;
+                    }
+                },  {
+                    targets: 6,
+                    data: 'timestamp',
+                    visible: isColumnVisible('timestamp'),
+                    render: function (data, type, full, meta) {
+                        if (data) {
+                            return format_time(data);
+                        }
+                        return data;
+                    }
+                },{
+                    targets: 7,
+                    data: 'runtime',
+                    visible: isColumnVisible('runtime'),
+                    render: function (data, type, full, meta) {
+                        return data ? data.toFixed(3) : data;
+                    }
+                }, {
+                    targets: 8,
+                    data: 'worker',
+                    visible: isColumnVisible('worker')
+                }, {
+                    targets: 9,
+                    orderable: false,
+                    data: 'next_run',
+                    visible: isColumnVisible('next_run'),
+                    render: function (data, type, full, meta) {
+                        if (data) {
+                            return format_time(data);
+                        }
+                        return data;
+                    }
                 },],
             });
             $('#select-cycle').change(function(){
