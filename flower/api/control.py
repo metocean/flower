@@ -7,9 +7,10 @@ import ast
 
 from tornado import web
 from tornado import gen
+from tornado.web import HTTPError
 
 from ..views import BaseHandler
-
+from ..utils.tasks import get_task_by_id
 
 logger = logging.getLogger(__name__)
 
@@ -550,23 +551,22 @@ Retry a task
 :statuscode 401: unauthorized request
 :statuscode 404: unknown task
         """
-        try:
-          stats = self.application.events.state.tasks[taskid]
-        except KeyError:
-          raise HTTPError(404, "Unknown task '%s'" % task_id)
+        ftask = get_task_by_id(self.application.events, taskid)
+        if not ftask:
+          raise HTTPError(404, "Unknown task '%s'" % taskid)
 
-        taskname = stats.name
-        args = ast.literal_eval(stats.args) if not isinstance(stats.args, (list,tuple)) else stats.args
-        kwargs = ast.literal_eval(stats.kwargs) if not isinstance(stats.kwargs, dict) else stats.kwargs
-        routing_key = stats.routing_key
-        exchange = stats.exchange
+        taskname = ftask.name
+        args = ast.literal_eval(ftask.args) if not isinstance(ftask.args, (list,tuple)) else ftask.args
+        kwargs = ast.literal_eval(ftask.kwargs) if not isinstance(ftask.kwargs, dict) else ftask.kwargs
+        routing_key = ftask.routing_key
+        exchange = ftask.exchange
 
         logger.debug("Invoking a task '%s' with '%s' and '%s'",
                      taskname, args, kwargs)
 
         task = self.capp.tasks[taskname]
-        retries = stats.retries + 1
-        stats.state = 'RETRY'
+        retries = ftask.retries + 1
+        ftask.state = 'RETRY'
 
         result = task.apply_async(args=args, kwargs=kwargs, 
                                   task_id=taskid, 
@@ -574,7 +574,7 @@ Retry a task
                                   routing_key=routing_key, 
                                   exchange=exchange)
 
-        stats.retried = stats.sent
+        ftask.retried = ftask.sent
 
         self.write(dict(message="Retried '%s'" % taskid))
 
