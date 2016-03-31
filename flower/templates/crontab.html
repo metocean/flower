@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block navbar %}
+{% module Template("navbar.html", active_tab="crontab") %}
+{% end %}
+
+
+{% block container %}
+<input type="hidden" value="{{ time }}" id='time'>
+<input type="hidden" value="{{ columns }}" id='columns'>
+<div class="container-fluid">
+  <h2>Crontabs</h2> 
+  <div id="crontabs-accordion" class="accordion">
+    <div class="accordion-group">
+      <div class="accordion-heading">
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#crontabs-accordion" href="#crontabs-container">
+          Show all crontabs
+        </a>
+      </div>
+      <div id="crontabs-container" class="collapse" style="height: 0px;">
+        <table class="table table-bordered table-striped">
+          <thead>
+          <tr>
+            <th>Action ID</th>
+            <th>Crontab</th>
+            <th>Next Run</th>
+          </tr>
+          </thead>
+          <tbody>
+          {% for action in crontab_actions %}
+          <tr id="{{ action['action_id'] }}">
+            <td>{{ action['action_id'] }}</td>
+            <td>{{ action['crontab'] }}</td>
+            <td>{{ humanize(action['next_run'], type=time) }}</td>
+          </tr>
+          {% end %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <table id="crontab-table" class="table table-bordered table-striped">
+    <thead>
+    <tr>
+      <th>Action ID</th>
+      <th>Cycle</th>
+      <th>State</th>
+      <th>Received</th>
+      <th>Scheduled</th>
+      <th>Started</th>
+      <th>Timestamp</th>
+      <th>Runtime</th>
+      <th>Worker</th>
+      <th>Next Run</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for uuid, task in tasks %}
+        {% if getattr(task, 'action_id', None) is None %}
+            {% continue %}
+        {% end %}
+    <tr id="{{uuid}}">
+      <td>{{ task.action_id }}</td>
+      <td>{{ task.cycle_dt }}</td>
+      <td>{{ task.state }}</td>
+      <td>{{ humanize(task.received, type=time) }}</td>
+      <td>{{ task.eta }}</td>
+      <td>{{ humanize(task.started, type=time) }}</td>
+      <td>{{ humanize(task.timestamp) }}</td>
+      <td>{{ task.worker }}</td>
+      <td>{{ humanize(task.next_run, type=time) }}</td>
+    </tr>
+      {% end %}
+    </tbody>
+  </table>
+</div>
+{% end %}
