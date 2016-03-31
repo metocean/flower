@@ -116,6 +116,9 @@ class DashboardUpdateHandler(websocket.WebSocketHandler):
         workers = OrderedDict()
 
         for name, worker in sorted(state.workers.items()):
+            if 'dedicated' in name and not worker.alive:
+                state.workers.pop(name)
+                continue
             counter = state.counter[name]
             started = counter.get('task-started', 0)
             processed = counter.get('task-received', 0)
