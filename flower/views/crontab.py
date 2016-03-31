@@ -6,6 +6,7 @@ import ast
 import datetime
 import time
 import pytz
+from operator import itemgetter
 
 try:
     from itertools import imap
@@ -47,6 +48,8 @@ class CrontabView(BaseHandler):
                     'crontab': crontab(**cron),
                     'next_run': time.mktime(nr.timetuple())}
             crontab_actions.append(task)
+
+        crontab_actions.sort(key=itemgetter('action_id'))
 
         columns = 'action_id,cycle_dt,state,received,eta,started,timestamp,runtime,next_run'
 
