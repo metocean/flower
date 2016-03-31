@@ -438,7 +438,18 @@ var flower = (function () {
         if (prefix === 'natural-time') {
             return moment.unix(timestamp).tz(tz).fromNow();
         }
-        return moment.unix(timestamp).tz(tz).format('YYYY-MM-DD HH:mm:ss.SSS');
+        return moment.unix(timestamp).tz(tz).format('YYYY-MM-DD HH:mm:ss');
+    }
+
+    function format_isotime(timestamp) {
+        var time = $('#time').val(),
+            prefix = time.startsWith('natural-time') ? 'natural-time' : 'time',
+            tz = time.substr(prefix.length + 1) || 'UTC';
+
+        if (prefix === 'natural-time') {
+            return moment(timestamp).tz(tz).fromNow();
+        }
+        return moment(timestamp).tz(tz).format('YYYY-MM-DD HH:mm:ss');
     }
 
     function isColumnVisible(name) {
@@ -788,8 +799,14 @@ var flower = (function () {
                 }, {
                     targets: 5,
                     data: 'eta',
-                    visible: isColumnVisible('eta')
-                },  {
+                    visible: isColumnVisible('eta'),
+                    render: function (data, type, full, meta) {
+                        if (data) {
+                            return format_isotime(data);
+                        }
+                        return data;
+                    }
+                }, {
                     targets: 6,
                     data: 'timestamp',
                     visible: isColumnVisible('timestamp'),

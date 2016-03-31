@@ -3,6 +3,8 @@ import re
 from celery import current_app
 from datetime import datetime
 from datetime import timedelta
+import dateutil.parser as dparser
+
 try:
     from urllib import urlencode
 except ImportError:
@@ -19,7 +21,11 @@ UUID_REGEX = re.compile(r'^[\w]{8}(-[\w]{4}){3}-[\w]{12}$')
 
 def format_time(time, tz):
     dt = datetime.fromtimestamp(time, tz=tz)
-    return dt.strftime("%Y-%m-%d %H:%M:%S.%f %Z")
+    return dt.strftime("%Y-%m-%d %H:%M:%S %Z")
+
+def format_isotime(time):
+    dt = dparser.parse(time)
+    return dt.strftime("%Y-%m-%d %H:%M:%S %Z")
 
 
 def humanize(obj, type=None, length=None):
@@ -29,6 +35,8 @@ def humanize(obj, type=None, length=None):
         tz = type[len('time'):].lstrip('-')
         tz = timezone(tz) if tz else getattr(current_app, 'timezone', '') or utc
         obj = format_time(float(obj), tz) if obj else ''
+    elif type and type.startswith('isotime'):
+        obj = format_isotime(obj) if obj else ''
     elif type and type.startswith('natural-time'):
         tz = type[len('natural-time'):].lstrip('-')
         tz = timezone(tz) if tz else getattr(current_app, 'timezone', '') or utc
