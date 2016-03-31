@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import copy
 import logging
 import ast
+from operator import itemgetter
 
 try:
     from itertools import imap
@@ -29,21 +30,23 @@ class CyclesView(BaseHandler):
         if capp.conf.CELERY_TIMEZONE:
             time += '-' + capp.conf.CELERY_TIMEZONE
         columns = 'action_id,cycle_dt,state,received,eta,started,timestamp,runtime,worker,routing_key,retries'
-        cycles_tasks = sorted(iter_tasks(app.events, type='cycle.CycleTask'))
+        tasks = sorted(iter_tasks(app.events, type='cycle.CycleTask'))
         cycles = []
-        for uuid, task in cycles_tasks:
+        for uuid, task in tasks:
             if not isinstance(task.kwargs, dict):
                 task.kwargs = ast.literal_eval(task.kwargs)
-            cycle = task.kwargs.get('cycle_dt')
+            cycle = task.cycle_dt = task.kwargs.get('cycle_dt')
             if cycle not in cycles:
                 cycles.append(cycle)
         cycles.sort(reverse=True)
+        tasks.sort(key=lambda x: x[1].cycle_dt, reverse=True)
 
         self.render(
             "cycles.html",
             tasks=[],
             columns=columns,
             cycles_dt = cycles,
+            cycle_tasks = tasks,
             cycle_dt=cycles[0] if cycles else '',
             time=time,
         )
@@ -112,7 +115,7 @@ class CyclesDataTable(BaseHandler):
 
             if cycle_dt and task['cycle_dt'] != cycle_dt:
                 continue
-                
+
             task['worker'] = getattr(task.get('worker',None),'hostname',None)
             cycle_tasks.append(task)
 

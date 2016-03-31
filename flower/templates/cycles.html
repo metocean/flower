@@ -11,6 +11,74 @@
 <input type="hidden" value="{{ cycles_dt }}" id='cycles'>
 
 <div class="container-fluid">
+  <div id="active-cycles-accordion" class="accordion">
+    <div class="accordion-group">
+      <div class="accordion-heading">
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#active-cycles-accordion" href="#active-cycles-container">
+          Show active cycles tasks
+        </a>
+      </div>
+      <div id="active-cycles-container" class="collapse" style="height: 0px;">
+        <table class="table table-bordered table-striped">
+          <thead>
+          <tr>
+            <th>Cycle</th>
+            <th>State</th>      
+            <th>Started</th>
+            <th>Timestamp</th>
+            <th>Worker</th>    
+          </tr>
+          </thead>
+          <tbody>
+          {% for uuid, task in cycle_tasks %}
+          {% if task.state in ["STARTED","RUNNING"] %}
+          <tr id="{{ uuid }}">
+            <td><a href="/task/{{uuid}}">{{ task.kwargs['cycle_dt'] }}</td>
+            <td>{{ task.state }}</td>
+            <td>{{ humanize(task.started, type=time) }}</td>
+            <td>{{ humanize(task.timestamp, type=time) }}</td>
+            <td>{{ task.worker.hostname }}</td>
+          </tr>
+          {% end %}
+          {% end %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="accordion-group">
+      <div class="accordion-heading">
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#previous-cycles-accordion" href="#previous-cycles-container">
+          Show previous cycles tasks
+        </a>
+      </div>
+      <div id="previous-cycles-container" class="collapse" style="height: 0px;">
+        <table class="table table-bordered table-striped">
+          <thead>
+          <tr>
+            <th>Cycle</th>
+            <th>State</th>      
+            <th>Started</th>
+            <th>Timestamp</th>
+            <th>Worker</th>    
+          </tr>
+          </thead>
+          <tbody>
+          {% for uuid, task in cycle_tasks %}
+          {% if task.state in ["FAILURE","SUCCESS"] %}
+          <tr id="{{ uuid }}">
+            <td><a href="/task/{{uuid}}">{{ task.kwargs['cycle_dt'] }}</td>
+            <td>{{ task.state }}</td>
+            <td>{{ humanize(task.started, type=time) }}</td>
+            <td>{{ humanize(task.timestamp, type=time) }}</td>
+            <td>{{ task.worker.hostname }}</td>
+          </tr>
+          {% end %}
+          {% end %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
   <div class="controls">Cycle 
     <select id="select-cycle" name="cycle_dt" id="select-cycle">
       {% for cycle in cycles_dt %}
