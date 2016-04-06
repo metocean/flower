@@ -57,6 +57,10 @@ var flower = (function () {
         }
     }
 
+    function render_collapsable(data, type, full, meta) {
+        return '<span class="collapsable">'+data+'</span>'
+    }
+
 
     function url_prefix() {
         var url_prefix = $('#url_prefix').val();
@@ -642,6 +646,12 @@ var flower = (function () {
                 processing: true,
                 serverSide: true,
                 colReorder: true,
+                drawCallback: function() { $('.collapsable').expander({
+                                                slicePoint: 25,
+                                                preserveWords: false,
+                                                expandText: '-->',
+                                                collapseText: '<--'
+                                            });},
                 ajax: {
                     url: url_prefix() + '/tasks/datatable'
                 },
@@ -674,15 +684,18 @@ var flower = (function () {
                 }, {
                     targets: 3,
                     data: 'args',
-                    visible: isColumnVisible('args')
+                    visible: isColumnVisible('args'),
+                    render: render_collapsable
                 }, {
                     targets: 4,
                     data: 'kwargs',
-                    visible: isColumnVisible('kwargs')
+                    visible: isColumnVisible('kwargs'),
+                    render: render_collapsable
                 }, {
                     targets: 5,
                     data: 'result',
-                    visible: isColumnVisible('result')
+                    visible: isColumnVisible('result'),
+                    render: render_collapsable
                 }, {
                     targets: 6,
                     data: 'received',
@@ -734,7 +747,8 @@ var flower = (function () {
                 }, {
                     targets: 14,
                     data: 'exception',
-                    visible: isColumnVisible('exception')
+                    visible: isColumnVisible('exception'),
+                    render: render_collapsable
                 }, {
                     targets: 15,
                     data: 'expires',
