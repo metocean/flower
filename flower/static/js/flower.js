@@ -1175,6 +1175,8 @@ var flower = (function () {
                 var table = $('#cycles-table').DataTable();
                 table.draw();
             });
+        } else if ($.inArray('task', $(location).attr('pathname').split('/'))) {
+            $('#logfile').scrollTop($('#logfile')[0].scrollHeight);
         } else { return }
 
     });
