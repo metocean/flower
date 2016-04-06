@@ -21,7 +21,7 @@ def iter_tasks(events, limit=None, type=None, worker=None, state=None,
     search_terms = parse_search_terms(search or {})
 
     for uuid, task in tasks:
-        if type and task.name != type:
+        if type and task.name and task.name not in type:
             continue
         if worker and task.worker and task.worker.hostname != worker:
             continue

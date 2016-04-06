@@ -33,13 +33,15 @@ class CyclesView(BaseHandler):
         tasks = sorted(iter_tasks(app.events, type='cycle.CycleTask'))
         cycles = []
         for uuid, task in tasks:
-            task.kwargs = ast.literal_eval(str(task.kwargs))
+            task.kwargs = ast.literal_eval(str(task.kwargs)) if task.kwargs else {}
             cycle = task.cycle_dt = task.kwargs.get('cycle_dt')
-            if cycle not in cycles:
+            if cycle and cycle not in cycles:
                 cycles.append(cycle)
+
         cycles.sort(reverse=True)
         tasks.sort(key=lambda x: x[1].cycle_dt, reverse=True)
-
+        cycles.insert(0, 'All previous cycles')
+        cycles.insert(0, 'All active cycles')
         self.render(
             "cycles.html",
             tasks=[],
@@ -51,6 +53,18 @@ class CyclesView(BaseHandler):
         )
 
 class CyclesDataTable(BaseHandler):
+
+    def _get_cycles(self, state):
+        tasks = sorted(iter_tasks(self.application.events, type='cycle.CycleTask'))
+        cycles = []
+        for uuid, task in tasks:
+            kwargs = ast.literal_eval(str(getattr(task, 'kwargs', {})))
+            cycle_dt = kwargs.get('cycle_dt')
+            if 'active' in state and task.state in ['STARTED', 'RUNNING']:
+                cycles.append(cycle_dt)
+            elif 'previous' in state and task.state not in ['STARTED','RUNNING']:
+                cycles.append(cycle_dt)
+        return cycles
 
     def _squash_allocation(self, tasks):
         # Get tasks allocating and 
@@ -88,12 +102,8 @@ class CyclesDataTable(BaseHandler):
                             recordsTotal=0,
                             recordsFiltered=0))
             return
-
-        tasks = sorted(iter_tasks(app.events, search=search),
-                       key=lambda x: getattr(x[1], sort_by),
-                       reverse=sort_order)
-
-        tasks = list(map(self.format_task, tasks))
+        elif 'active' in cycle_dt or 'previous' in cycle_dt:
+            cycle_dt = self._get_cycles(cycle_dt)
 
         cyclic_tasks = ['tasks.WrapperTask',
                         'tasks.PythonTask',
@@ -101,8 +111,13 @@ class CyclesDataTable(BaseHandler):
                         'chain.AllocateChainTask',
                         'chain.GroupChainTask']
 
-        cycle_tasks = []
+        tasks = sorted(iter_tasks(app.events, search=search, type=cyclic_tasks),
+                       key=lambda x: getattr(x[1], sort_by),
+                       reverse=sort_order)
 
+        tasks = list(map(self.format_task, tasks))
+
+        cycle_tasks = []
         for _, task in tasks:
             task = as_dict(task)
             task['kwargs'] = ast.literal_eval(str(task.get('kwargs')))
@@ -112,10 +127,7 @@ class CyclesDataTable(BaseHandler):
             else:
                 continue
 
-            if task['name'] not in cyclic_tasks:
-                continue
-
-            if cycle_dt and task['cycle_dt'] != cycle_dt:
+            if cycle_dt and task['cycle_dt'] not in cycle_dt:
                 continue
 
             task['worker'] = getattr(task.get('worker',None),'hostname',None)
