@@ -24,9 +24,10 @@ from scheduler.flow import CrontabFlow
 
 logger = logging.getLogger(__name__)
 
-def get_crontab_next_run(cron):
+def get_crontab_next_run(cron, countdown=0):
     delta = crontab(**cron).remaining_estimate(datetime.datetime.utcnow())
-    return datetime.datetime.utcnow()+delta
+    countdown = datetime.timedelta(seconds=countdown)
+    return datetime.datetime.utcnow()+delta+countdown
 
 class CrontabView(BaseHandler):
     @web.authenticated
@@ -43,7 +44,8 @@ class CrontabView(BaseHandler):
         crontab_actions = []
         for action_id, vals in actions.items():
             cron = vals['schedule']['crontab']
-            nr = get_crontab_next_run(cron) 
+            countdown = vals['schedule'].get('countdown', 0)
+            nr = get_crontab_next_run(cron, countdown) 
             task = {'action_id': action_id,
                     'crontab': crontab(**cron),
                     'next_run': time.mktime(nr.timetuple())}
@@ -64,7 +66,8 @@ class CrontabView(BaseHandler):
 
 
 class CrontabDataTable(BaseHandler):
-    def _get_crontab_next_run(self, cron):
+    
+    def _get_crontab_next_run(self, cron, countdown):
         delta = crontab(**cron).remaining_estimate(datetime.datetime.utcnow())
         return (datetime.datetime.now()+delta).replace(tzinfo=pytz.UTC)
 
@@ -91,20 +94,23 @@ class CrontabDataTable(BaseHandler):
 
             task = as_dict(task)
 
-            task['kwargs'] = ast.literal_eval(str(task.get('kwargs')))
-
-            task['action_id'] = task['kwargs'].get('action_id', None)
+            kwargs = ast.literal_eval(str(task.get('kwargs')))
+            if kwargs:
+                task['action_id'] = kwargs.get('action_id', None)
+            else:
+                continue
 
             if task['action_id']  not in actions.keys():
                 continue
 
-            task['cycle_dt'] = task['kwargs'].get('cycle_dt', None)
+            task['cycle_dt'] = kwargs.get('cycle_dt', None)
             task['worker'] = getattr(task.get('worker',None),'hostname',None)
 
             cron = actions[task['action_id']]['schedule']['crontab']
+            countdown = actions[task['action_id']]['schedule'].get('countdown', 0)
 
             if task.get('started', None):
-                nr = self._get_crontab_next_run(cron)
+                nr = self._get_crontab_next_run(cron, countdown)
                 task['next_run'] = time.mktime(nr.timetuple())
             else:
                 task['next_run'] = task.eta

@@ -36,14 +36,22 @@ var flower = (function () {
             return '<span class="label label-success">' + data + '</span>';
         case 'FAILURE':
             return '<span class="label label-important">' + data + '</span>';
+        case 'REVOKED':
+            return '<span class="label label-important">' + data + '</span>';
         case 'RUNNING':
             if (full.result.hasOwnProperty('progress')){
                 var progress = full.result.progress * 100,
                     status = '- ' + full.result.status;
                 return '<div class="progress"><div class="bar" style="width: '+progress+'%;">'+progress.toFixed(1)+'% '+status+'</div>'
             } else {
-            return '<span class="label label-default">' + data + '</span>';
+            return '<span class="label label-info">' + data + '</span>';
             }
+        case 'STARTED':
+            return '<span class="label label-info">' + data + '</span>';
+        case 'ALLOCATING':
+            return '<span class="label label-queued">' + data + '</span>';
+        case 'RETRY':
+            return '<span class="label label-warning">' + data + '</span>';
         default:
             return '<span class="label label-default">' + data + '</span>';
         }
