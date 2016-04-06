@@ -848,6 +848,7 @@ var flower = (function () {
                 processing: true,
                 serverSide: true,
                 colReorder: true,
+                lengthMenu: [ 50, 100, 200 ],
                 drawCallback: function() { $('.collapsable').expander({
                                                 slicePoint: 25,
                                                 preserveWords: false,
@@ -971,6 +972,7 @@ var flower = (function () {
                 processing: true,
                 serverSide: true,
                 colReorder: true,
+                lengthMenu: [ 50, 100, 200 ],
                 ajax: {
                     url: url_prefix() + '/cycles/datatable',
                     data: function ( d ) {
@@ -1078,6 +1080,7 @@ var flower = (function () {
                 processing: true,
                 serverSide: true,
                 colReorder: true,
+                lengthMenu: [ 50, 100, 200, 500],
                 ajax: {
                     url: url_prefix() + '/crontab/datatable',
                 },
