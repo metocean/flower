@@ -662,6 +662,11 @@ a.badge:hover {
 .badge-inverse[href] {
   background-color: #1a1a1a;
 }
+.label-queued,
+.badge-queued {
+  background-color: #5354EE;
+}
+
 table {
   max-width: 100%;
   background-color: transparent;

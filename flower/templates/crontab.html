@@ -30,7 +30,7 @@
           <tr id="{{ action['action_id'] }}">
             <td>{{ action['action_id'] }}</td>
             <td>{{ action['crontab'] }}</td>
-            <td>{{ humanize(action['next_run'], type=time) }}</td>
+            <td>{{ humanize(action['next_run'], type='natural-time') }}</td>
           </tr>
           {% end %}
           </tbody>

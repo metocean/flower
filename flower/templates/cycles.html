@@ -34,7 +34,15 @@
           {% if task.state in ["STARTED","RUNNING"] %}
           <tr id="{{ uuid }}">
             <td><a href="/task/{{uuid}}">{{ task.kwargs['cycle_dt'] }}</td>
-            <td>{{ task.state }}</td>
+            <td>
+            {% if isinstance(task.result, dict) and task.result.has_key('progress') and task.result['progress'] and task.state == 'RUNNING'> 0%}
+            <div class="progress">
+              <div class="bar" style="width: {{task.result['progress']*100}}%;">{{round(task.result['progress']*100,1)}}%
+              {% if task.result['status'] %} - {{task.result['status']}}{%end%}</div>
+            </div>
+            {% else %}
+            {{ task.state }}
+            {% end %}</td>
             <td>{{ humanize(task.started, type=time) }}</td>
             <td>{{ humanize(task.timestamp, type=time) }}</td>
             <td>{{ task.worker.hostname }}</td>

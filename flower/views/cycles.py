@@ -33,9 +33,8 @@ class CyclesView(BaseHandler):
         tasks = sorted(iter_tasks(app.events, type='cycle.CycleTask'))
         cycles = []
         for uuid, task in tasks:
-            if not isinstance(task.kwargs, dict):
-                task.kwargs = ast.literal_eval(task.kwargs)
-            cycle = task.cycle_dt = task.kwargs.get('cycle_dt')
+            kwargs = ast.literal_eval(str(task.kwargs))
+            cycle = task.cycle_dt = kwargs.get('cycle_dt')
             if cycle not in cycles:
                 cycles.append(cycle)
         cycles.sort(reverse=True)
@@ -107,8 +106,11 @@ class CyclesDataTable(BaseHandler):
         for _, task in tasks:
             task = as_dict(task)
             task['kwargs'] = ast.literal_eval(str(task.get('kwargs')))
-            task['cycle_dt'] = task['kwargs'].get('cycle_dt', None)
-            task['action_id'] = task['kwargs'].get('action_id', None)
+            if task['kwargs']:
+                task['cycle_dt'] = task['kwargs'].get('cycle_dt', None)
+                task['action_id'] = task['kwargs'].get('action_id', None)
+            else:
+                continue
 
             if task['name'] not in cyclic_tasks:
                 continue
