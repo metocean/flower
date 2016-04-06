@@ -39,7 +39,7 @@ var flower = (function () {
         case 'REVOKED':
             return '<span class="label label-important">' + data + '</span>';
         case 'RUNNING':
-            if (full.result.hasOwnProperty('progress')){
+            if (full.result && full.result.hasOwnProperty('progress')){
                 var progress = full.result.progress * 100,
                     status = '- ' + full.result.status;
                 return '<div class="progress"><div class="bar" style="width: '+progress+'%;">'+progress.toFixed(1)+'% '+status+'</div>'
