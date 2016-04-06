@@ -33,8 +33,8 @@ class CyclesView(BaseHandler):
         tasks = sorted(iter_tasks(app.events, type='cycle.CycleTask'))
         cycles = []
         for uuid, task in tasks:
-            kwargs = ast.literal_eval(str(task.kwargs))
-            cycle = task.cycle_dt = kwargs.get('cycle_dt')
+            task.kwargs = ast.literal_eval(str(task.kwargs))
+            cycle = task.cycle_dt = task.kwargs.get('cycle_dt')
             if cycle not in cycles:
                 cycles.append(cycle)
         cycles.sort(reverse=True)
