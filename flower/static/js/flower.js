@@ -61,6 +61,15 @@ var flower = (function () {
         return '<span class="collapsable">'+data+'</span>'
     }
 
+    function format_duration(data, type, full, meta) {
+        var d = moment.duration({seconds:data});
+        if (d.days() > 0) {
+            return d.format('D[d] HH:mm:ss', { trim: false })
+        } else {
+            return d.format('hh:mm:ss', { trim: false })
+        }
+        
+    }    
 
     function url_prefix() {
         var url_prefix = $('#url_prefix').val();
@@ -456,7 +465,6 @@ var flower = (function () {
 
     function on_cycles_update(update) {
         var table = $('#cycles-table').DataTable();
-        console.log(update);
         if (update.hostname.indexOf("cycler") > -1) { 
             if  ($.inArray(update.type, ['task-started','task-succeeded','task-failed']) > -1 ) {
                 window.location.reload();
@@ -924,9 +932,7 @@ var flower = (function () {
                     targets: 8,
                     data: 'runtime',
                     visible: isColumnVisible('runtime'),
-                    render: function (data, type, full, meta) {
-                        return data ? data.toFixed(3) : data;
-                    }
+                    render: format_duration
                 }, {
                     targets: 9,
                     data: 'worker',
@@ -1048,9 +1054,7 @@ var flower = (function () {
                     targets: 7,
                     data: 'runtime',
                     visible: isColumnVisible('runtime'),
-                    render: function (data, type, full, meta) {
-                        return data ? data.toFixed(3) : data;
-                    }
+                    render: format_duration
                 }, {
                     targets: 8,
                     data: 'worker',
@@ -1066,7 +1070,6 @@ var flower = (function () {
                 },],
             });
             $('#select-cycle').change(function(){
-                console.log('click');
                 var table = $('#cycles-table').DataTable();
                 table.draw();
             });
@@ -1153,9 +1156,7 @@ var flower = (function () {
                     targets: 7,
                     data: 'runtime',
                     visible: isColumnVisible('runtime'),
-                    render: function (data, type, full, meta) {
-                        return data ? data.toFixed(3) : data;
-                    }
+                    render: format_duration
                 }, {
                     targets: 8,
                     data: 'worker',
@@ -1174,7 +1175,6 @@ var flower = (function () {
                 },],
             });
             $('#select-cycle').change(function(){
-                console.log('click');
                 var table = $('#cycles-table').DataTable();
                 table.draw();
             });
