@@ -988,7 +988,7 @@ var flower = (function () {
                     }   
                 },
                 order: [
-                    [7, "asc"]
+                    [6, "asc"]
                 ],
                 oSearch: {
                     "sSearch": $.urlParam('state') ? 'state:' + $.urlParam('state') : ''
@@ -1090,7 +1090,7 @@ var flower = (function () {
                     url: url_prefix() + '/crontab/datatable',
                 },
                 order: [
-                    [7, "asc"]
+                    [6, "asc"]
                 ],
                 oSearch: {
                     "sSearch": $.urlParam('state') ? 'state:' + $.urlParam('state') : ''
