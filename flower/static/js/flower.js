@@ -62,12 +62,14 @@ var flower = (function () {
     }
 
     function format_duration(data, type, full, meta) {
-        var d = moment.duration({seconds:data});
-        if (d.days() > 0) {
-            return d.format('D[d] HH:mm:ss', { trim: false })
-        } else {
-            return d.format('hh:mm:ss', { trim: false })
-        }
+        if (data) {
+            var d = moment.duration({seconds:data});
+            if (d.days() > 0) {
+                return d.format('D[d] HH:mm:ss', { trim: false })
+            } else {
+                return d.format('hh:mm:ss', { trim: false })
+            }
+        } else { return data }
         
     }    
 
