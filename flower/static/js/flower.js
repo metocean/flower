@@ -520,6 +520,28 @@ var flower = (function () {
         return (results && results[1]) || 0;
     };
 
+    function logfile_update(update){
+        var logheight = $('#logfile')[0].scrollTopMax,
+            scrollpos = $('#logfile')[0].scrollTop;
+        $('#logfile').append(update);
+        if (scrollpos == logheight) {
+            $('#logfile').scrollTop($('#logfile')[0].scrollTopMax);
+        }
+    }
+
+    function connect_tail_socket(logfile) {
+        var host = $(location).attr('host'),
+            protocol = $(location).attr('protocol') == 'http:' ? 'ws://' : 'wss://';
+
+        var ws = new WebSocket(protocol + host + url_prefix() + '/update-logfile/' + logfile);
+        ws.onmessage = function (event) {
+                logfile_update(event.data+'<br>');
+            };
+        $(window).on('beforeunload', function(){
+            ws.close()    
+        });
+    }
+
     $(document).ready(function () {
         if ($.inArray($(location).attr('pathname'), ['/', '/dashboard']) !== -1) {
             var host = $(location).attr('host'),
@@ -544,6 +566,13 @@ var flower = (function () {
             ws.onmessage = function (event) {
                 var update = $.parseJSON(event.data);
                 on_cycles_update(update)
+            };
+        } else if ($.inArray('task', $(location).attr('pathname').split('/'))) {
+            var uuid = $(location).attr('pathname').split('/')[2],
+                logpath = $('#logpath').text()
+            //connect_tasks_socket(on_task_update, uuid)
+            if (logpath){
+                connect_tail_socket(logpath)
             };
         }
 

@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 import logging
 import os
+from functools import partial
 
 import tailer 
 
@@ -57,17 +58,17 @@ class UpdateLogfile(websocket.WebSocketHandler):
         else:
             return
 
-        if not settings.AUTO_REFRESH:
+        app = self.application
+
+        if not app.options.auto_refresh:
             self.write_message({})
             return
-
-        app = self.application
 
         if not self.listeners:
             logger.debug('Starting to follow the log file tail')
             periodic_callback = self.periodic_callback or PeriodicCallback(
                 partial(UpdateLogfile.on_update_time, app),
-                settings.PAGE_UPDATE_INTERVAL)
+                3000)
             if not periodic_callback._running:
                 periodic_callback.start()
         if logpath not in self.listeners.keys():
