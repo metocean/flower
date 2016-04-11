@@ -452,9 +452,22 @@ var flower = (function () {
         $('a#btn-retried').text('Retried: ' + table.column(6).data().reduce(sum, 0));
     }
 
+    function update_table_data(update, table) {
+        if (update.type == 'task-running') {
+            var row = table.row('#'+update.uuid);
+            if (row) {
+                var rowdata = row.data();
+                rowdata.timestamp = update.timestamp
+                rowdata.result = update.result
+                rowdata.state = update.type.split('-')[1].toUpperCase()
+                row.data(rowdata);
+            }
+        } else {table.draw();}
+    }
+
     function on_tasks_update(update) {
         var table = $('#tasks-table').DataTable();
-        table.draw('page');
+        update_table_data(update, table);
     }
 
     function on_cycles_update(update) {
@@ -464,7 +477,7 @@ var flower = (function () {
                 window.location.reload();
             }
         } else {
-            table.draw('page');
+            update_table_data(update, table);
         }
     }
 
