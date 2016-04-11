@@ -74,7 +74,7 @@
           {% for uuid, task in cycle_tasks %}
           {% if task.state in ["FAILURE","SUCCESS"] %}
           <tr id="{{ uuid }}">
-            <td><a href="/task/{{uuid}}">{{ task.kwargs['cycle_dt'] }}</td>
+            <td><a href="/task/{{uuid}}">{{ task.kwargs.get('cycle_dt', 'undefined') }}</td>
             <td>{{ task.state }}</td>
             <td>{{ humanize(task.started, type=time) }}</td>
             <td>{{ humanize(task.timestamp, type=time) }}</td>
