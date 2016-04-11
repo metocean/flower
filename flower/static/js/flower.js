@@ -61,6 +61,13 @@ var flower = (function () {
         return '<span class="collapsable">'+data+'</span>'
     }
 
+    function collapse_collapsable () { 
+        $('.collapsable').expander({slicePoint: 25,
+                                    preserveWords: false,
+                                    expandText: '-->',
+                                    collapseText: '<--'});
+    }
+
     function format_duration(data, type, full, meta) {
         if (data) {
             var d = moment.duration({seconds:data});
@@ -461,6 +468,7 @@ var flower = (function () {
                 rowdata.result = update.result
                 rowdata.state = update.type.split('-')[1].toUpperCase()
                 row.data(rowdata);
+                collapse_collapsable();
             }
         } else {table.draw();}
     }
@@ -693,12 +701,7 @@ var flower = (function () {
                 serverSide: true,
                 colReorder: true,
                 lengthMenu: [ 50, 100, 200 ],
-                drawCallback: function() { $('.collapsable').expander({
-                                                slicePoint: 25,
-                                                preserveWords: false,
-                                                expandText: '-->',
-                                                collapseText: '<--'
-                                            });},
+                drawCallback: collapse_collapsable,
                 initComplete: function() {
                   connect_tasks_socket(on_tasks_update);
                 },
