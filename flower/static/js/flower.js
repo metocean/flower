@@ -668,6 +668,16 @@ var flower = (function () {
         });
     }
 
+    function connect_tasks_socket(update_func) {
+        var host = $(location).attr('host'),
+            protocol = $(location).attr('protocol') === 'http:' ? 'ws://' : 'wss://',
+            ws = new WebSocket(protocol + host + "/api/task/events/update-tasks/");
+        ws.onmessage = function (event) {
+            var update = $.parseJSON(event.data);
+            update_func(update)
+        };
+    }
+
     $(document).ready(function () {
         if ($.inArray($(location).attr('pathname'), ['/', '/dashboard']) !== -1) {
             var host = $(location).attr('host'),
@@ -677,23 +687,7 @@ var flower = (function () {
                 var update = $.parseJSON(event.data);
                 on_dashboard_update(update);
             };
-        } else if ($.inArray($(location).attr('pathname'), ['/tasks']) !== -1) {
-            var host = $(location).attr('host'),
-                protocol = $(location).attr('protocol') === 'http:' ? 'ws://' : 'wss://',
-                ws = new WebSocket(protocol + host + "/api/task/events/update-tasks/");
-            ws.onmessage = function (event) {
-                var update = $.parseJSON(event.data);
-                on_tasks_update(update)
-            };
-        } else if ($.inArray($(location).attr('pathname'), ['/cycles']) !== -1) {
-            var host = $(location).attr('host'),
-                protocol = $(location).attr('protocol') === 'http:' ? 'ws://' : 'wss://',
-                ws = new WebSocket(protocol + host + "/api/task/events/update-tasks/");
-            ws.onmessage = function (event) {
-                var update = $.parseJSON(event.data);
-                on_cycles_update(update)
-            };
-        } else if ($.inArray('task', $(location).attr('pathname').split('/'))) {
+        } else if ($.inArray('task', $(location).attr('pathname').split('/')) !== -1)  {
             var uuid = $(location).attr('pathname').split('/')[2],
                 logpath = $('#logpath').text()
             //connect_tasks_socket(on_task_update, uuid)
@@ -894,6 +888,9 @@ var flower = (function () {
                                                 expandText: '-->',
                                                 collapseText: '<--'
                                             });},
+                initComplete: function() {
+                  connect_tasks_socket(on_tasks_update);
+                },
                 ajax: {
                     url: url_prefix() + '/tasks/datatable'
                 },
@@ -1010,6 +1007,9 @@ var flower = (function () {
                 serverSide: true,
                 colReorder: true,
                 lengthMenu: [ 50, 100, 200 ],
+                initComplete: function() {
+                  connect_tasks_socket(on_cycles_update);
+                },
                 ajax: {
                     url: url_prefix() + '/cycles/datatable',
                     data: function ( d ) {
@@ -1115,6 +1115,9 @@ var flower = (function () {
                 serverSide: true,
                 colReorder: true,
                 lengthMenu: [ 50, 100, 200, 500],
+                initComplete: function() {
+                  connect_tasks_socket(on_tasks_update);
+                },
                 ajax: {
                     url: url_prefix() + '/crontab/datatable',
                 },
@@ -1209,7 +1212,7 @@ var flower = (function () {
                 var table = $('#cycles-table').DataTable();
                 table.draw();
             });
-        } else if ($.inArray('task', $(location).attr('pathname').split('/'))) {
+        } else if ($.inArray('task', $(location).attr('pathname').split('/')) !== -1) {
             $('#logfile').scrollTop($('#logfile')[0].scrollHeight);
         } else { return }
 
