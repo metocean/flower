@@ -892,7 +892,6 @@ var flower = (function () {
     });
 
     $(document).ready(function () {
-<<<<<<< HEAD
         if ($.inArray($(location).attr('pathname'), ['/tasks']) !== -1) {
             $('#tasks-table').DataTable({
                 rowId: 'uuid',
@@ -972,57 +971,6 @@ var flower = (function () {
                             return format_time(data);
                         }
                         return data;
-=======
-        if ($.inArray($(location).attr('pathname'), [url_prefix() + '/', url_prefix() + '/dashboard', url_prefix() + '/broker', url_prefix() + '/monitor']) !== -1) {
-            return;
-        }
-
-        $('#tasks-table').DataTable({
-            rowId: 'uuid',
-            searching: true,
-            paginate: true,
-            scrollX: true,
-            scrollCollapse: true,
-            processing: true,
-            serverSide: true,
-            colReorder: true,
-            ajax: {
-                url: url_prefix() + '/tasks/datatable'
-            },
-            order: [
-                [7, "asc"]
-            ],
-            oSearch: {
-                "sSearch": $.urlParam('state') ? 'state:' + $.urlParam('state') : ''
-            },
-            columnDefs: [{
-                targets: 0,
-                data: 'name',
-                visible: isColumnVisible('name'),
-                render: function (data, type, full, meta) {
-                    return data;
-                }
-            }, {
-                targets: 1,
-                data: 'uuid',
-                visible: isColumnVisible('uuid'),
-                orderable: false,
-                render: function (data, type, full, meta) {
-                    return '<a href="' + url_prefix() + '/task/' + data + '">' + data + '</a>';
-                }
-            }, {
-                targets: 2,
-                data: 'state',
-                visible: isColumnVisible('state'),
-                render: function (data, type, full, meta) {
-                    switch (data) {
-                    case 'SUCCESS':
-                        return '<span class="label label-success">' + data + '</span>';
-                    case 'FAILURE':
-                        return '<span class="label label-important">' + data + '</span>';
-                    default:
-                        return '<span class="label label-default">' + data + '</span>';
->>>>>>> 323311aa65fcaceb0a5146f1d6f2027c6554a8bb
                     }
                 }, {
                     targets: 8,
