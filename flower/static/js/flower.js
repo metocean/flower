@@ -700,10 +700,10 @@ var flower = (function () {
     }
 
     $(document).ready(function () {
-        if ($.inArray($(location).attr('pathname'), ['/', '/dashboard']) !== -1) {
+        if ($.inArray($(location).attr('pathname'), [url_prefix() + '/', url_prefix() + '/dashboard']) !== -1) {
             var host = $(location).attr('host'),
                 protocol = $(location).attr('protocol') === 'http:' ? 'ws://' : 'wss://',
-                ws = new WebSocket(protocol + host + "/update-dashboard");
+                ws = new WebSocket(protocol + host + url_prefix() + "/update-dashboard");
             ws.onmessage = function (event) {
                 var update = $.parseJSON(event.data);
                 on_dashboard_update(update);
@@ -737,7 +737,7 @@ var flower = (function () {
             });
         });
 
-        if ($(location).attr('pathname') === '/monitor') {
+        if ($(location).attr('pathname') === url_prefix() + '/monitor') {
             var sts = current_unix_time(),
                 fts = current_unix_time(),
                 tts = current_unix_time(),
@@ -749,7 +749,7 @@ var flower = (function () {
 
             $.ajax({
                 type: 'GET',
-                url: '/monitor/succeeded-tasks',
+                url: url_prefix() + '/monitor/succeeded-tasks',
                 data: {
                     lastquery: current_unix_time()
                 },
@@ -760,7 +760,7 @@ var flower = (function () {
                     succeeded_graph.series.setTimeInterval(updateinterval);
                     setInterval(function () {
                         update_graph(succeeded_graph,
-                            '/monitor/succeeded-tasks',
+                            url_prefix() + '/monitor/succeeded-tasks',
                             sts);
                         sts = current_unix_time();
                     }, updateinterval);
@@ -781,7 +781,7 @@ var flower = (function () {
                     time_graph.series.setTimeInterval(updateinterval);
                     setInterval(function () {
                         update_graph(time_graph,
-                            '/monitor/completion-time',
+                            url_prefix() + '/monitor/completion-time',
                             tts);
                         tts = current_unix_time();
                     }, updateinterval);
@@ -802,7 +802,7 @@ var flower = (function () {
                     failed_graph.series.setTimeInterval(updateinterval);
                     setInterval(function () {
                         update_graph(failed_graph,
-                            '/monitor/failed-tasks',
+                            url_prefix() + '/monitor/failed-tasks',
                             fts);
                         fts = current_unix_time();
                     }, updateinterval);
@@ -820,7 +820,7 @@ var flower = (function () {
                     broker_graph.series.setTimeInterval(updateinterval);
                     setInterval(function () {
                         update_graph(broker_graph,
-                            '/monitor/broker');
+                            url_prefix() + '/monitor/broker');
                     }, updateinterval);
 
                 },
@@ -831,7 +831,7 @@ var flower = (function () {
     });
 
     $(document).ready(function () {
-        if ($.inArray($(location).attr('pathname'), ['/tasks', '/broker', '/monitor']) !== -1) {
+        if ($.inArray($(location).attr('pathname'), [url_prefix() + '/tasks', url_prefix() + '/broker', url_prefix() + '/monitor']) !== -1) {
             return;
         }
 
@@ -892,6 +892,7 @@ var flower = (function () {
     });
 
     $(document).ready(function () {
+<<<<<<< HEAD
         if ($.inArray($(location).attr('pathname'), ['/tasks']) !== -1) {
             $('#tasks-table').DataTable({
                 rowId: 'uuid',
@@ -971,6 +972,57 @@ var flower = (function () {
                             return format_time(data);
                         }
                         return data;
+=======
+        if ($.inArray($(location).attr('pathname'), [url_prefix() + '/', url_prefix() + '/dashboard', url_prefix() + '/broker', url_prefix() + '/monitor']) !== -1) {
+            return;
+        }
+
+        $('#tasks-table').DataTable({
+            rowId: 'uuid',
+            searching: true,
+            paginate: true,
+            scrollX: true,
+            scrollCollapse: true,
+            processing: true,
+            serverSide: true,
+            colReorder: true,
+            ajax: {
+                url: url_prefix() + '/tasks/datatable'
+            },
+            order: [
+                [7, "asc"]
+            ],
+            oSearch: {
+                "sSearch": $.urlParam('state') ? 'state:' + $.urlParam('state') : ''
+            },
+            columnDefs: [{
+                targets: 0,
+                data: 'name',
+                visible: isColumnVisible('name'),
+                render: function (data, type, full, meta) {
+                    return data;
+                }
+            }, {
+                targets: 1,
+                data: 'uuid',
+                visible: isColumnVisible('uuid'),
+                orderable: false,
+                render: function (data, type, full, meta) {
+                    return '<a href="' + url_prefix() + '/task/' + data + '">' + data + '</a>';
+                }
+            }, {
+                targets: 2,
+                data: 'state',
+                visible: isColumnVisible('state'),
+                render: function (data, type, full, meta) {
+                    switch (data) {
+                    case 'SUCCESS':
+                        return '<span class="label label-success">' + data + '</span>';
+                    case 'FAILURE':
+                        return '<span class="label label-important">' + data + '</span>';
+                    default:
+                        return '<span class="label label-default">' + data + '</span>';
+>>>>>>> 323311aa65fcaceb0a5146f1d6f2027c6554a8bb
                     }
                 }, {
                     targets: 8,

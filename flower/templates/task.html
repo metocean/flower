@@ -48,15 +48,15 @@
               </tr>
               <tr id='args'>
                 <td>args</td>
-                <td><pre>{{ json.dumps(task.args) }}</pre></td>
+                <td>{{ task.args }}</td>
               </tr>
               <tr id='kwargs'>
                 <td>kwargs</td>
-                <td><pre>{{ json.dumps(task.kwargs) }}</pre></td>
+                <td>{{ task.kwargs }}</td>
               </tr>
               <tr id='result'>
                 <td>Result</td>
-                <td>{{ getattr(task, 'result', None) }}</td>
+                <td>{{ getattr(task, 'result', '') }}</td>
               </tr>
               </tbody>
             </table>
