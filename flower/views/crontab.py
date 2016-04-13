@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 def get_crontab_next_run(cron, countdown=0):
     delta = crontab(**cron).remaining_estimate(datetime.datetime.utcnow())
     countdown = datetime.timedelta(seconds=countdown)
-    return datetime.datetime.utcnow()+delta+countdown
+    return datetime.datetime.now()+delta+countdown
 
 class CrontabView(BaseHandler):
     @web.authenticated
@@ -48,7 +48,8 @@ class CrontabView(BaseHandler):
             nr = get_crontab_next_run(cron, countdown) 
             task = {'action_id': action_id,
                     'crontab': crontab(**cron),
-                    'next_run': time.mktime(nr.timetuple())}
+                    'next_run': time.mktime(nr.timetuple()),
+                    'countdown': countdown}
             crontab_actions.append(task)
 
         crontab_actions.sort(key=itemgetter('action_id'))
@@ -67,10 +68,6 @@ class CrontabView(BaseHandler):
 
 class CrontabDataTable(BaseHandler):
     
-    def _get_crontab_next_run(self, cron, countdown):
-        delta = crontab(**cron).remaining_estimate(datetime.datetime.utcnow())
-        return (datetime.datetime.now()+delta).replace(tzinfo=pytz.UTC)
-
     @web.authenticated
     def get(self):
         app = self.application
@@ -110,10 +107,10 @@ class CrontabDataTable(BaseHandler):
             countdown = actions[task['action_id']]['schedule'].get('countdown', 0)
 
             if task.get('started', None):
-                nr = self._get_crontab_next_run(cron, countdown)
+                nr = get_crontab_next_run(cron, countdown)
                 task['next_run'] = time.mktime(nr.timetuple())
             else:
-                task['next_run'] = task.eta
+                task['next_run'] = task.get('eta', None)
 
             crontab_tasks.append(task)
 

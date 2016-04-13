@@ -22,6 +22,7 @@
           <tr>
             <th>Action ID</th>
             <th>Crontab</th>
+            <th>Countdown</th>
             <th>Next Run</th>
           </tr>
           </thead>
@@ -30,7 +31,8 @@
           <tr id="{{ action['action_id'] }}">
             <td>{{ action['action_id'] }}</td>
             <td>{{ action['crontab'] }}</td>
-            <td>{{ humanize(action['next_run'], type='natural-time') }}</td>
+            <td>{{ action['countdown'] }}</td>
+            <td>{{ humanize(action['next_run'], type='time') }}</td>
           </tr>
           {% end %}
           </tbody>
