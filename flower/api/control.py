@@ -472,7 +472,7 @@ Terminate a task
         self.capp.control.broadcast('terminate', destination=[destination], 
                                   reply=True,
                                   arguments={'task_id': taskid,
-                                             'signal': 'USR1'})
+                                             'signal': 'USR2'})
 
         self.write(dict(message="Terminated '%s'" % taskid))
 
