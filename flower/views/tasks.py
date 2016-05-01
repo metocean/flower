@@ -36,9 +36,8 @@ class TaskView(BaseHandler):
             logfile, logpath = None, None
 
         action_conf = get_action_conf(action_id) if action_id else None
-        
+    
         self.render("task.html", task=task,
-                                 action_id=action_id,
                                  workflow=workflow,
                                  action_conf=action_conf,
                                  logfile=logfile,

@@ -10,7 +10,7 @@
       <div class="span12">
         <div class="page-header">
           <p id="taskid" class="hidden">{{ task.uuid }}</p>
-          <h2>{{ getattr(task, 'name', None) }}
+          <h2>{{ task.kwargs.get('action_id', getattr(task, 'name', None)) }}
             <small>{{ task.uuid }}</small>
             {% if task.state in ["STARTED","RUNNING","ALLOCATING"] %}
                 <button style="float: right" class="btn btn-danger" onclick="flower.on_task_terminate(event)">Terminate</button>
@@ -26,6 +26,12 @@
             <table class="table table-bordered table-striped">
               <caption>Basic task options</caption>
               <tbody>
+              {% if task.kwargs.has_key('action_id') %}
+              <tr id='action_id'>
+                <td>Action ID</td>
+                <td>{{ task.kwargs.get('action_id') }}</td>
+              </tr>
+              {% end %}
               <tr id='name'>
                 <td>Name</td>
                 <td>{{ getattr(task, 'name', None) }}</td>
