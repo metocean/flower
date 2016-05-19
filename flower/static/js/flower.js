@@ -459,18 +459,49 @@ var flower = (function () {
         $('a#btn-retried').text('Retried: ' + table.column(6).data().reduce(sum, 0));
     }
 
+    function update_row_data(rowdata, update){
+        var rowdata = rowdata;
+        rowdata.timestamp = update.timestamp
+        rowdata.state = update.type.split('-')[1].toUpperCase()
+        rowdata.worker = update.hostname
+        if (update.attr('result')) {
+            rowdata.result = rowdata.result;
+        }
+        if (update.attr('args')) {
+            rowdata.args = rowdata.args;
+        }
+        if (update.attr('kwargs')) {
+            rowdata.kwargs = rowdata.kwargs;
+        }
+        if (update.attr('runtime')) {
+            rowdata.runtime = rowdata.runtime;
+        }
+        if (update.attr('name')) {
+            rowdata.name = rowdata.name;
+        }
+        if (update.attr('eta')) {
+            rowdata.eta = rowdata.eta;
+        }
+        if (update.attr('retries')) {
+            rowdata.retries = rowdata.retries;
+        }
+        if (update.attr('routing_key')) {
+            rowdata.routing_key = rowdata.routing_key;
+        }
+
+        return rowdata
+    }
+
     function update_table_data(update, table) {
-        if (update.type == 'task-running') {
+        if (update.type == 'task-received'){
             var row = table.row('#'+update.uuid);
-            if (row) {
-                var rowdata = row.data();
-                rowdata.timestamp = update.timestamp
-                rowdata.result = update.result
-                rowdata.state = update.type.split('-')[1].toUpperCase()
+            if (row.data()) {
+                var rowdata = row.data();    
+                rowdata = update_row_data(rowdata, update);     
                 row.data(rowdata);
                 collapse_collapsable();
             }
-        } else {table.draw();}
+        }
     }
 
     function on_tasks_update(update) {
@@ -480,6 +511,7 @@ var flower = (function () {
 
     function on_cycles_update(update) {
         var table = $('#cycles-table').DataTable();
+        console.log(update)
         if (update.hostname.indexOf("cycler") > -1) { 
             if  ($.inArray(update.type, ['task-started','task-succeeded','task-failed']) > -1 ) {
                 window.location.reload();
