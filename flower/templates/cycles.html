@@ -31,7 +31,7 @@
           </thead>
           <tbody>
           {% for uuid, task in cycle_tasks %}
-          {% if task.state in ["STARTED","RUNNING"] %}
+          {% if task.state in ["STARTED","RUNNING"] and task.kwargs.has_key('cycle_dt') %}
           <tr id="{{ uuid }}">
             <td><a href="/task/{{uuid}}">{{ task.kwargs['cycle_dt'] }}</td>
             <td>
