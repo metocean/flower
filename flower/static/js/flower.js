@@ -1,3 +1,4 @@
+
 var flower = (function () {
     "use strict";
     /*jslint browser: true */
@@ -460,11 +461,10 @@ var flower = (function () {
         });
         table.draw();
 
-        $('a#btn-active').text('Active: ' + table.column(2).data().reduce(sum, 0));
-        $('a#btn-processed').text('Processed: ' + table.column(3).data().reduce(sum, 0));
+        /*$('a#btn-active').text('Active: ' + table.column(2).data().reduce(sum, 0));
         $('a#btn-failed').text('Failed: ' + table.column(4).data().reduce(sum, 0));
         $('a#btn-succeeded').text('Succeeded: ' + table.column(5).data().reduce(sum, 0));
-        $('a#btn-retried').text('Retried: ' + table.column(6).data().reduce(sum, 0));
+        $('a#btn-retried').text('Retried: ' + table.column(6).data().reduce(sum, 0));*/
     }
 
     function update_row_data(rowdata, update){
@@ -472,6 +472,7 @@ var flower = (function () {
         rowdata.timestamp = update.timestamp
         rowdata.state = update.type.split('-')[1].toUpperCase()
         rowdata.worker = update.hostname
+        console.log(update)
         if (update.attr('result')) {
             rowdata.result = rowdata.result;
         }
@@ -502,6 +503,8 @@ var flower = (function () {
 
     function update_table_data(update, table) {
         if (update.type == 'task-received'){
+            table.draw();
+        } else {
             var row = table.row('#'+update.uuid);
             if (row.data()) {
                 var rowdata = row.data();    
