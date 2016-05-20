@@ -1,3 +1,4 @@
+
 var flower = (function () {
     "use strict";
     /*jslint browser: true */
@@ -461,24 +462,62 @@ var flower = (function () {
         table.draw();
 
         $('a#btn-active').text('Active: ' + table.column(2).data().reduce(sum, 0));
-        $('a#btn-processed').text('Processed: ' + table.column(3).data().reduce(sum, 0));
         $('a#btn-failed').text('Failed: ' + table.column(4).data().reduce(sum, 0));
         $('a#btn-succeeded').text('Succeeded: ' + table.column(5).data().reduce(sum, 0));
         $('a#btn-retried').text('Retried: ' + table.column(6).data().reduce(sum, 0));
     }
 
+    function update_row_data(rowdata, update){
+        var rowdata = rowdata;
+        rowdata.timestamp = update.timestamp
+        rowdata.worker = update.hostname
+        if (update.type == "task-succeeded") {
+            rowdata.state = "SUCCESS"
+        } else {
+            rowdata.state = update.type.split('-')[1].toUpperCase()
+        }
+        if (update.hasOwnProperty('result')) {
+            rowdata.result = update.result;
+        }
+        if (update.hasOwnProperty('args')) {
+            rowdata.args = update.args;
+        }
+        if (update.hasOwnProperty('kwargs')) {
+            rowdata.kwargs = update.kwargs;
+        }
+        if (update.hasOwnProperty('runtime')) {
+            rowdata.runtime = update.runtime;
+        }
+        if (update.hasOwnProperty('name')) {
+            rowdata.name = update.name;
+        }
+        if (update.hasOwnProperty('eta')) {
+            rowdata.eta = update.eta;
+        }
+        if (update.hasOwnProperty('retries')) {
+            rowdata.retries = update.retries;
+        }
+        if (update.hasOwnProperty('routing_key')) {
+            rowdata.routing_key = update.routing_key;
+        }
+
+        return rowdata
+    }
+
     function update_table_data(update, table) {
-        if (update.type == 'task-running') {
+        if ((update.type == 'task-received') && 
+             ((Date.now() - window.last_draw) > 10000 )) {
+            table.draw();
+            window.last_draw = Date.now();
+        } else {
             var row = table.row('#'+update.uuid);
-            if (row) {
-                var rowdata = row.data();
-                rowdata.timestamp = update.timestamp
-                rowdata.result = update.result
-                rowdata.state = update.type.split('-')[1].toUpperCase()
+            if (row.data()) {
+                var rowdata = row.data();    
+                rowdata = update_row_data(rowdata, update);     
                 row.data(rowdata);
                 collapse_collapsable();
             }
-        } else {table.draw();}
+        }
     }
 
     function on_tasks_update(update) {
@@ -888,7 +927,6 @@ var flower = (function () {
                 }
             }, ],
         });
-
     });
 
     $(document).ready(function () {
@@ -1231,7 +1269,7 @@ var flower = (function () {
         } else if ($.inArray('task', $(location).attr('pathname').split('/')) !== -1) {
             $('#logfile').scrollTop($('#logfile')[0].scrollHeight);
         } else { return }
-
+        window.last_draw = Date.now();
     });
 
     return {
