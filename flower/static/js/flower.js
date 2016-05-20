@@ -471,8 +471,13 @@ var flower = (function () {
         var rowdata = rowdata;
         rowdata.timestamp = update.timestamp
         rowdata.worker = update.hostname
+        console.log(update)
         if (update.type == "task-succeeded") {
             rowdata.state = "SUCCESS"
+        } else if (update.type == "task-failed"){
+            rowdata.state = "FAILURE"
+        } else if (update.type == "task-retried"){
+            rowdata.state = "RETRY"
         } else {
             rowdata.state = update.type.split('-')[1].toUpperCase()
         }
