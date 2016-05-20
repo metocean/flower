@@ -38,7 +38,7 @@ class CyclesView(BaseHandler):
             cycle = task.cycle_dt = task.kwargs.get('cycle_dt')
             if cycle != None and cycle not in cycles:
                 cycles.append(cycle)
-                cycles_tasks.append(task)
+                cycle_tasks.append((uuid,task))
 
         cycles.sort(reverse=True)
         tasks.sort(key=lambda x: x[1].cycle_dt, reverse=True)
