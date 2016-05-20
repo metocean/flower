@@ -471,7 +471,6 @@ var flower = (function () {
         var rowdata = rowdata;
         rowdata.timestamp = update.timestamp
         rowdata.worker = update.hostname
-        console.log(update)
         if (update.type == "task-succeeded") {
             rowdata.state = "SUCCESS"
         } else if (update.type == "task-failed"){
