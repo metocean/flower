@@ -3,6 +3,7 @@ import re
 
 def parse_search_terms(raw_search_value):
     search_regexp = r'(?:[^\s,"]|"(?:\\.|[^"])*")+'  # splits by space, ignores space in quotes
+    kwargs_regexp = re.compile(r'^kwargs:\w+\=\w+?')
     if not raw_search_value:
         return {}
     parsed_search = {}
@@ -15,10 +16,10 @@ def parse_search_terms(raw_search_value):
             if 'args' not in parsed_search:
                 parsed_search['args'] = []
             parsed_search['args'].append(preprocess_search_value(query_part[len('args:'):]))
-        elif query_part.startswith('kwargs:'):
+        elif kwargs_regexp.search(query_part):
             if 'kwargs'not in parsed_search:
                 parsed_search['kwargs'] = {}
-            key, value = [p.strip() for p in query_part[len('kwargs:'):].split('=')]
+            key, value =  [p.strip() for p in query_part[len('kwargs:'):].split('=')]
             parsed_search['kwargs'][key] = preprocess_search_value(value)
         elif query_part.startswith('state'):
             if 'state' not in parsed_search:
@@ -45,7 +46,7 @@ def satisfies_search_terms(task, search_terms):
             [task.name, task.uuid, task.state, getattr(task.worker,'hostname',None), task.args, str(task.kwargs), str(task.result)])),
         result_search_term and result_search_term in task.result,
         kwargs_search_terms and all(
-            stringified_dict_contains_value(k, v, task.kwargs) for k, v in kwargs_search_terms.items()
+            stringified_dict_contains_value(k, v, str(task.kwargs)) for k, v in kwargs_search_terms.items()
         ),
         args_search_terms and task_args_contains_search_args(task.args, args_search_terms)
     ]
