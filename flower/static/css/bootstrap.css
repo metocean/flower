@@ -140,7 +140,7 @@ body {
   background-color: #ffffff;
 }
 a {
-  color: #348613;
+  color: #137886;
   text-decoration: none;
 }
 a:hover {
@@ -581,7 +581,7 @@ pre {
 pre.prettyprint {
   margin-bottom: 18px;
   margin: 10px;
-  border-color: #c7ecb8;
+  border-color: #8aeff6;
 }
 pre code {
   padding: 0;
@@ -640,7 +640,7 @@ a.badge:hover {
 }
 .label-success,
 .badge-success {
-  background-color: #468847;
+  background-color: #2791a8;
 }
 .label-success[href],
 .badge-success[href] {
@@ -683,7 +683,7 @@ table {
   line-height: 18px;
   text-align: left;
   vertical-align: top;
-  border-top: 1px solid #c7ecb8;
+  border-top: 1px solid #8aeff6;
 }
 .table th {
   font-weight: bold;
@@ -700,14 +700,14 @@ table {
   border-top: 0;
 }
 .table tbody + tbody {
-  border-top: 2px solid #c7ecb8;
+  border-top: 2px solid #8aeff6;
 }
 .table-condensed th,
 .table-condensed td {
   padding: 4px 5px;
 }
 .table-bordered {
-  border: 1px solid #c7ecb8;
+  border: 1px solid #8aeff6;
   border-collapse: separate;
   *border-collapse: collapsed;
   border-left: 0;
@@ -717,7 +717,7 @@ table {
 }
 .table-bordered th,
 .table-bordered td {
-  border-left: 1px solid #c7ecb8;
+  border-left: 1px solid #8aeff6;
 }
 .table-bordered caption + thead tr:first-child th,
 .table-bordered caption + tbody tr:first-child th,
@@ -759,7 +759,7 @@ table {
 }
 .table-striped tbody tr:nth-child(odd) td,
 .table-striped tbody tr:nth-child(odd) th {
-  background-color: #f0ffeb;
+  background-color: #e8feff;
 }
 .table tbody tr:hover td,
 .table tbody tr:hover th {
@@ -1240,15 +1240,15 @@ input[type="checkbox"][readonly] {
 .control-group.success > label,
 .control-group.success .help-block,
 .control-group.success .help-inline {
-  color: #468847;
+  color: #2791a8;
 }
 .control-group.success .checkbox,
 .control-group.success .radio,
 .control-group.success input,
 .control-group.success select,
 .control-group.success textarea {
-  color: #468847;
-  border-color: #468847;
+  color: #2791a8;
+  border-color: #2791a8;
 }
 .control-group.success .checkbox:focus,
 .control-group.success .radio:focus,
@@ -1262,9 +1262,9 @@ input[type="checkbox"][readonly] {
 }
 .control-group.success .input-prepend .add-on,
 .control-group.success .input-append .add-on {
-  color: #468847;
+  color: #2791a8;
   background-color: #dff0d8;
-  border-color: #468847;
+  border-color: #2791a8;
 }
 input:focus:required:invalid,
 textarea:focus:required:invalid,
@@ -1701,14 +1701,14 @@ legend + .control-group {
 }
 .btn-primary {
   background-color: #288613;
-  background-image: -moz-linear-gradient(top, #348613, #178613);
-  background-image: -ms-linear-gradient(top, #348613, #178613);
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#348613), to(#178613));
-  background-image: -webkit-linear-gradient(top, #348613, #178613);
-  background-image: -o-linear-gradient(top, #348613, #178613);
-  background-image: linear-gradient(top, #348613, #178613);
+  background-image: -moz-linear-gradient(top, #136486, #178613);
+  background-image: -ms-linear-gradient(top, #136486, #178613);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#136486), to(#178613));
+  background-image: -webkit-linear-gradient(top, #136486, #178613);
+  background-image: -o-linear-gradient(top, #136486, #178613);
+  background-image: linear-gradient(top, #136486, #178613);
   background-repeat: repeat-x;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#348613', endColorstr='#178613', GradientType=0);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#136486', endColorstr='#178613', GradientType=0);
   border-color: #178613 #178613 #0c4309;
   border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
   *background-color: #178613;
@@ -2551,7 +2551,7 @@ input[type="submit"].btn.btn-mini {
 .nav-list > .active > a:hover {
   color: #ffffff;
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.2);
-  background-color: #348613;
+  background-color: #136486;
 }
 .nav-list [class^="icon-"] {
   margin-right: 2px;
@@ -2629,7 +2629,7 @@ input[type="submit"].btn.btn-mini {
 .nav-pills > .active > a,
 .nav-pills > .active > a:hover {
   color: #ffffff;
-  background-color: #348613;
+  background-color: #136486;
 }
 .nav-stacked > li {
   float: none;
@@ -2678,8 +2678,8 @@ input[type="submit"].btn.btn-mini {
 }
 .nav-tabs .dropdown-toggle .caret,
 .nav-pills .dropdown-toggle .caret {
-  border-top-color: #348613;
-  border-bottom-color: #348613;
+  border-top-color: #136486;
+  border-bottom-color: #136486;
   margin-top: 6px;
 }
 .nav-tabs .dropdown-toggle:hover .caret,
@@ -2820,14 +2820,14 @@ input[type="submit"].btn.btn-mini {
   padding-left: 20px;
   padding-right: 20px;
   background-color: #81a64f;
-  background-image: -moz-linear-gradient(top, #5b8933, #bad279);
-  background-image: -ms-linear-gradient(top, #5b8933, #bad279);
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#5b8933), to(#bad279));
-  background-image: -webkit-linear-gradient(top, #5b8933, #bad279);
-  background-image: -o-linear-gradient(top, #5b8933, #bad279);
-  background-image: linear-gradient(top, #5b8933, #bad279);
+  background-image: -moz-linear-gradient(top, #16768b, #89d3e3);
+  background-image: -ms-linear-gradient(top, #16768b, #89d3e3);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#16768b), to(#89d3e3));
+  background-image: -webkit-linear-gradient(top, #16768b, #89d3e3);
+  background-image: -o-linear-gradient(top, #16768b, #89d3e3);
+  background-image: linear-gradient(top, #16768b, #89d3e3);
   background-repeat: repeat-x;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#5b8933', endColorstr='#bad279', GradientType=0);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#16768b', endColorstr='#89d3e3', GradientType=0);
   -webkit-border-radius: 4px;
   -moz-border-radius: 4px;
   border-radius: 4px;
@@ -2842,7 +2842,7 @@ input[type="submit"].btn.btn-mini {
   height: auto;
 }
 .navbar {
-  color: #f2fcee;
+  color: #ddecf8;
 }
 .navbar .brand:hover {
   text-decoration: none;
@@ -2855,14 +2855,14 @@ input[type="submit"].btn.btn-mini {
   font-size: 20px;
   font-weight: 200;
   line-height: 1;
-  color: #f2fcee;
+  color: #ddecf8;
 }
 .navbar .navbar-text {
   margin-bottom: 0;
   line-height: 40px;
 }
 .navbar .navbar-link {
-  color: #f2fcee;
+  color: #ddecf8;
 }
 .navbar .navbar-link:hover {
   color: #ffffff;
@@ -3000,7 +3000,7 @@ input[type="submit"].btn.btn-mini {
   float: none;
   padding: 9px 10px 11px;
   line-height: 19px;
-  color: #f2fcee;
+  color: #ddecf8;
   text-decoration: none;
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
 }
@@ -3023,15 +3023,15 @@ input[type="submit"].btn.btn-mini {
 .navbar .nav .active > a:hover {
   color: #ffffff;
   text-decoration: none;
-  background-color: #bad279;
+  background-color: #89d3e3;
 }
 .navbar .divider-vertical {
   height: 40px;
   width: 1px;
   margin: 0 9px;
   overflow: hidden;
-  background-color: #bad279;
-  border-right: 1px solid #5b8933;
+  background-color: #89d3e3;
+  border-right: 1px solid #16768b;
 }
 .navbar .nav.pull-right {
   margin-left: 10px;
@@ -3044,17 +3044,17 @@ input[type="submit"].btn.btn-mini {
   margin-left: 5px;
   margin-right: 5px;
   background-color: #81a64f;
-  background-image: -moz-linear-gradient(top, #5b8933, #bad279);
-  background-image: -ms-linear-gradient(top, #5b8933, #bad279);
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#5b8933), to(#bad279));
-  background-image: -webkit-linear-gradient(top, #5b8933, #bad279);
-  background-image: -o-linear-gradient(top, #5b8933, #bad279);
-  background-image: linear-gradient(top, #5b8933, #bad279);
+  background-image: -moz-linear-gradient(top, #16768b, #89d3e3);
+  background-image: -ms-linear-gradient(top, #16768b, #89d3e3);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#16768b), to(#89d3e3));
+  background-image: -webkit-linear-gradient(top, #16768b, #89d3e3);
+  background-image: -o-linear-gradient(top, #16768b, #89d3e3);
+  background-image: linear-gradient(top, #16768b, #89d3e3);
   background-repeat: repeat-x;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#5b8933', endColorstr='#bad279', GradientType=0);
-  border-color: #bad279 #bad279 #9cbf40;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#16768b', endColorstr='#89d3e3', GradientType=0);
+  border-color: #89d3e3 #89d3e3 #9cbf40;
   border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
-  *background-color: #bad279;
+  *background-color: #89d3e3;
   /* Darken IE7 buttons by default so they stand out more given they won't have borders */
 
   filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
@@ -3067,7 +3067,7 @@ input[type="submit"].btn.btn-mini {
 .navbar .btn-navbar.active,
 .navbar .btn-navbar.disabled,
 .navbar .btn-navbar[disabled] {
-  background-color: #bad279;
+  background-color: #89d3e3;
   *background-color: #b0cc66;
 }
 .navbar .btn-navbar:active,
@@ -3330,7 +3330,7 @@ input[type="submit"].btn.btn-mini {
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075);
 }
 a.thumbnail:hover {
-  border-color: #348613;
+  border-color: #136486;
   -webkit-box-shadow: 0 1px 4px rgba(0, 105, 214, 0.25);
   -moz-box-shadow: 0 1px 4px rgba(0, 105, 214, 0.25);
   box-shadow: 0 1px 4px rgba(0, 105, 214, 0.25);
@@ -3367,7 +3367,7 @@ a.thumbnail:hover {
 .alert-success {
   background-color: #dff0d8;
   border-color: #d6e9c6;
-  color: #468847;
+  color: #2791a8;
 }
 .alert-danger,
 .alert-error {
@@ -3962,7 +3962,7 @@ a.thumbnail:hover {
 .dropdown-menu .active > a:hover {
   color: #ffffff;
   text-decoration: none;
-  background-color: #348613;
+  background-color: #136486;
 }
 .open {
   *z-index: 1000;
@@ -4830,14 +4830,14 @@ button.close {
     display: none;
   }
   .nav-collapse .nav .nav-header {
-    color: #f2fcee;
+    color: #ddecf8;
     text-shadow: none;
   }
   .nav-collapse .nav > li > a,
   .nav-collapse .dropdown-menu a {
     padding: 6px 15px;
     font-weight: bold;
-    color: #f2fcee;
+    color: #ddecf8;
     -webkit-border-radius: 3px;
     -moz-border-radius: 3px;
     border-radius: 3px;
@@ -4854,7 +4854,7 @@ button.close {
   }
   .nav-collapse .nav > li > a:hover,
   .nav-collapse .dropdown-menu a:hover {
-    background-color: #bad279;
+    background-color: #89d3e3;
   }
   .nav-collapse.in .btn-group {
     margin-top: 5px;
@@ -4890,8 +4890,8 @@ button.close {
     float: none;
     padding: 9px 15px;
     margin: 9px 0;
-    border-top: 1px solid #bad279;
-    border-bottom: 1px solid #bad279;
+    border-top: 1px solid #89d3e3;
+    border-bottom: 1px solid #89d3e3;
     -webkit-box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 1px 0 rgba(255,255,255,.1);
     -moz-box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 1px 0 rgba(255,255,255,.1);
     box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 1px 0 rgba(255,255,255,.1);
