@@ -5,6 +5,7 @@
 {% end %}
 
 {% block container %}
+  <div id="tz" class="hidden">{{tz}}</div>
   <div id='task-page' class="container-fluid">
     <div class="row-fluid">
       <div class="span12">
@@ -26,10 +27,16 @@
             <table class="table table-bordered table-striped">
               <caption>Basic task options</caption>
               <tbody>
-              {% if task.kwargs.has_key('action_id') %}
+              {% if task.action_id %}
               <tr id='action_id'>
                 <td>Action ID</td>
-                <td>{{ task.kwargs.get('action_id') }}</td>
+                <td>{{ task.action_id }}</td>
+              </tr>
+              {% end %}
+              {% if task.cycle_dt %}
+              <tr id='cycle_dt'>
+                <td>Cycle</td>
+                <td>{{ task.cycle_dt }}</td>
               </tr>
               {% end %}
               <tr id='name'>
@@ -44,11 +51,17 @@
                 <td>State</td>
                 <td>
                   {% if task.state == "SUCCESS" %}
-                  <span class="label label-success">{{ task.state }}</span>
-                  {% elif task.state == "FAILURE" %}
-                  <span class="label label-important">{{ task.state }}</span>
+                    <span class="label label-success">{{ task.state }}</span>
+                  {% elif task.state in ["FAILURE","REVOKED"] %}
+                    <span class="label label-important">{{ task.state }}</span>
+                  {% elif task.state in ["ALLOCATING"] %}
+                    <span class="label label-queued">{{ task.state }}</span>
+                  {% elif task.state in ["STARTED","RUNNING"] %}
+                    <span class="label label-info">{{ task.state }}</span>
+                  {% elif task.state in ["RETRY"] %}
+                    <span class="label label-warning">{{ task.state }}</span>
                   {% else %}
-                  <span class="label label-default">{{ task.state }}</span>
+                    <span class="label label-default">{{ task.state }}</span>
                   {% end %}
                 </td>
               </tr>
@@ -62,7 +75,19 @@
               </tr>
               <tr id='result'>
                 <td>Result</td>
-                <td>{{ getattr(task, 'result', '') }}</td>
+                <td>{% if isinstance(task.result, dict) and task.result.has_key('progress') %}
+                  <div class="progress">
+                    <div class="bar" style="width: {{format_progress(task.result['progress'])}}%;">
+                    {{round(format_progress(task.result['progress']),1)}}%
+                    {% if task.result['status'] %}
+                     - {{task.result['status']}}
+                    {%end%}
+                    </div>
+                    {{task.result}}
+                  </div>
+                {% else %}
+                  {{ getattr(task, 'result', None) }}
+                {% end %}</td>
               </tr>
               </tbody>
             </table>
@@ -73,7 +98,7 @@
               <caption>Advanced task options</caption>
               <tbody>
               {% for name in task._fields %}
-                {% if name not in ['name', 'uuid', 'state', 'args', 'kwargs', 'result'] and getattr(task, name, None) is not None %}
+                {% if name not in ['name', 'uuid', 'state', 'args', 'kwargs', 'result','cycle_dt','action_id'] and getattr(task, name, None) is not None %}
                 <tr id="{{ name }}">
                   <td>{{ humanize(name) }}</td>
                   <td>

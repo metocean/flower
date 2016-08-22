@@ -24,6 +24,12 @@ class TaskView(BaseHandler):
     def get(self, task_id):
         task = get_task_by_id(self.application.events, task_id)
 
+        capp = self.application.capp
+        if capp.conf.CELERY_TIMEZONE:
+            tz = capp.conf.CELERY_TIMEZONE
+        else:
+            tz = 'UTC'
+
         if task is None:
             raise web.HTTPError(404, "Unknown task '%s'" % task_id)
 
@@ -45,7 +51,8 @@ class TaskView(BaseHandler):
                                  action_conf=action_conf,
                                  logfile=logfile,
                                  logpath=logpath,
-                                 cycle_dt=cycle_dt)
+                                 cycle_dt=cycle_dt,
+                                 tz=tz)
 
 
 class TasksDataTable(BaseHandler):
@@ -66,7 +73,7 @@ class TasksDataTable(BaseHandler):
             if sys.version_info[0] == 3:
                 val = str(val)
             return val
-        print search
+
         tasks = sorted(iter_tasks(app.events, search=search),
                        key=key, reverse=sort_order)
         tasks = list(map(self.format_task, tasks))

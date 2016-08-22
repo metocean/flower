@@ -48,14 +48,14 @@ def iter_tasks(events, limit=None, type=None, worker=None, state=None,
         if not satisfies_search_terms(task, search_terms):
             continue
 
-        task.kwargs = ast.literal_eval(task.kwargs) if not isinstance(task.kwargs, dict) else task.kwargs
-
-        if task.kwargs:
-            task.action_id = task.kwargs.get('action_id', None)
-            task.cycle_dt = task.kwargs.get('cycle_dt', None)
-        else:
-            task.cycle_dt = None
-            task.action_id = None
+        if not task.kwargs:
+            task.kwargs = {}
+        elif not isinstance(task.kwargs, dict) and\
+               isinstance(task.kwargs,(str, unicode)):
+            task.kwargs = ast.literal_eval(task.kwargs)
+        
+        task.action_id = task.kwargs.get('action_id', None)
+        task.cycle_dt = task.kwargs.get('cycle_dt', None)
 
         if actions and task.action_id not in actions:
             continue 
