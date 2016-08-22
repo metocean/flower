@@ -54,7 +54,7 @@ class CrontabView(BaseHandler):
 
         crontab_actions.sort(key=itemgetter('action_id'))
 
-        columns = 'action_id,cycle_dt,state,received,eta,started,timestamp,runtime,next_run'
+        columns = 'action_id,cycle_dt,state,received,eta,started,timestamp,runtime'
 
         self.render(
             "crontab.html",
@@ -85,7 +85,7 @@ class CrontabDataTable(BaseHandler):
         tasks = sorted(iter_tasks(app.events, search=search, actions=actions.keys()),
                        key=lambda x: getattr(x[1], sort_by),
                        reverse=sort_order)
-        
+
         filtered_tasks = []
         i = 0
         for _, task in tasks:
