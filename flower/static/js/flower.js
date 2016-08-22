@@ -960,7 +960,13 @@ var flower = (function () {
                 }, {
                     targets: 17,
                     data: 'expires',
-                    visible: isColumnVisible('expires')
+                    visible: isColumnVisible('expires'),
+                    render: function (data, type, full, meta) {
+                        if (data) {
+                            return format_isotime(data);
+                        }
+                        return data;
+                    }
                 }, {
                     targets: 18,
                     data: 'eta',
@@ -1072,7 +1078,13 @@ var flower = (function () {
                 },{
                     targets: 11,
                     data: 'expires',
-                    visible: isColumnVisible('expires')
+                    visible: isColumnVisible('expires'),
+                    render: function (data, type, full, meta) {
+                        if (data) {
+                            return format_isotime(data);
+                        }
+                        return data;
+                    }
                 },],
             });
             $('#select-cycle').change(function(){
