@@ -2,15 +2,20 @@ from __future__ import absolute_import
 
 import datetime
 import time
+import ast
 
 from .search import satisfies_search_terms, parse_search_terms
 
 from celery.events.state import Task
 
+fields = list(Task._fields)
+fields.extend(['cycle_dt', 'action_id'])
+Task._fields = tuple(fields)
 
 def iter_tasks(events, limit=None, type=None, worker=None, state=None,
                sort_by=None, received_start=None, received_end=None,
-               started_start=None, started_end=None, search=None):
+               started_start=None, started_end=None, search=None,
+               actions=[]):
     i = 0
     tasks = events.state.tasks_by_timestamp()
     if sort_by is not None:
@@ -42,7 +47,21 @@ def iter_tasks(events, limit=None, type=None, worker=None, state=None,
 
         if not satisfies_search_terms(task, search_terms):
             continue
-            
+
+        task.kwargs = ast.literal_eval(task.kwargs) if not isinstance(task.kwargs, dict) else task.kwargs
+
+        if task.kwargs:
+            task.action_id = task.kwargs.get('action_id', None)
+            task.cycle_dt = task.kwargs.get('cycle_dt', None)
+        else:
+            task.cycle_dt = None
+            task.action_id = None
+
+        if actions and task.action_id not in actions:
+            continue 
+
+        task.kwargs = str(task.kwargs)
+
         yield uuid, task
         i += 1
         if i == limit:

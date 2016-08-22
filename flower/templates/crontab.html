@@ -52,7 +52,6 @@
       <th>Timestamp</th>
       <th>Runtime</th>
       <th>Worker</th>
-      <th>Next Run</th>
     </tr>
     </thead>
     <tbody>
@@ -69,7 +68,6 @@
       <td>{{ humanize(task.started, type=time) }}</td>
       <td>{{ humanize(task.timestamp) }}</td>
       <td>{{ task.worker }}</td>
-      <td>{{ humanize(task.next_run, type=time) }}</td>
     </tr>
       {% end %}
     </tbody>

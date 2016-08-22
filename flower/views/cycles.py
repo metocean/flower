@@ -34,8 +34,7 @@ class CyclesView(BaseHandler):
         cycle_tasks = []
         cycles = []
         for uuid, task in tasks:
-            task.kwargs = ast.literal_eval(str(task.kwargs)) if task.kwargs else {}
-            cycle = task.cycle_dt = task.kwargs.get('cycle_dt')
+            cycle = task.cycle_dt
             if cycle != None and cycle not in cycles:
                 cycles.append(cycle)
                 cycle_tasks.append((uuid,task))
@@ -77,14 +76,14 @@ class CyclesDataTable(BaseHandler):
         alloc_actions = []
         for task in tasks:
             if task['name'] == 'chain.AllocateChainTask':
-                alloc_actions.append(task['kwargs']['action_id'])
+                alloc_actions.append(task['action_id'])
             if task['name'] == 'chain.AllocateChainTask' and task['state'] in ['STARTED', 'RUNNING', 'SUCCESS']:
                 continue
             else:
                 filter_tasks.append(task)
         for task in filter_tasks:
             if 'tasks.' in task['name'] \
-            and task['kwargs']['action_id'] in alloc_actions \
+            and task['action_id'] in alloc_actions \
             and task['state'] in ['FAILURE']:
                 filter_tasks.remove(task)
         return filter_tasks
@@ -125,12 +124,6 @@ class CyclesDataTable(BaseHandler):
         cycle_tasks = []
         for _, task in tasks:
             task = as_dict(task)
-            task['kwargs'] = ast.literal_eval(str(task.get('kwargs')))
-            if task['kwargs']:
-                task['cycle_dt'] = task['kwargs'].get('cycle_dt', None)
-                task['action_id'] = task['kwargs'].get('action_id', None)
-            else:
-                continue
 
             if cycle_dt and task['cycle_dt'] not in cycle_dt:
                 continue
