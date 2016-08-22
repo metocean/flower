@@ -29,7 +29,7 @@ class CyclesView(BaseHandler):
         time = 'natural-time' if app.options.natural_time else 'time'
         if capp.conf.CELERY_TIMEZONE:
             time += '-' + capp.conf.CELERY_TIMEZONE
-        columns = 'action_id,cycle_dt,state,received,eta,started,timestamp,runtime,worker,routing_key,retries'
+        columns = 'action_id,cycle_dt,state,received,eta,started,timestamp,runtime,worker,routing_key,retries,expires'
         tasks = sorted(iter_tasks(app.events, type='cycle.CycleTask'))
         cycle_tasks = []
         cycles = []
