@@ -41,6 +41,9 @@ class DashboardView(BaseHandler):
             if name not in events.workers:
                 continue
             worker = events.workers[name]
+            if 'dedicated' in name and not worker.alive:
+                events.workers.pop(name)
+                continue
             info = dict(values)
             info.update(self._as_dict(worker))
             info.update(status=worker.alive)
