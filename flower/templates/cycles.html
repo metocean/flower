@@ -31,7 +31,7 @@
           </thead>
           <tbody>
           {% for uuid, task in cycle_tasks %}
-          {% if task.state in ["STARTED","RUNNING"] and task.kwargs.has_key('cycle_dt') %}
+          {% if task.state in ["STARTED","RUNNING","RETRY"] and task.kwargs.has_key('cycle_dt') %}
           <tr id="{{ uuid }}">
             <td><a href="/task/{{uuid}}">{{ task.kwargs['cycle_dt'] }}</td>
             <td>
@@ -72,7 +72,7 @@
           </thead>
           <tbody>
           {% for uuid, task in cycle_tasks %}
-          {% if task.state in ["FAILURE","SUCCESS"] %}
+          {% if task.state in ["FAILURE","SUCCESS","REVOKED"] %}
           <tr id="{{ uuid }}">
             <td><a href="/task/{{uuid}}">{{ task.kwargs.get('cycle_dt', 'undefined') }}</td>
             <td>{{ task.state }}</td>
