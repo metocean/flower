@@ -6,6 +6,8 @@ from kombu.utils.encoding import safe_str
 def parse_search_terms(raw_search_value):
     search_regexp = r'(?:[^\s,"]|"(?:\\.|[^"])*")+'  # splits by space, ignores space in quotes
     kwargs_regexp = re.compile(r'^kwargs:\w+\=\w+?')
+    action_regexp = re.compile(r'^action_id:\w+')
+    cycle_regexp = re.compile(r'^cycle(_dt)?:\w+')
     if not raw_search_value:
         return {}
     parsed_search = {}
@@ -26,6 +28,14 @@ def parse_search_terms(raw_search_value):
             except ValueError:
                 continue
             parsed_search['kwargs'][key] = preprocess_search_value(value)
+        elif action_regexp.search(query_part):
+            parsed_search = {'kwargs':{}}
+            key, value =  query_part.strip().split(':')
+            parsed_search['kwargs']['action_id'] = preprocess_search_value(value)
+        elif cycle_regexp.search(query_part):
+            parsed_search = {'kwargs':{}}
+            key, value =  query_part.strip().split(':')
+            parsed_search['kwargs']['cycle_dt'] = preprocess_search_value(value)
         elif query_part.startswith('state'):
             if 'state' not in parsed_search:
                 parsed_search['state'] = []
