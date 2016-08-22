@@ -82,8 +82,7 @@
                     {% elif name in ['expires', 'eta'] %}
                     {{ humanize(getattr(task, name, None), type='isotime') }}
                     {% elif name == 'worker' %}
-                    <a
-                        href="{{ reverse_url('worker', task.worker.hostname) }}">{{ task.worker.hostname }}</a>
+                    <a href="{{ reverse_url('worker', task.worker.hostname) }}">{{ task.worker.hostname }}</a>
                     {% elif name == 'traceback' %}
                     <pre>{{ getattr(task, name, None) }}</pre>
                     {% else %}

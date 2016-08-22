@@ -44,6 +44,7 @@ class CyclesView(BaseHandler):
         tasks.sort(key=lambda x: x[1].cycle_dt, reverse=True)
         cycles.insert(0, 'All previous cycles')
         cycles.insert(0, 'All active cycles')
+        cycles.insert(0, 'All cycles')
         self.render(
             "cycles.html",
             tasks=[],
@@ -65,6 +66,8 @@ class CyclesDataTable(BaseHandler):
             if 'active' in state and task.state in ['STARTED', 'RUNNING']:
                 cycles.append(cycle_dt)
             elif 'previous' in state and task.state not in ['STARTED','RUNNING']:
+                cycles.append(cycle_dt)
+            elif 'All cycles' in state: 
                 cycles.append(cycle_dt)
         return cycles
 
@@ -104,7 +107,7 @@ class CyclesDataTable(BaseHandler):
                             recordsTotal=0,
                             recordsFiltered=0))
             return
-        elif 'active' in cycle_dt or 'previous' in cycle_dt:
+        elif 'active' in cycle_dt or 'previous' in cycle_dt or 'All cycles' in cycle_dt:
             cycle_dt = self._get_cycles(cycle_dt)
 
         cyclic_tasks = ['tasks.WrapperTask',
