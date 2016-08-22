@@ -27,7 +27,7 @@ class DashboardView(BaseHandler):
         refresh = self.get_argument('refresh', default=False, type=bool)
 
         app = self.application
-        events = app.events.state
+        state = app.events.state
         broker = app.capp.connection().as_uri()
 
         if refresh:
@@ -37,12 +37,12 @@ class DashboardView(BaseHandler):
                 logger.exception('Failed to update workers: %s', e)
 
         workers = {}
-        for name, values in events.counter.items():
-            if name not in events.workers:
+        for name, worker in sorted(state.workers.items()):
+            if name not in state.workers:
                 continue
-            worker = events.workers[name]
+            worker = state.workers[name]
             if 'dedicated' in name and not worker.alive:
-                events.workers.pop(name)
+                state.workers.pop(name)
                 continue
             info = dict(values)
             info.update(self._as_dict(worker))
