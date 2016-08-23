@@ -777,72 +777,120 @@ var flower = (function () {
         }
     }
 
+    function toTitleCase(str) {
+        return str.replace(/(?:^|\s)\w/g, function(match) {
+            return match.toUpperCase();
+        });
+    }   
+
+    function add_or_update_field(field, data, after, before){
+        if ($("#"+field).length == 0){
+            if (after == null) {
+                $('#'+before).before('<tr id="'+field+'"><td>'+toTitleCase(field)+'</td><td>'+data+'</td></tr>');
+            } else {
+                $('#'+after).after('<tr id="'+field+'"><td>'+toTitleCase(field)+'</td><td>'+data+'</td></tr>');
+            }
+
+        } else {
+            $('#'+field+' td:eq(1)').html(data);
+        }
+    }
+
     function on_task_update(update) {
         var timestamp = moment.unix(update.timestamp).utc(),
-            tz = $('#tz').text();
-        if (update.type == 'task-received') {
-            $("#state td:eq(1)").children('span').removeClass().addClass("label label-default").text('RECEIVED');
-            $("#received td:eq(1)").text(timestamp.format('YYYY-MM-DD HH:mm:ss '+tz))
-            $("#eta td:eq(1)").text(update.eta ? update.eta : "");
-        } else if (update.type == 'task-started') {
-            $("#state td:eq(1)").children('span').removeClass().addClass("label label-info").text('STARTED');
-            $("#started td:eq(1)").text(timestamp.format('YYYY-MM-DD HH:mm:ss '+tz));
-        } else if (update.type == 'task-succeeded') {
-            $("#state td:eq(1)").children('span').removeClass().addClass("label label-success").text('SUCCESS');
-            $("#result td:eq(1)").text(update.result);
-            if ($("#succeeded").length == 0){
-                $('#started').after('<tr><td id="#succedded">Succeeded</td><td>'+ 
-                                     timestamp.format('YYYY-MM-DD HH:mm:ss '+tz) +'</td>')
-            } else {
-                $("#succedded td:eq(1)").text(timestamp.format('YYYY-MM-DD HH:mm:ss '+tz))
-            }
-            if ($("#runtime").length == 0){
-                $('#clock').before('<tr><td id="#runtime">Runtime</td><td>'+update.runtime+'</td>')
-            } else {
-                $("#runtime").text(update.runtime)
-            }
-            $('h2 button').remove()
-        } else if (update.type == 'task-failed') {
-            $("#state td:eq(1)").children('span').removeClass().addClass("label label-important").text('FAILURE');
-            $("#result td:eq(1)").text("None");
-        } else if (update.type == 'task-revoked') {
-            $("#state td:eq(1)").children('span').removeClass().addClass("label label-important").text('REVOKED');
-            if ($("#revoked").length == 0){
-                $('#expires').before('<tr><td id="#revoked">Revoked</td><td>'+ 
-                                     timestamp.format('YYYY-MM-DD HH:mm:ss '+tz) +'</td>')
-            } else {
-                $("#revoked td:eq(1)").text(timestamp.format('YYYY-MM-DD HH:mm:ss '+tz))
-            }
-            $('h2 button').remove()
-            $('h2').append('<button class="btn btn-danger" onclick="flower.on_task_retry(event)" style="float: right">Retry</button>')
-        } else if (update.type == 'task-retried') {
-            $("#state td:eq(1)").children('span').removeClass().addClass("label label-important").text('RETRY');
-            $("#state td:eq(1)").text(update.result);
-            if ($("#retried").length == 0){
-                $('#started').after('<tr><td id="#retried">Retried</td><td>'+ 
-                                     timestamp.format('YYYY-MM-DD HH:mm:ss '+tz) +'</td>')
-            } else {
-                $("#retried td:eq(1)").text(timestamp.format('YYYY-MM-DD HH:mm:ss '+tz))
-            }
-        } else if (update.type == 'task-running') {
-            var container = $("#result td:eq(1)");
-            $("#state td:eq(1)").children('span').removeClass().addClass("label label-info").text('RUNNING');
-            update_progress(container, update);
+            tz = $('#tz').text(),
+            status = update.type.split('-')[1];
+        timestamp = timestamp.format("YYYY-MM-DD HH:mm:ss "+tz);
+        console.log(update)
+        switch (status){
+            case "sent":
+                var label = "default",
+                    button = "revoke",
+                    state = "SENT";
+                add_or_update_field('retries', update.retries, null, 'worker');
+                add_or_update_field('sent', timestamp, null, 'started');
+                add_or_update_field('routing_key', update.routing_key, null, 'clock');    
+            case "received":
+                var label = "default",
+                    button = "revoke",
+                    state = "RECEIVED";
+                add_or_update_field('received', timestamp, null, 'sent');
+                add_or_update_field('retries', update.retries, null, 'worker');
+                add_or_update_field('args', update.args, 'state', null);
+                add_or_update_field('kwargs', update.kwargs, 'args', null);
+                add_or_update_field('expires', update.expires, null, 'retries');
+                if (update.eta) {
+                    add_or_update_field('eta', update.eta, null, 'expires');
+                }
+                break;
+            case "started":
+                var label = "info",
+                    button = "terminate",
+                    state = "STARTED";
+                add_or_update_field("started", timestamp, "sent", null);
+                break;
+            case "running":
+                var label = "info",
+                    button = "terminate",
+                    state = "RUNNING";
+                break;
+            case "allocating":
+                var label = "queued",
+                    button = "terminate",
+                    state = "ALLOCATING";
+                break;
+            case "succeeded":
+                var label = "success",
+                    button = "retry",
+                    state = "SUCCESS";
+                add_or_update_field("succedded", timestamp, "started", null);
+                add_or_update_field("runtime", update.runtime, "timestamp", null);
+                break;
+            case "retried":
+                var label = "warning",
+                    button = "revoke",
+                    state = "RETRY";              
+                add_or_update_field("retried", timestamp, "failed", null);
+                add_or_update_field("exception", update.exception, null, "timestamp");
+                add_or_update_field("traceback", "<pre>"+update.traceback+"</pre>", "timestamp", null);
+                break;
+            case "revoked":
+                var label = "important",
+                    button = "retry",
+                    state = "REVOKED";
+                break;
+            case "failed":
+                var label = "important",
+                    button = "retry",
+                    state = "FAILURE";
+                add_or_update_field("exception", update.exception, null, "timestamp");
+                add_or_update_field("traceback", "<pre>"+update.traceback+"</pre>", "timestamp", null);
+                add_or_update_field("failed", timestamp, "started", null);
+                break;
+            default:
+                var label = null,
+                    button = null,
+                    state = null;
         }
-        if ($.inArray(update.type, ['task-retried', 'task-failed']) != -1){
-            if ($("#traceback").length == 0){
-                $('#clock').before('<td id="traceback">Traceback</td><td><pre>'+ update.traceback +'</pre></td>')
-            } else {
-                $("#traceback td:eq(1)").text(update.traceback)
-            }
-            if ($("#exception").length == 0){
-                $('#worker').after('<td id="exception">Exception</td><td>'+update.exception+'</td>')
-            } else {
-                $("#exception td:eq(1)").text(update.exception)
-            }
+        $('h2 button').remove();
+        switch (button) {
+            case 'retry':
+                $('h2').append('<button style="float: right" class="btn btn-danger" onclick="flower.on_task_retry(event)">Retry</button>');
+                break;
+            case 'terminate':
+               $('h2').append('<button style="float: right" class="btn btn-danger" onclick="flower.on_task_terminate(event)">Terminate</button>');
+               break;
+            case 'revoke':
+                $('h2').append('<button  style="float: right" class="btn btn-danger" onclick="flower.on_task_revoke(event)">Revoke</button>');
+                break;
+            default:
+               $('h2 button').remove();
         }
-        $("#timestamp td:eq(1)").text(timestamp.format('YYYY-MM-DD HH:mm:ss '+tz));
+        if (label) {
+            $("#state td:eq(1)").html('<span class="label label-'+label+'">'+state+'</span>');
+        }
         $("#clock td:eq(1)").text(update.clock);
+        $("#timestamp td:eq(1)").text(timestamp);
     }
 
     $(document).ready(function () {
