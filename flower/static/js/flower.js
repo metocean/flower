@@ -720,6 +720,7 @@ var flower = (function () {
                 var label = "info",
                     button = "terminate",
                     state = "RUNNING";
+                update_progress($('#result td:eq(1)'), update)
                 break;
             case "allocating":
                 var label = "queued",
@@ -730,6 +731,7 @@ var flower = (function () {
                 var label = "success",
                     button = "retry",
                     state = "SUCCESS";
+                add_or_update_field("result", update.result, "kwargs", null);
                 add_or_update_field("succedded", timestamp, "started", null);
                 add_or_update_field("runtime", update.runtime, "timestamp", null);
                 break;
