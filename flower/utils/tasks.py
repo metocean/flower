@@ -8,10 +8,6 @@ from .search import satisfies_search_terms, parse_search_terms
 
 from celery.events.state import Task
 
-fields = list(Task._fields)
-fields.extend(['cycle_dt', 'action_id'])
-Task._fields = tuple(fields)
-
 def iter_tasks(events, limit=None, type=None, worker=None, state=None,
                sort_by=None, received_start=None, received_end=None,
                started_start=None, started_end=None, search=None,
@@ -98,7 +94,11 @@ def get_task_by_id(events, task_id):
 def as_dict(task):
     # as_dict is new in Celery 3.1.7
     if hasattr(Task, 'as_dict'):
-        return task.as_dict()
+        action_id = getattr(task, 'action_id', None)
+        cycle_dt = getattr(task, 'cycle_dt', None)
+        result = task.as_dict()
+        result.update(dict(action_id=action_id,cycle_dt=cycle_dt))
+        return result
     # old version
     else:
         return task.info(fields=task._defaults.keys())
