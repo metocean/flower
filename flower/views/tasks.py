@@ -37,6 +37,7 @@ class TaskView(BaseHandler):
         cycle_dt = task.kwargs.get('cycle_dt',  None)
         action_id = task.kwargs.get('action_id',  None)
         workflow = task.kwargs.get('workflow',  None)
+        template = task.kwargs.get('template',  None)
         if action_id:
             logfile, logpath = get_logfile('actions', action_id)
         elif workflow:
@@ -44,7 +45,7 @@ class TaskView(BaseHandler):
         else:
             logfile, logpath = None, None
 
-        action_conf = get_action_conf(action_id) if action_id else None
+        action_conf = get_action_conf(template or action_id) if action_id else None
     
         self.render("task.html", task=task,
                                  workflow=workflow,
