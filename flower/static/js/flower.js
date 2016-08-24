@@ -539,6 +539,13 @@ var flower = (function () {
         if (update.hostname.indexOf("cycler") > -1) { 
             if  ($.inArray(update.type, ['task-started','task-succeeded','task-failed']) > -1 ) {
                 window.location.reload();
+            } else if (update.type == "task-running") {
+                var progresscell = $("#"+update.uuid+" td:eq(1)"),
+                    timestampcell = $("#"+update.uuid+" td:eq(3)"),
+                    workercell = $("#"+update.uuid+" td:eq(4)");
+                update_progress(progresscell, update);
+                timestampcell.text(format_time(update.timestamp));
+                workercell.text(update.hostname);
             }
         } else {
             update_table_data(update, table);
