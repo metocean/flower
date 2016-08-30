@@ -15,7 +15,7 @@
             <small>{{ task.uuid }}</small>
             {% if task.state in ["STARTED","RUNNING","ALLOCATING"] %}
                 <button style="float: right" class="btn btn-danger" onclick="flower.on_task_terminate(event)">Terminate</button>
-            {% elif task.state in ["FAILURE","SUCCESS"] %}
+            {% elif task.state in ["FAILURE","SUCCESS"] and 'dedicated' not in str(task.worker) %}
                 <button  style="float: right" class="btn btn-danger" onclick="flower.on_task_retry(event)">Retry</button>
             {% elif task.state == "RECEIVED" or task.state == "RETRY" %}
                 <button  style="float: right" class="btn btn-danger" onclick="flower.on_task_revoke(event)">Revoke</button>
@@ -27,13 +27,13 @@
             <table class="table table-bordered table-striped">
               <caption>Basic task options</caption>
               <tbody>
-              {% if task.action_id %}
+              {% if hasattr(task, 'action_id') %}
               <tr id='action_id'>
                 <td>Action ID</td>
                 <td>{{ task.action_id }}</td>
               </tr>
               {% end %}
-              {% if task.cycle_dt %}
+              {% if hasattr(task, 'cycle_dt') %}
               <tr id='cycle_dt'>
                 <td>Cycle</td>
                 <td>{{ task.cycle_dt }}</td>
@@ -89,6 +89,9 @@
                   {{ getattr(task, 'result', None) }}
                 {% end %}</td>
               </tr>
+              {% if hasattr(task, 'parent') and task.parent %}
+              <tr><td>Parent</td><td><a href="/task/{{task.parent}}">{{task.parent}}</a></td>
+              {% end %}
               </tbody>
             </table>
           </div>
