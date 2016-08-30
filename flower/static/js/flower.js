@@ -771,7 +771,11 @@ var flower = (function () {
         $('h2 button').remove();
         switch (button) {
             case 'retry':
-                $('h2').append('<button style="float: right" class="btn btn-danger" onclick="flower.on_task_retry(event)">Retry</button>');
+                if ($.inArray('dedicated', update.hostname)) {
+                    $('h2 button').remove();     
+                } else {
+                    $('h2').append('<button style="float: right" class="btn btn-danger" onclick="flower.on_task_retry(event)">Retry</button>');
+                }
                 break;
             case 'terminate':
                $('h2').append('<button style="float: right" class="btn btn-danger" onclick="flower.on_task_terminate(event)">Terminate</button>');
