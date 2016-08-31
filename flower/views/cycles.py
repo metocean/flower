@@ -120,12 +120,12 @@ class CyclesDataTable(BaseHandler):
                        reverse=sort_order)
 
         tasks = list(map(self.format_task, tasks))
-
+        
         cycle_tasks = []
         for _, task in tasks:
             task = as_dict(task)
 
-            if cycle_dt and task['cycle_dt'] not in cycle_dt:
+            if cycle_dt and task['cycle_dt'] and task['cycle_dt'] not in cycle_dt:
                 continue
 
             task['worker'] = getattr(task.get('worker',None),'hostname',None)
