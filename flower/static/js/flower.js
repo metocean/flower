@@ -1368,6 +1368,9 @@ var flower = (function () {
                 },
                 ajax: {
                     url: url_prefix() + '/crontab/datatable',
+                    data: function ( d ) {
+                        d.actions = $('#actions').val().split(',');
+                    }
                 },
                 order: [
                     [6, "asc"]

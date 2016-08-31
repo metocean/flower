@@ -42,7 +42,9 @@ class CrontabView(BaseHandler):
         actions = CrontabFlow().crontab_actions
 
         crontab_actions = []
+        action_ids = []
         for action_id, vals in actions.items():
+            action_ids.append(action_id)
             cron = vals['schedule']['crontab']
             countdown = vals['schedule'].get('countdown', 0)
             nr = get_crontab_next_run(cron, countdown) 
@@ -62,6 +64,7 @@ class CrontabView(BaseHandler):
             columns=columns,
             time=flower_time,
             crontab_actions=crontab_actions,
+            action_ids = ",".join(action_ids),
         )
 
 
@@ -79,10 +82,9 @@ class CrontabDataTable(BaseHandler):
         column = self.get_argument('order[0][column]', type=int)
         sort_by = self.get_argument('columns[%s][data]' % column, type=str)
         sort_order = self.get_argument('order[0][dir]', type=str) == 'asc'
-
-        actions = CrontabFlow().crontab_actions
-
-        tasks = sorted(iter_tasks(app.events, search=search, actions=actions.keys()),
+        actions = self.get_argument('actions', type=list)
+        
+        tasks = sorted(iter_tasks(app.events, search=search, actions=actions),
                        key=lambda x: getattr(x[1], sort_by),
                        reverse=sort_order)
 
