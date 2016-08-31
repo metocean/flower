@@ -100,10 +100,13 @@ def as_dict(task):
 
 
 def expand_kwargs(task):
-    if task and not isinstance(task.kwargs, dict) and\
-           isinstance(task.kwargs,(str, unicode)):
+    if isinstance(task.kwargs,(str, unicode)):
         kwargs = ast.literal_eval(task.kwargs)        
-        task.action_id = kwargs.get('action_id', None)
-        task.cycle_dt = kwargs.get('cycle_dt', None)
-        task.parent = kwargs.get('parent', None)
+    elif isinstance(task.kwargs, dict):
+        kwargs = task.kwargs
+    else:
+        kwargs = {}
+    task.action_id = kwargs.get('action_id', None)
+    task.cycle_dt = kwargs.get('cycle_dt', None)
+    task.parent = kwargs.get('parent', None)
     return task
