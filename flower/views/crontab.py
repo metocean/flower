@@ -82,8 +82,8 @@ class CrontabDataTable(BaseHandler):
         column = self.get_argument('order[0][column]', type=int)
         sort_by = self.get_argument('columns[%s][data]' % column, type=str)
         sort_order = self.get_argument('order[0][dir]', type=str) == 'asc'
-        actions = self.get_argument('actions', type=list)
-        
+        actions = self.get_argument('actions', type=str).split(',')
+
         tasks = sorted(iter_tasks(app.events, search=search, actions=actions),
                        key=lambda x: getattr(x[1], sort_by),
                        reverse=sort_order)

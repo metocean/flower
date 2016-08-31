@@ -47,10 +47,10 @@ def iter_tasks(events, limit=None, type=None, worker=None, state=None,
         if not task.kwargs:
             task.kwargs = {}
         
-        if actions and task.action_id not in actions:
-            continue 
-
         task = expand_kwargs(task)
+
+        if actions and task.action_id not in actions:
+            continue
 
         yield uuid, task
         i += 1
