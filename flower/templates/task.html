@@ -141,12 +141,38 @@
           </pre>
           {% end %}
           {% if workflow %}
-          <h3>Workflow</h3>
-          <pre class="prettyprint linenums languague-css">
-            {% for action_id in workflow %}
-              - {{ action_id }}
+            {% if isinstance(task.result, dict) and task.result.has_key('state') %}
+              <h3>Pending <small>(Waiting for dependencies)</small></h3> 
+              <pre class="prettyprint linenums languague-css">
+                {% for action_id in sorted(task.result['state']['pending']) %}
+                  - {{ action_id }}
+                {% end %}
+              </pre>
+              <h3>Running/Scheduled</h3>
+              <pre class="prettyprint linenums languague-css">
+                {% for action_id in sorted(task.result['state']['running']) %}
+                  - {{ action_id }}
+                {% end %}
+              </pre>
+              <h3>Failed</h3>
+              <pre class="prettyprint linenums languague-css">
+                {% for action_id in sorted(task.result['state']['failed']) %}
+                  - {{ action_id }}
+                {% end %}
+              </pre>
+              <h3>Success</h3>
+              <pre class="prettyprint linenums languague-css">
+                {% for action_id in sorted(task.result['state']['success']) %}
+                  - {{ action_id }}
+                {% end %}
+              </pre>
             {% end %}
-          </pre>
+            <h3>Complete workflow <small><a href="{{ reverse_url('deps', task.uuid, task.cycle_dt) }}?workflow={{ ','.join(workflow) }}">Dependency chains</a></small></h3>
+            <pre class="prettyprint linenums languague-css">
+              {% for action_id in sorted(workflow) %}
+                - {{ action_id }}
+              {% end %}
+            </pre>
           {% end %}
         </div>
 
