@@ -28,14 +28,14 @@ class DependencyImageView(BaseHandler):
         output = '/tmp/%s.png' % task_id
         if not os.path.exists(output):
             try:
-                command = SchedulerCommand(['deps','-a', workflow,
+                command = SchedulerCommand(['deps','-w', workflow,
                                             '-o', output])
                 command.run()
             except SystemExit as exc:
                 if exc.code == 0:
                     pass
                 else:
-                    self.write_error(404, exc_info='Could not generate or find dependencies plot graph')
+                    raise Exception('Deps graph failed to generate due')
 
         self.set_header("Content-Type", "image/png")
         with open(output) as dep_plot:
