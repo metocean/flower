@@ -1454,6 +1454,13 @@ var flower = (function () {
             });
         } else if ($.inArray('task', $(location).attr('pathname').split('/')) !== -1) {
             $('#logfile').scrollTop($('#logfile')[0].scrollHeight);
+            $('.collapsable').expander({slicePoint: 300,
+                                        preserveWords: true,
+                                        detailPrefix: '',
+                                        afterExpand: function() {
+                                            $(".details", this).css("display",'inline');
+                                        }
+                                        });
         } else { return }
         window.last_draw = Date.now();
     });
