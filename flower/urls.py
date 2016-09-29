@@ -19,7 +19,7 @@ from .views.error import NotFoundErrorHandler
 from .views.dashboard import DashboardView, DashboardUpdateHandler
 from .views.tailer import UpdateLogfile
 from .views.action import ActionView
-from .views.deps import DependencyView
+from .views.deps import DependencyImageView, DependencySankeyView
 from .utils import gen_cookie_secret
 
 
@@ -38,7 +38,8 @@ handlers = [
     url(r"/dashboard", DashboardView, name='dashboard'),
     url(r"/worker/(.+)", WorkerView, name='worker'),
     url(r"/task/(.+)", TaskView, name='task'),
-    url(r"/deps/(.+)/(.+)", DependencyView, name='deps'),
+    url(r"/deps/(.+)", DependencyImageView, name='deps'),
+    url(r"/sankey/(.+)", DependencySankeyView, name='sankey'),
     url(r"/tasks", TasksView, name='tasks'),
     url(r"/cycles", CyclesView, name='cycles'),
     url(r"/cycles/datatable", CyclesDataTable),

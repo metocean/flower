@@ -159,7 +159,7 @@
                 {% end %}
               </pre>
             {% end %}
-            <h3>Complete workflow <small><a href="{{ reverse_url('deps', task.uuid, task.cycle_dt) }}?workflow={{ ','.join(workflow) }}">Dependency chains</a></small></h3>
+            <h3>Complete workflow <small>Dependencies: <a href="{{ reverse_url('deps', task.uuid) }}?workflow={{ ','.join(workflow) }}">image</a>/<a href="{{ reverse_url('sankey', task.uuid) }}?workflow={{ ','.join(workflow) }}">sankey</a></small></h3>
             <pre class="collapsable prettyprint linenums languague-css">
               {% for action_id in sorted(workflow) %}
                 - {{ action_id }}<br>
