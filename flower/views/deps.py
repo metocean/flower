@@ -6,6 +6,7 @@ import logging
 import ast
 import os
 import shelve
+import datetime
 
 try:
     from itertools import imap
@@ -14,32 +15,65 @@ except ImportError:
 
 from tornado import web
 from ..views import BaseHandler
+from ..utils.tasks import get_task_by_id
 
+from scheduler import settings
 from scheduler.command.__main__ import SchedulerCommand
-from scheduler.utils import gen_deps_tree
+from scheduler.core import gen_deps_tree, resolve_deps
+from scheduler.flow import CyclicFlow
 
-class DependencyImageView(BaseHandler):
+
+def resolve_deps_for_cycle(action_id, cycle_dt):
+    if isinstance(cycle_dt, (str, unicode)):
+        cycle_hour = datetime.datetime.strptime(cycle_dt, 
+                    settings.CYCLE_DATETIME_PATTERN).hour
+    elif isinstance(cycle_dt, datetime.datetime):
+        cycle_hour = cycle_dt.hour
+    else:
+        return []
+    flow = CyclicFlow()
+    if cycle_hour not in flow.cycle_hours:
+        return []
+    else:
+        workflow = flow.cycle_hours[cycle_hour]
+        deps = resolve_deps(action_id, workflow)
+        return deps
+
+
+def get_workflow_for_task(task):
+    workflow  = []
+    if task.action_id and task.cycle_dt:
+        workflow += [task.action_id]
+        workflow += resolve_deps_for_cycle(task.action_id, 
+                                           task.cycle_dt)
+    return workflow
+    
+
+class DependencyPydotView(BaseHandler):
     @web.authenticated
     def get(self, task_id):
         app = self.application
         capp = self.application.capp
-        workflow = self.get_argument('workflow', type=str)
+        task = get_task_by_id(self.application.events, task_id)
+        workflow = task.workflow or get_workflow_for_task(task)
+        if workflow:
+            output = '/tmp/%s.png' % task_id
+            if not os.path.exists(output):
+                try:
+                    command = SchedulerCommand(['deps','-w', ','.join(workflow),
+                                                '-o', output])
+                    command.run()
+                except SystemExit as exc:
+                    if exc.code == 0:
+                        pass
+                    else:
+                        raise Exception('Dependency graph error')
 
-        output = '/tmp/%s.png' % task_id
-        if not os.path.exists(output):
-            try:
-                command = SchedulerCommand(['deps','-w', workflow,
-                                            '-o', output])
-                command.run()
-            except SystemExit as exc:
-                if exc.code == 0:
-                    pass
-                else:
-                    raise Exception('Deps graph failed to generate due')
-
-        self.set_header("Content-Type", "image/png")
-        with open(output) as dep_plot:
-            self.write(dep_plot.read())
+            self.set_header("Content-Type", "image/png")
+            with open(output) as dep_plot:
+                self.write(dep_plot.read())
+        else:
+            return self.render('404.html', message="Task has no dependencies")
 
 
 class DependencySankeyView(BaseHandler):
@@ -47,21 +81,26 @@ class DependencySankeyView(BaseHandler):
     def get(self, task_id):
         app = self.application
         capp = self.application.capp
-        workflow = self.get_argument('workflow', type=str)
-        tree = gen_deps_tree(workflow.split(','))
-        cache = shelve.open('/tmp/sankey_cache.shelve')
-        task_id = str(task_id)
-        if cache.has_key(task_id):
-            table = cache[task_id]
+        task = get_task_by_id(self.application.events, task_id)
+        workflow = task.workflow or get_workflow_for_task(task)
+        logging.warn(workflow)
+        if workflow:
+            tree = gen_deps_tree(workflow)
+            cache = shelve.open('/tmp/sankey_cache.shelve')
+            task_id = str(task_id)
+            if cache.has_key(task_id):
+                table = cache[task_id]
+            else:
+                table = []    
+                for action_id, deps in tree.items():
+                    row = []
+                    for dep_id in deps['hard']:
+                        row.append([action_id,dep_id,1,'true','hard'])
+                    for dep_id in deps['soft']:
+                        row.append([action_id,dep_id,0.1,'false','soft'])
+                    table.extend(row)
+                cache[task_id] = table
+            cache.close()
+            self.render('deps.html', table=table)
         else:
-            table = []    
-            for action_id, deps in tree.items():
-                row = []
-                for dep_id in deps['hard']:
-                    row.append([action_id,dep_id,1,'true','hard'])
-                for dep_id in deps['soft']:
-                    row.append([action_id,dep_id,0.1,'false','soft'])
-                table.extend(row)
-            cache[task_id] = table
-        cache.close()
-        self.render('deps.html', table=table)
+            self.render('404.html', message="Task has no dependencies")
