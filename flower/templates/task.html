@@ -75,7 +75,7 @@
               </tr>
               <tr id='result'>
                 <td>Result</td>
-                <td>{% if task.state == 'RUNNING' and hasattr(task, 'progress') and task.progress %}
+                <td>{% if isinstance(task.result, dict) and task.result.has_key('progress') %}
                   <div class="progress">
                     <div class="bar" style="width: {{format_progress(task.result['progress'])}}%;">
                     {{round(format_progress(task.result['progress']),1)}}%
@@ -133,7 +133,7 @@
           </pre>
           {% end %}
           {% if task.workflow %}
-            {% if task.cycle_state %}
+            {% if isinstance(task.result, dict) and task.result.has_key('state') %}
               <h3>Pending <small>(Waiting for dependencies)</small></h3> 
               <pre class="collapsable prettyprint linenums languague-css">
                 {% for action_id in sorted(task.result['state']['pending']) %}

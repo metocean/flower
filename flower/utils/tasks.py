@@ -111,6 +111,5 @@ def expand_kwargs(task):
         task.cycle_dt = task.kwargs.get('cycle_dt', None)
         task.parent = task.kwargs.get('parent', None)
         task.workflow = task.kwargs.get('workflow', None)
-        task.template = task.kwargs.get('workflow', None)
-        task.cycle_state = task.kwargs.get('result', {}).get('state',None)
+        task.template = task.kwargs.get('template', None)
     return task
