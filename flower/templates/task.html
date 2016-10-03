@@ -75,7 +75,7 @@
               </tr>
               <tr id='result'>
                 <td>Result</td>
-                <td>{% if isinstance(task.result, dict) and task.result.has_key('progress') %}
+                <td>{% if task.state == 'RUNNING' and hasattr(task, 'progress') and task.progress %}
                   <div class="progress">
                     <div class="bar" style="width: {{format_progress(task.result['progress'])}}%;">
                     {{round(format_progress(task.result['progress']),1)}}%
@@ -127,13 +127,13 @@
     <div class="row-fluid">
       <div class="span6">
           {% if action_conf %}
-          <h3>Action configuration</h3>
+          <h3>Action configuration <small>Dependencies graph: <a href="{{ reverse_url('deps', task.uuid) }}">pydot</a>/<a href="{{ reverse_url('sankey', task.uuid) }}">sankey</a></small></h3>
           <pre class="prettyprint linenums languague-css">
             {{ action_conf }}
           </pre>
           {% end %}
-          {% if workflow %}
-            {% if isinstance(task.result, dict) and task.result.has_key('state') %}
+          {% if task.workflow %}
+            {% if task.cycle_state %}
               <h3>Pending <small>(Waiting for dependencies)</small></h3> 
               <pre class="collapsable prettyprint linenums languague-css">
                 {% for action_id in sorted(task.result['state']['pending']) %}
@@ -159,9 +159,9 @@
                 {% end %}
               </pre>
             {% end %}
-            <h3>Complete workflow <small>Dependencies: <a href="{{ reverse_url('deps', task.uuid) }}?workflow={{ ','.join(workflow) }}">image</a>/<a href="{{ reverse_url('sankey', task.uuid) }}?workflow={{ ','.join(workflow) }}">sankey</a></small></h3>
+            <h3>Full workflow <small>Dependencies graph: <a href="{{ reverse_url('deps', task.uuid) }}">pydot</a>/<a href="{{ reverse_url('sankey', task.uuid) }}">sankey</a></small></h3>
             <pre class="collapsable prettyprint linenums languague-css">
-              {% for action_id in sorted(workflow) %}
+              {% for action_id in sorted(task.workflow) %}
                 - {{ action_id }}<br>
               {% end %}
             </pre>

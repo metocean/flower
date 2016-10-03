@@ -33,26 +33,20 @@ class TaskView(BaseHandler):
         if task is None:
             raise web.HTTPError(404, "Unknown task '%s'" % task_id)
 
-        task.kwargs = ast.literal_eval(str(task.kwargs))
-        cycle_dt = task.kwargs.get('cycle_dt',  None)
-        action_id = task.kwargs.get('action_id',  None)
-        workflow = task.kwargs.get('workflow',  None)
-        template = task.kwargs.get('template',  None)
-        if action_id:
-            logfile, logpath = get_logfile('actions', action_id)
-        elif workflow:
-            logfile, logpath = get_logfile('cycles', 'cycle_%s' % cycle_dt)
+        if task.action_id:
+            logfile, logpath = get_logfile('actions', task.action_id)
+        elif task.workflow:
+            logfile, logpath = get_logfile('cycles', 'cycle_%s' % task.cycle_dt)
         else:
             logfile, logpath = None, None
 
-        action_conf = get_action_conf(template or action_id) if action_id else None
+        action_conf = get_action_conf(task.template or task.action_id) if task.action_id else None
     
         self.render("task.html", task=task,
-                                 workflow=workflow,
                                  action_conf=action_conf,
                                  logfile=logfile,
                                  logpath=logpath,
-                                 cycle_dt=cycle_dt,
+                                 cycle_dt=task.cycle_dt,
                                  tz=tz)
 
 
