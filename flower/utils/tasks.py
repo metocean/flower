@@ -98,15 +98,25 @@ def as_dict(task):
     else:
         return task.info(fields=task._defaults.keys())
 
+def to_python(val, _type=None):
+    if isinstance(val,(str, unicode)):
+        try:
+            return ast.literal_eval(val)
+        except ValueError:
+            return val        
+    elif _type and isinstance(val, _type):
+        return val
+    elif val == None and _type:
+        return _type()
+    else:
+        return None
+
 
 def expand_kwargs(task):
     if task is not None:
-        if isinstance(task.kwargs,(str, unicode)):
-            task.kwargs = ast.literal_eval(task.kwargs)        
-        elif isinstance(task.kwargs, dict):
-            pass
-        else:
-            task.kwargs = {}
+        task.kwargs = to_python(task.kwargs, dict)
+        task.args = to_python(task.args, list)
+        task.result = to_python(task.result)
         task.action_id = task.kwargs.get('action_id', None)
         task.cycle_dt = task.kwargs.get('cycle_dt', None)
         task.parent = task.kwargs.get('parent', None)
