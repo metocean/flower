@@ -106,7 +106,7 @@ def to_python(val, _type=None):
     if isinstance(val,(str, unicode)):
         try:
             return ast.literal_eval(val)
-        except ValueError:
+        except:
             return val        
     elif _type and isinstance(val, _type):
         return val
