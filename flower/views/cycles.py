@@ -42,8 +42,8 @@ class CyclesView(BaseHandler):
         cycles.sort(reverse=True)
         tasks.sort(key=lambda x: x[1].cycle_dt, reverse=True)
         cycles.insert(0, 'All previous cycles')
-        cycles.insert(0, 'All active cycles')
         cycles.insert(0, 'All cycles')
+        cycles.insert(0, 'All active cycles')
         self.render(
             "cycles.html",
             tasks=[],
