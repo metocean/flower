@@ -86,7 +86,7 @@
                     {{task.result}}
                   </div>
                 {% else %}
-                  <pre class="collapsable">{{ getattr(task, 'result', None) }}</pre>
+                  {{ getattr(task, 'result', None) }}
                 {% end %}</td>
               </tr>
               {% if hasattr(task, 'parent') and task.parent %}

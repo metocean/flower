@@ -108,6 +108,8 @@ def to_python(val, _type=None):
         return val
     elif val == None and _type:
         return _type()
+    elif not isinstance(val, type(None)):
+        return val
     else:
         return None
 
