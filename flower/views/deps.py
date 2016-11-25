@@ -13,7 +13,10 @@ try:
 except ImportError:
     imap = map
 
+import tornado
 from tornado import web
+from tornado.concurrent import run_on_executor
+
 from ..views import BaseHandler
 from ..utils.tasks import get_task_by_id
 
@@ -50,10 +53,11 @@ def get_workflow_for_task(task):
     
 
 class DependencyPydotView(BaseHandler):
-    @web.authenticated
-    def get(self, task_id):
-        app = self.application
-        capp = self.application.capp
+    def __init__(self, *args, **kwargs):
+        super(DependencyPydotView, self).__init__(*args,**kwargs)
+        self.pool = self.application.pool
+    @run_on_executor(executor='pool')
+    def _plot_deps(self, task_id):
         task = get_task_by_id(self.application.events, task_id)
         workflow = task.workflow or get_workflow_for_task(task)
         if workflow:
@@ -68,13 +72,19 @@ class DependencyPydotView(BaseHandler):
                         pass
                     else:
                         raise Exception('Dependency graph error')
-
-            self.set_header("Content-Type", "image/png")
             with open(output) as dep_plot:
-                self.write(dep_plot.read())
+                return dep_plot.read()
         else:
             return self.render('404.html', message="Task has no dependencies")
 
+    @web.authenticated
+    @tornado.gen.coroutine
+    def get(self, task_id):
+        app = self.application
+        capp = self.application.capp
+        result = yield self._plot_deps(task_id)
+        self.set_header("Content-Type", "image/png")
+        self.write(result)    
 
 class DependencySankeyView(BaseHandler):
     @web.authenticated
