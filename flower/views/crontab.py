@@ -52,7 +52,7 @@ class CrontabView(BaseHandler):
                     'next_run': time.mktime(nr.timetuple()),
                     'countdown': countdown}
             action_ids.append(action_id)
-            crontab_actions.append(action_id)
+            crontab_actions.append(task)
         return crontab_actions, action_ids
 
     @web.authenticated
