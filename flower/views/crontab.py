@@ -13,7 +13,10 @@ try:
 except ImportError:
     imap = map
 
+import tornado
 from tornado import web
+from tornado.concurrent import run_on_executor
+
 from celery.schedules import crontab
 
 from ..views import BaseHandler
@@ -30,7 +33,30 @@ def get_crontab_next_run(cron, countdown=0):
     return datetime.datetime.now()+delta+countdown
 
 class CrontabView(BaseHandler):
+    def __init__(self, *args, **kwargs):
+        super(CrontabView, self).__init__(*args,**kwargs)
+        self.pool = self.application.pool
+    
+    @run_on_executor(executor='pool')
+    def _get_crontab_actions(self):
+        actions = CrontabFlow().crontab_actions
+        crontab_actions = []
+        action_ids = []
+        for action_id in sorted(actions.keys()):
+            action_ids.append(action_id)
+            cron = actions[action_id]['schedule']['crontab']
+            countdown = actions[action_id]['schedule'].get('countdown', 0)
+            nr = get_crontab_next_run(cron, countdown) 
+            task = {'action_id': action_id,
+                    'crontab': crontab(**cron),
+                    'next_run': time.mktime(nr.timetuple()),
+                    'countdown': countdown}
+            action_ids.append(action_id)
+            crontab_actions.append(action_id)
+        return crontab_actions, action_ids
+
     @web.authenticated
+    @tornado.gen.coroutine
     def get(self):
         app = self.application
         capp = self.application.capp
@@ -39,32 +65,15 @@ class CrontabView(BaseHandler):
         if capp.conf.CELERY_TIMEZONE:
             flower_time += '-' + capp.conf.CELERY_TIMEZONE
 
-        actions = CrontabFlow().crontab_actions
-
-        crontab_actions = []
-        action_ids = []
-        for action_id, vals in actions.items():
-            action_ids.append(action_id)
-            cron = vals['schedule']['crontab']
-            countdown = vals['schedule'].get('countdown', 0)
-            nr = get_crontab_next_run(cron, countdown) 
-            task = {'action_id': action_id,
-                    'crontab': crontab(**cron),
-                    'next_run': time.mktime(nr.timetuple()),
-                    'countdown': countdown}
-            crontab_actions.append(task)
-
-        crontab_actions.sort(key=itemgetter('action_id'))
-
         columns = 'action_id,cycle_dt,state,received,eta,started,timestamp,runtime'
-
+        actions, action_ids = yield self._get_crontab_actions()
         self.render(
             "crontab.html",
             tasks=[],
             columns=columns,
             time=flower_time,
-            crontab_actions=crontab_actions,
-            action_ids = ",".join(action_ids),
+            crontab_actions=actions,
+            action_ids=','.join(action_ids)
         )
 
 
