@@ -81,6 +81,12 @@ var flower = (function () {
         
     }    
 
+    function pprint_json(selector){
+        var object = JSON.stringify(JSON.parse($(selector).text()),undefined,4);
+        $(selector).text(object);
+
+    }
+
     function url_prefix() {
         var url_prefix = $('#url_prefix').val();
         if (url_prefix) {
@@ -1458,7 +1464,6 @@ var flower = (function () {
                 table.draw();
             });
         } else if ($.inArray('task', $(location).attr('pathname').split('/')) !== -1) {
-            $('#logfile').scrollTop($('#logfile')[0].scrollHeight);
             $('.collapsable').expander({slicePoint: 300,
                                         preserveWords: true,
                                         detailPrefix: '',
@@ -1466,8 +1471,12 @@ var flower = (function () {
                                             $(".details", this).css("display",'inline');
                                         }
                                         });
-            var kwargs = JSON.stringify(JSON.parse($("#kwargs pre").text()),undefined,4);
-            $("#kwargs pre").text(kwargs);
+            
+            
+            if ($('#logfile').length > 0) {
+                $('#logfile').scrollTop($('#logfile')[0].scrollHeight);
+            }
+            pprint_json('#kwargs pre');
             
         } else { return }
         window.last_draw = Date.now();

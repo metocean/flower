@@ -11,7 +11,7 @@
       <div class="span12">
         <div class="page-header">
           <p id="taskid" class="hidden">{{ task.uuid }}</p>
-          <h2>{{ task.action_id }}
+          <h2>{{ task.action_id or task.name }} 
             <small>{{ task.uuid }}</small>
             {% if task.state in ["STARTED","RUNNING","ALLOCATING"] %}
                 <button style="float: right" class="btn btn-danger" onclick="flower.on_task_terminate(event)">Terminate</button>
@@ -83,10 +83,9 @@
                      - {{task.result['status']}}
                     {%end%}
                     </div>
-                    {{task.result}}
                   </div>
                 {% else %}
-                  <pre class="collapsable">{{ getattr(task, 'result', None) }}</pre>
+                  <pre class="collapsable">{{ to_json(task.result) }}</pre>
                 {% end %}</td>
               </tr>
               {% if hasattr(task, 'parent') and task.parent %}
@@ -127,7 +126,7 @@
     <div class="row-fluid">
       <div class="span6">
           {% if action_conf %}
-          <h3>Action configuration <small>Dependencies graph: <a href="{{ reverse_url('deps', task.uuid) }}">pydot</a>/<a href="{{ reverse_url('sankey', task.uuid) }}">sankey</a></small></h3>
+          <h3>Action configuration <small><a href="{{ reverse_url('deps', task.uuid) }}">Dependencies graph</a></small></h3>
           <pre class="prettyprint linenums languague-css">
             {{ action_conf }}
           </pre>
@@ -159,7 +158,7 @@
                 {% end %}
               </pre>
             {% end %}
-            <h3>Full workflow <small>Dependencies graph: <a href="{{ reverse_url('deps', task.uuid) }}">pydot</a>/<a href="{{ reverse_url('sankey', task.uuid) }}">sankey</a></small></h3>
+            <h3>Full workflow <small><a href="{{ reverse_url('deps', task.uuid) }}">Dependencies graph</a></small></h3>
             <pre class="collapsable prettyprint linenums languague-css">
               {% for action_id in sorted(task.workflow) %}
                 - {{ action_id }}<br>
