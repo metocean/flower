@@ -31,7 +31,7 @@
           </thead>
           <tbody>
           {% for uuid, task in cycle_tasks %}
-          {% if task.state in ["STARTED","RUNNING","RETRY"] and task.cycle_dt %}
+          {% if task.state in ["RECEIVED","STARTED","RUNNING","RETRY"] and task.cycle_dt %}
           <tr id="{{ uuid }}">
             <td><a href="/task/{{uuid}}">{{ task.cycle_dt }}</td>
             <td>
