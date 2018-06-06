@@ -37,7 +37,7 @@ class TaskView(BaseHandler):
         if task.action_id:
             logfile, logpath = get_logfile('actions', task.action_id)
         elif task.workflow:
-            logfile, logpath = get_logfile('cycles', 'cycle_%s' % task.cycle_dt)
+            logfile, logpath = get_logfile('cycles', task_id)
         else:
             logfile, logpath = None, None
 
