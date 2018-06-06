@@ -109,8 +109,8 @@ class CyclesDataTable(BaseHandler):
         elif 'active' in cycle_dt or 'previous' in cycle_dt or 'All cycles' in cycle_dt:
             cycle_dt = self._get_cycles(cycle_dt)
 
-        cyclic_tasks = ['wrapper.WrapperTask',
-                        'wrapper.SubprocessTask',
+        cyclic_tasks = ['wrappers.WrapperTask',
+                        'wrappers.SubprocessTask',
                         'chain.AllocateChainTask',
                         'chain.GroupChainTask']
 
