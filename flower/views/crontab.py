@@ -23,7 +23,7 @@ from ..views import BaseHandler
 from ..utils.tasks import iter_tasks, get_task_by_id, as_dict
 from .tasks import TasksDataTable
 
-from scheduler.flow import CrontabFlow
+from scheduler.beat import SchedulerBeat
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ class CrontabView(BaseHandler):
     
     @run_on_executor(executor='pool')
     def _get_crontab_actions(self):
-        actions = CrontabFlow().crontab_actions
+        actions = SchedulerBeat().crontab_actions
         crontab_actions = []
         action_ids = []
         for action_id in sorted(actions.keys()):
