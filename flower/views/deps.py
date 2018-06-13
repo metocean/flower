@@ -23,7 +23,7 @@ from ..utils.tasks import get_task_by_id
 from scheduler import settings
 from scheduler.command.__main__ import SchedulerCommand
 from scheduler.core import gen_deps_tree, resolve_deps
-from scheduler.flow import CyclicFlow
+from scheduler.beat import SchedulerBeat
 
 
 def resolve_deps_for_cycle(action_id, cycle_dt):
@@ -34,11 +34,11 @@ def resolve_deps_for_cycle(action_id, cycle_dt):
         cycle_hour = cycle_dt.hour
     else:
         return []
-    flow = CyclicFlow()
-    if cycle_hour not in flow.cycle_hours:
+    beat = SchedulerBeat()
+    if cycle_hour not in beat.cycle_hours:
         return []
     else:
-        workflow = flow.cycle_hours[cycle_hour]
+        workflow = beat.cycle_hours[cycle_hour]
         deps = resolve_deps(action_id, workflow, upstream=True)
         return deps
 
