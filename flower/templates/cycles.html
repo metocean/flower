@@ -8,7 +8,8 @@
 {% block container %}
 <input type="hidden" value="{{ time }}" id='time'>
 <input type="hidden" value="{{ columns }}" id='columns'>
-<input type="hidden" value="{{ cycles_dt }}" id='cycles'>
+<input type="hidden" value="{{ selected }}" id='selected'>
+<input type="hidden" value="{%for uuid,cycle in cycle_tasks%}{{ uuid }},{%end%}" id='cycles-tasks'>
 
 <div class="container-fluid">
   <div id="active-cycles-accordion" class="accordion">
@@ -22,7 +23,9 @@
         <table class="table table-bordered table-striped">
           <thead>
           <tr>
+            <th>UUID</th>
             <th>Cycle</th>
+            <th>Workflow</th>
             <th>State</th>      
             <th>Started</th>
             <th>Timestamp</th>
@@ -33,7 +36,11 @@
           {% for uuid, task in cycle_tasks %}
           {% if task.state in ["STARTED","RUNNING","RETRY"] and task.cycle_dt %}
           <tr id="{{ uuid }}">
-            <td><a href="/task/{{uuid}}">{{ task.cycle_dt }}</td>
+            <td><a href="/task/{{uuid}}">{{ task.uuid }}</a></td>
+            <td>{{ task.cycle_dt }}{% if task.end_cycle_dt %}--{{task.end_cycle_dt}}{% end %}</td>
+            <td>
+              [{{smart_truncate(', '.join(task.workflows_id+task.actions_id),64)}}]
+            </td>
             <td>
             {% if isinstance(task.result, dict) and task.result.has_key('progress') and task.result['progress'] and task.state == 'RUNNING'> 0%}
             <div class="progress">
@@ -63,7 +70,9 @@
         <table class="table table-bordered table-striped">
           <thead>
           <tr>
+            <th>UUID</th>
             <th>Cycle</th>
+            <th>Workflow</th>
             <th>State</th>      
             <th>Started</th>
             <th>Timestamp</th>
@@ -74,7 +83,11 @@
           {% for uuid, task in cycle_tasks %}
           {% if task.state in ["FAILURE","SUCCESS","REVOKED"] %}
           <tr id="{{ uuid }}">
-            <td><a href="/task/{{uuid}}">{{ task.cycle_dt }}</td>
+            <td><a href="/task/{{uuid}}">{{ task.uuid }}</a></td>
+            <td>{{ task.cycle_dt }}{% if task.end_cycle_dt %}--{{task.end_cycle_dt}}{% end %}</td>
+            <td>
+              [{{smart_truncate(', '.join(task.workflows_id+task.actions_id),64)}}]
+            </td>
             <td>{{ task.state }}</td>
             <td>{{ humanize(task.started, type=time) }}</td>
             <td>{{ humanize(task.timestamp, type=time) }}</td>
@@ -88,9 +101,14 @@
     </div>
   </div>
   <div class="controls">Cycle 
-    <select id="select-cycle" name="cycle_dt" id="select-cycle">
-      {% for cycle in cycles_dt %}
-      <option {% if cycle==cycle_dt %} selected {% end %}>{{ cycle }}</option>
+    <select id="select-cycle" name="selected">
+      <option value='active'>All active cycles</option>
+      <option value='previous'>All previous cycles</option>
+      <option value='all'>All cycles</option>
+      {% for uuid,task in cycle_tasks %}
+        <option {% if uuid and uuid == selected %} selected {% end %} value={{uuid}}>
+          {{ task.cycle_dt }}{% if task.end_cycle_dt %}--{{task.end_cycle_dt}}{% end %} ({{smart_truncate(uuid,8,'')}})
+        </option>
       {% end %}
     </select>
   </div>

@@ -30,63 +30,59 @@ class CyclesView(BaseHandler):
         if capp.conf.CELERY_TIMEZONE:
             time += '-' + capp.conf.CELERY_TIMEZONE
         columns = 'action_id,cycle_dt,state,received,eta,started,timestamp,runtime,worker,routing_key,retries,expires'
-        tasks = sorted(iter_tasks(app.events, type='cycle.CycleTask'))
-        cycle_tasks = []
-        cycles = []
-        for uuid, task in tasks:
-            cycle = task.cycle_dt
-            if cycle != None and cycle not in cycles:
-                cycles.append(cycle)
-                cycle_tasks.append((uuid,task))
+        cycle_tasks = sorted(iter_tasks(app.events, type='cycle.CycleTask'), key=lambda x: x[1].cycle_dt, reverse=True)
 
-        cycles.sort(reverse=True)
-        tasks.sort(key=lambda x: x[1].cycle_dt, reverse=True)
-        cycles.insert(0, 'All previous cycles')
-        cycles.insert(0, 'All cycles')
-        cycles.insert(0, 'All active cycles')
         self.render(
             "cycles.html",
             tasks=[],
             columns=columns,
-            cycles_dt = cycles,
             cycle_tasks = cycle_tasks,
-            cycle_dt=cycles[0] if cycles else '',
+            selected='',
             time=time,
         )
 
 class CyclesDataTable(BaseHandler):
 
-    def _get_cycles(self, state):
+    def _get_cycles(self, selected):
         tasks = sorted(iter_tasks(self.application.events, type='cycle.CycleTask'))
-        cycles = []
+        seleted_cycle_tasks = []
         for uuid, task in tasks:
             kwargs = ast.literal_eval(str(getattr(task, 'kwargs', {}))) or {}
-            cycle_dt = kwargs.get('cycle_dt')
-            if 'active' in state and task.state in ['STARTED', 'RUNNING']:
-                cycles.append(cycle_dt)
-            elif 'previous' in state and task.state not in ['STARTED','RUNNING']:
-                cycles.append(cycle_dt)
-            elif 'All cycles' in state: 
-                cycles.append(cycle_dt)
-        return cycles
+            if selected == 'active'  and task.state in ['STARTED', 'RUNNING','RETRY']:
+                seleted_cycle_tasks.append(uuid)
+            elif selected == 'previous' and task.state not in ['STARTED','RUNNING','RETRY']:
+                seleted_cycle_tasks.append(uuid)
+            elif selected == 'all': 
+                seleted_cycle_tasks.append(uuid)
+            elif selected == uuid:
+                seleted_cycle_tasks.append(uuid)
+        return seleted_cycle_tasks
 
-    def _squash_allocation(self, tasks):
-        # Get tasks allocating and 
-        filter_tasks = []
-        alloc_actions = []
-        for task in tasks:
-            if task['name'] == 'chain.AllocateChainTask':
-                alloc_actions.append(task['action_id'])
-            if task['name'] == 'chain.AllocateChainTask' and task['state'] in ['STARTED', 'RUNNING', 'SUCCESS']:
+    def _squash_allocation(self, selected_cycles, search):
+        alloc_tasks = map(self.format_task, iter_tasks(self.application.events,
+                                                search=search, 
+                                                type=['chain.AllocateChainTask'],
+                                                parent=selected_cycles))
+
+        alloc_uuid = [uuid for uuid,task in alloc_tasks if task.name=='chain.AllocateChainTask']
+
+        wrapper_tasks = ['wrappers.WrapperTask',
+                         'wrappers.SubprocessTask',
+                         'chain.GroupChainTask']
+
+        other_tasks = map(self.format_task, iter_tasks(self.application.events,
+                                                 search=search, 
+                                                 type=wrapper_tasks,
+                                                 parent=alloc_uuid+selected_cycles))
+                
+        for uuid, task in other_tasks+alloc_tasks:
+            if task.name == 'chain.AllocateChainTask' and task.state in \
+            ['RUNNING', 'SUCCESS']:
+                continue
+            elif getattr(task, 'parent', None) in alloc_uuid and task.state == 'FAILURE':
                 continue
             else:
-                filter_tasks.append(task)
-        for task in filter_tasks:
-            if task['name'] and 'tasks.' in task['name'] \
-            and task['action_id'] in alloc_actions \
-            and task['state'] in ['FAILURE']:
-                filter_tasks.remove(task)
-        return filter_tasks
+                yield task
 
     @web.authenticated
     def get(self):
@@ -99,42 +95,21 @@ class CyclesDataTable(BaseHandler):
         column = self.get_argument('order[0][column]', type=int)
         sort_by = self.get_argument('columns[%s][data]' % column, type=str)
         sort_order = self.get_argument('order[0][dir]', type=str) == 'asc'
-        cycle_dt = self.get_argument('cycle_dt', type=str)
+        selected = self.get_argument('selected', type=str)
+        
+        selected_cycles = self._get_cycles(selected)
 
-        if not cycle_dt:
+        if not selected_cycles:
             self.write(dict(draw=draw, data=[],
                             recordsTotal=0,
                             recordsFiltered=0))
             return
-        elif 'active' in cycle_dt or 'previous' in cycle_dt or 'All cycles' in cycle_dt:
-            cycle_dt = self._get_cycles(cycle_dt)
-
-        cyclic_tasks = ['wrappers.WrapperTask',
-                        'wrappers.SubprocessTask',
-                        'chain.AllocateChainTask',
-                        'chain.GroupChainTask']
-
-        tasks = sorted(iter_tasks(app.events, search=search, type=cyclic_tasks),
-                       key=lambda x: getattr(x[1], sort_by),
-                       reverse=sort_order)
-
-        tasks = list(map(self.format_task, tasks))
-        
-        cycle_tasks = []
-        for _, task in tasks:
-            task = as_dict(task)
-
-            if cycle_dt and task['cycle_dt'] and task['cycle_dt'] not in cycle_dt:
-                continue
-
-            task['worker'] = getattr(task.get('worker',None),'hostname',None)
-            cycle_tasks.append(task)
-
-        cycle_tasks = self._squash_allocation(cycle_tasks)
             
         filtered_tasks = []
         i = 0
-        for task in cycle_tasks:
+        for task in self._squash_allocation(selected_cycles, search=search):
+            task = as_dict(task)
+            task['worker'] = getattr(task.get('worker',None),'hostname',None)
             if i < start:
                 i += 1
                 continue
@@ -144,12 +119,15 @@ class CyclesDataTable(BaseHandler):
             filtered_tasks.append(task)
             i += 1
 
-        self.write(dict(draw=draw, data=filtered_tasks,
-                            recordsTotal=len(cycle_tasks),
-                            recordsFiltered=len(cycle_tasks)))
+        filtered_tasks = sorted(filtered_tasks, key=lambda x: x.get(sort_by), 
+                                reverse=sort_order)
 
-    def format_task(self, args):
-        uuid, task = args
+        self.write(dict(draw=draw, data=filtered_tasks,
+                            recordsTotal=len(filtered_tasks),
+                            recordsFiltered=len(filtered_tasks)))
+
+    def format_task(self, task):
+        uuid, task = task
         custom_format_task = self.application.options.format_task
 
         if custom_format_task:

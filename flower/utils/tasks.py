@@ -11,7 +11,7 @@ from celery.events.state import Task
 def iter_tasks(events, limit=None, type=None, worker=None, state=None,
                sort_by=None, received_start=None, received_end=None,
                started_start=None, started_end=None, search=None,
-               actions=[]):
+               parent=[], actions=[]):
     i = 0
     tasks = events.state.tasks_by_timestamp()
     if sort_by is not None:
@@ -20,8 +20,11 @@ def iter_tasks(events, limit=None, type=None, worker=None, state=None,
         datetime.datetime.strptime(x, '%Y-%m-%d %H:%M').timetuple()
     )
     search_terms = parse_search_terms(search or {})
-
     for uuid, task in tasks:
+        task = expand_kwargs(task)
+
+        if parent and getattr(task,'parent',None) not in parent:
+            continue
         if type and task.name and task.name not in type:
             continue
         if worker and task.worker and task.worker.hostname != worker:
@@ -47,8 +50,6 @@ def iter_tasks(events, limit=None, type=None, worker=None, state=None,
         if not task.kwargs:
             task.kwargs = {}
         
-        task = expand_kwargs(task)
-
         if actions and task.action_id not in actions:
             continue
 
@@ -119,7 +120,9 @@ def expand_kwargs(task):
         task.result = to_python(task.result)
         task.action_id = task.kwargs.get('action_id', None)
         task.cycle_dt = task.kwargs.get('cycle_dt', None)
+        task.end_cycle_dt = task.kwargs.get('end_cycle_dt', None)
         task.parent = task.kwargs.get('parent', None)
-        task.workflow = task.kwargs.get('workflow', None)
         task.template = task.kwargs.get('template', None)
+        task.workflows_id = task.kwargs.get('workflows_id', [])
+        task.actions_id = task.kwargs.get('actions_id', [])
     return task

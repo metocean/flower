@@ -39,6 +39,7 @@ def format_isotime(time):
 format_progress = lambda x: x*100
 
 def smart_truncate(content, length=100, suffix='...'):
+    content = str(content)
     if len(content) <= length:
         return content
     else:

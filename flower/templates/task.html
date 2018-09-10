@@ -36,7 +36,7 @@
               {% if hasattr(task, 'cycle_dt') %}
               <tr id='cycle_dt'>
                 <td>Cycle</td>
-                <td>{{ task.cycle_dt }}</td>
+                <td>{{ task.cycle_dt }}{% if task.end_cycle_dt %}--{{task.end_cycle_dt}}{% end %}</td>
               </tr>
               {% end %}
               <tr id='name'>
@@ -91,6 +91,11 @@
               {% if hasattr(task, 'parent') and task.parent %}
               <tr><td>Parent</td><td><a href="/task/{{task.parent}}">{{task.parent}}</a></td>
               {% end %}
+              {% if isinstance(task.result, dict) and task.result.has_key('childs') and task.result['childs'] %}
+              <tr><td>Parent</td><td><ul>{% for action_id, uuid in task.childs.items()%}
+                <li>{{action_id}}: {{uuid}}</li>
+              {% end %}</ul>></td>
+              {% end %}
               </tbody>
             </table>
           </div>
@@ -131,36 +136,45 @@
             {{ action_conf }}
           </pre>
           {% end %}
-          {% if task.workflow %}
+          {% if task.actions_id or task.workflows_id %}
             {% if isinstance(task.result, dict) and task.result.has_key('state') %}
               <h3>Pending <small>(Waiting for dependencies)</small></h3> 
               <pre class="collapsable prettyprint linenums languague-css">
-                {% for action_id in sorted(task.result['state']['pending']) %}
-                  - {{ action_id }}<br>
-                {% end %}
+              {% for cycle_str in sorted(task.result['state']['pending']) %}
+                  {% for action_id in task.result['state']['pending'][cycle_str] %}
+                    - {{ action_id }} @ {{ cycle_str }}<br>
+                  {% end %}
+                
+              {% end %}
               </pre>
-              <h3>Scheduled/Running</h3>
+              <h3>Scheduled/Running</h3> 
               <pre class="collapsable prettyprint linenums languague-css">
-                {% for action_id in sorted(task.result['state']['running']) %}
-                 - {{ action_id }}<br>
-                {% end %}
+              {% for cycle_str in sorted(task.result['state']['running']) %}
+                  {% for action_id in task.result['state']['running'][cycle_str] %}
+                    - {{ action_id }} @ {{ cycle_str }}<br>
+                  {% end %}
+              {% end %}
               </pre>
               <h3>Failed</h3>
               <pre class="collapsable prettyprint linenums languague-css">
-                {% for action_id in sorted(task.result['state']['failed']) %}
-                  - {{ action_id }}<br>
-                {% end %}
+                {% for cycle_str in sorted(task.result['state']['failed']) %}
+                  {% for action_id in task.result['state']['failed'][cycle_str] %}
+                    - {{ action_id }} @ {{ cycle_str }}<br>
+                  {% end %}
+              {% end %}
               </pre>
               <h3>Success</h3>
               <pre class="collapsable prettyprint linenums languague-css">
-                {% for action_id in sorted(task.result['state']['success']) %}
-                  - {{ action_id }}<br>
-                {% end %}
+                {% for cycle_str in sorted(task.result['state']['success']) %}
+                  {% for action_id in task.result['state']['success'][cycle_str] %}
+                    - {{ action_id }} @ {{ cycle_str }}<br>
+                  {% end %}
+              {% end %}
               </pre>
             {% end %}
             <h3>Full workflow <small><a href="{{ reverse_url('deps', task.uuid) }}">Dependencies graph</a></small></h3>
             <pre class="collapsable prettyprint linenums languague-css">
-              {% for action_id in sorted(task.workflow) %}
+              {% for action_id in sorted(task.actions_id) %}
                 - {{ action_id }}<br>
               {% end %}
             </pre>

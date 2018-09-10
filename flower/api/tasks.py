@@ -29,7 +29,6 @@ class BaseTaskHandler(BaseHandler):
     def get_task_args(self):
         try:
             body = self.request.body
-            print body
             options = json_decode(body) if body else {}
         except ValueError as e:
             raise HTTPError(400, str(e))
