@@ -13,7 +13,9 @@ from tornado import web
 
 from ..views import BaseHandler
 from ..utils.tasks import iter_tasks, get_task_by_id, as_dict
-from ..utils.actions import get_action_conf, get_logfile
+from ..utils.actions import get_action_conf, get_log
+
+from scheduler.core import get_action_logfile
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +31,12 @@ class ActionView(BaseHandler):
 
         cycle_dt = task.kwargs.get('cycle_dt',  None)
         action_id = task.kwargs.get('action_id',  None)
-        logfile, logpath = get_logfile(action_id) if action_id else (None,None)
+        
+        if action_id and cycle_dt:
+            logfile, logpath = get_log(get_action_logfile(action_id, cycle_dt))
+        else:
+            logfile, logpath = (None, None)
+
         action_conf = get_action_conf(action_id) if action_id else None
 
 

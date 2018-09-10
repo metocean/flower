@@ -14,9 +14,7 @@ def get_action_conf(action_id):
     
     return action_conf
 
-def get_logfile(basedir, logname, lines=1000):
-    logdir = os.path.join(LOGDIR, basedir)
-    logpath = os.path.join(logdir, '%s.log' % logname)
+def get_log(logpath, lines=1000):
     if os.path.exists(logpath):
         with open(logpath) as log:
             logfile = os.linesep.join(tailer.tail(log, lines))

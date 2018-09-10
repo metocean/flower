@@ -6,13 +6,16 @@ import copy
 import logging
 import ast
 import json
+import os
 
 
 from tornado import web
 
 from ..views import BaseHandler
 from ..utils.tasks import iter_tasks, get_task_by_id, as_dict
-from ..utils.actions import get_action_conf, get_logfile
+from ..utils.actions import get_action_conf, get_log
+
+from scheduler.core import get_action_logfile, get_cycle_logfile
 
 logger = logging.getLogger(__name__)
 
@@ -31,14 +34,19 @@ class TaskView(BaseHandler):
         if task is None:
             raise web.HTTPError(404, "Unknown task '%s'" % task_id)
 
-        if task.action_id:
-            logfile, logpath = get_logfile('actions', task.action_id)
+        if task.action_id and task.cycle_dt:
+            print task.action_id, task.cycle_dt
+            logfile, logpath = get_log(get_action_logfile(task.action_id, 
+                                                          task.cycle_dt))
         elif task.name.startswith('cycle.'):
-            logfile, logpath = get_logfile('cycles', task_id)
+            logfile, logpath = get_log(get_cycle_logfile(task_id))
         else:
             logfile, logpath = None, None
 
-        action_conf = get_action_conf(task.template or task.action_id) if task.action_id else None    
+        if task.action_id:
+            action_conf = get_action_conf(task.template or task.action_id)
+        else:
+            action_conf = None
 
         self.render("task.html", task=task,
                                  action_conf=action_conf,

@@ -541,14 +541,15 @@ var flower = (function () {
     }
 
     function on_cycles_update(update) {
-        var table = $('#cycles-table').DataTable();
-        if (update.hostname.indexOf("cycler") > -1) { 
-            if  ($.inArray(update.type, ['task-started','task-succeeded','task-failed']) > -1 ) {
+        var table = $('#cycles-table').DataTable(),
+            cycles_uuid = $('#cycles-tasks').val().split(',');
+        if (update.name == 'cycle.CycleTask' ||  $.inArray(update.uuid,cycles_uuid)>-1) { 
+            if ($.inArray(update.type, ['task-received','task-succeeded','task-failed']) > -1 ) {
                 window.location.reload();
             } else if (update.type == "task-running") {
-                var progresscell = $("#"+update.uuid+" td:eq(1)"),
-                    timestampcell = $("#"+update.uuid+" td:eq(3)"),
-                    workercell = $("#"+update.uuid+" td:eq(4)");
+                var progresscell = $("#"+update.uuid+" td:eq(3)"),
+                    timestampcell = $("#"+update.uuid+" td:eq(5)"),
+                    workercell = $("#"+update.uuid+" td:eq(6)");
                 update_progress(progresscell, update);
                 timestampcell.text(format_time(update.timestamp));
                 workercell.text(update.hostname);
@@ -701,7 +702,6 @@ var flower = (function () {
             tz = $('#tz').text(),
             status = update.type.split('-')[1];
         timestamp = timestamp.format("YYYY-MM-DD HH:mm:ss "+tz);
-        console.log(update)
         switch (status){
             case "pending":
                 var label = "info",
@@ -1165,7 +1165,7 @@ var flower = (function () {
                 ajax: {
                     url: url_prefix() + '/cycles/datatable',
                     data: function ( d ) {
-                        d.cycle_dt = $('#select-cycle option:selected').text();
+                        d.selected = $('#select-cycle option:selected').val();
                     }   
                 },
                 order: [
