@@ -22,33 +22,22 @@ from ..utils.tasks import get_task_by_id
 
 from scheduler import settings
 from scheduler.command.__main__ import SchedulerCommand
-from scheduler.core import gen_deps_tree, resolve_deps
+from scheduler.core import (gen_deps_tree, resolve_deps, 
+                            evaluate_cycles,load_workflows)
 from scheduler.beat import SchedulerBeat
 
 
-def resolve_deps_for_cycle(action_id, cycle_dt):
-    if isinstance(cycle_dt, (str, unicode)):
-        cycle_hour = datetime.datetime.strptime(cycle_dt, 
-                    settings.CYCLE_DATETIME_PATTERN).hour
-    elif isinstance(cycle_dt, datetime.datetime):
-        cycle_hour = cycle_dt.hour
-    else:
-        return []
-    beat = SchedulerBeat()
-    if cycle_hour not in beat.cycle_hours:
-        return []
-    else:
-        workflow = beat.cycle_hours[cycle_hour]
-        deps = resolve_deps(action_id, workflow, upstream=True)
-        return deps
+def resolve_deps_for_cycle(action_id, cycle_dt,):
+    cycles_dt, cycles_str = evaluate_cycles(cycle_dt)
+    cycle_dt = cycles_dt[0]
 
-def get_workflow_for_task(task):
-    workflow  = []
-    if task.action_id and task.cycle_dt:
-        workflow += [task.action_id]
-        workflow += resolve_deps_for_cycle(task.action_id, 
-                                           task.cycle_dt)
-    return workflow
+    beat = SchedulerBeat(now=cycle_dt, crontabs=False)
+
+    if cycle_dt not in beat.cycles_workflows:
+        return []
+    else:
+        workflow = beat.cycles_workflows[cycle_dt]
+        return resolve_deps(action_id, workflow, upstream=True)
     
 class DependencyPydotView(BaseHandler):
     def __init__(self, *args, **kwargs):
@@ -58,21 +47,32 @@ class DependencyPydotView(BaseHandler):
     @run_on_executor(executor='pool')
     def _plot_deps(self, task_id):
         task = get_task_by_id(self.application.events, task_id)
-        output = '/tmp/%s_%s.png' % (task.action_id, task.cycle_dt)
-        if not os.path.exists(output):
-            workflow = task.workflow or get_workflow_for_task(task)
-            if workflow:
-                try:
-                    command = SchedulerCommand(['deps','-w', ','.join(workflow),
-                                                    '-o', output])
-                    command.run()
-                except SystemExit as exc:
-                    if exc.code == 0:
-                        pass
-                    else:
-                        raise Exception('Dependency graph error')
-            else:
-                return self.render('404.html', message="Task has no dependencies")
+        if task:
+            output = '/tmp/%s_%s.png' % (task.action_id, task.cycle_dt)
+            if not os.path.exists(output):
+                actions_id = getattr(task,'actions_id',[])
+                workflows_id = getattr(task,'workflows_id',[])
+                if actions_id or workflows_id:
+                    workflow = load_workflows(workflows_id)+actions_id
+                else:
+                    workflow = resolve_deps_for_cycle(task.action_id, 
+                                                      task.cycle_dt)+\
+                                                      [task.action_id]
+                if workflow:
+                    try:
+                        command = SchedulerCommand(['deps','-w', ','.join(workflow),
+                                                        '-o', output])
+                        command.run()
+                    except SystemExit as exc:
+                        raise
+                        if exc.code == 0:
+                            pass
+                        else:
+                            return self.render('404.html', message="Error generating graphs")
+                else:
+                    return self.render('404.html', message="Task has no dependencies")
+        else:
+            return self.render('404.html', message="Task UUID Not found")
 
         with open(output) as dep_plot:
             self.set_header("Content-Type", "image/png")
@@ -84,4 +84,5 @@ class DependencyPydotView(BaseHandler):
         app = self.application
         capp = self.application.capp
         result = yield self._plot_deps(task_id)
-        self.write(result)
+        if result:
+            self.write(result)
