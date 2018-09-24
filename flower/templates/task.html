@@ -88,13 +88,17 @@
                   <pre>{{ task.result }}</pre>
                 {% end %}</td>
               </tr>
-              {% if hasattr(task, 'parent') and task.parent %}
-              <tr><td>Parent</td><td><a href="/task/{{task.parent}}">{{task.parent}}</a></td>
+              {% if parent_task %}
+              <tr><td>Parent</td><td>{{ getattr(parent_task, 'name', None) }}(<a href="/task/{{parent_task.uuid}}">{{parent_task.uuid}}</a>)</td>
               {% end %}
-              {% if isinstance(task.result, dict) and task.result.has_key('childs') and task.result['childs'] %}
-              <tr><td>Parent</td><td><ul>{% for action_id, uuid in task.childs.items()%}
-                <li>{{action_id}}: {{uuid}}</li>
-              {% end %}</ul>></td>
+              {% if child_tasks %}
+              <tr><td>Children</td><td>
+                <ul class="collapsable">{% for cuuid,child in child_tasks %}
+                  <li>{% if getattr(child, 'action_id', None) != getattr(task, 'action_id', None) %}<strong>{{ getattr(child, 'action_id', None) }}@{{ getattr(child, 'cycle_dt', None)}}:</strong> {% end %}{{ getattr(child, 'name', None) }}(<a href="/task/{{cuuid}}">{{cuuid}}</a>)</li>
+                {% end %}
+                </ul>
+                </td>
+              </tr>
               {% end %}
               </tbody>
             </table>
