@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class TaskView(BaseHandler):
+
     @web.authenticated
     def get(self, task_id):
         task = get_task_by_id(self.application.events, task_id)
@@ -35,24 +36,33 @@ class TaskView(BaseHandler):
             raise web.HTTPError(404, "Unknown task '%s'" % task_id)
 
         if task.action_id and task.cycle_dt:
-            print task.action_id, task.cycle_dt
             logfile, logpath = get_log(get_action_logfile(task.action_id, 
                                                           task.cycle_dt))
-        elif task.name.startswith('cycle.'):
+        elif task.name and task.name.startswith('cycle.'):
             logfile, logpath = get_log(get_cycle_logfile(task_id))
         else:
             logfile, logpath = None, None
+
+        child_tasks = iter_tasks(self.application.events,parent=[task_id],
+                                 sort_by='received')
 
         if task.action_id:
             action_conf = get_action_conf(task.template or task.action_id)
         else:
             action_conf = None
 
+        if task.parent:
+            parent_task = get_task_by_id(self.application.events, task.parent)
+        else:
+            parent_task = None
+
         self.render("task.html", task=task,
                                  action_conf=action_conf,
                                  logfile=logfile,
                                  logpath=logpath,
                                  cycle_dt=task.cycle_dt,
+                                 parent_task=parent_task,
+                                 child_tasks=child_tasks,
                                  tz=tz)
 
 
