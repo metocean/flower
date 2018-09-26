@@ -18,6 +18,8 @@ except ImportError:
 from babel.dates import format_timedelta
 from pytz import timezone, utc
 
+from scheduler.settings import APPLICATION as scheduler_app
+
 
 PY2 = sys.version_info[0] == 2
 string_types = (str, unicode) if PY2 else (str,)
@@ -37,6 +39,9 @@ def format_isotime(time):
     return dt.strftime("%Y-%m-%d %H:%M:%S %Z")
 
 format_progress = lambda x: x*100
+
+def sched_app():
+    return scheduler_app.title()
 
 def smart_truncate(content, length=100, suffix='...'):
     content = str(content)
