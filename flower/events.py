@@ -15,7 +15,7 @@ from tornado.ioloop import PeriodicCallback
 from tornado.ioloop import IOLoop
 
 from celery.events import EventReceiver
-from celery.events.state import State
+from celery.events.state import State, Task, states
 
 from . import api
 
@@ -28,14 +28,22 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+class SchedulerTask(Task):
+    """Replace some Task methods"""
+    merge_rules = {states.RECEIVED: ('name', 'args', 'kwargs',
+                                     'retries', 'eta', 'expires'),
+                   'RUNNING': ('result')}
+
 class EventsState(State):
     # EventsState object is created and accessed only from ioloop thread
+    Task = SchedulerTask
 
     def __init__(self, *args, **kwargs):
         super(EventsState, self).__init__(*args, **kwargs)
         self.counter = collections.defaultdict(Counter)
 
     def event(self, event):
+
         worker_name = event['hostname']
         event_type = event['type']
 

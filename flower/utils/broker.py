@@ -175,8 +175,6 @@ def main():
 
     broker = Broker(broker_url, http_api=http_api)
     queues = yield broker.queues([queue_name])
-    if queues:
-        print(queues)
     io_loop.stop()
 
 
