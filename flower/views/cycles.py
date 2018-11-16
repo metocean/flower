@@ -54,6 +54,8 @@ class CyclesDataTable(BaseHandler):
                 seleted_cycle_tasks.append(uuid)
             elif selected == 'all': 
                 seleted_cycle_tasks.append(uuid)
+            elif selected == 'none': 
+                seleted_cycle_tasks.append(None)
             elif selected == uuid:
                 seleted_cycle_tasks.append(uuid)
         return seleted_cycle_tasks
