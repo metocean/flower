@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block navbar %}
+{% module Template("navbar.html", active_tab="actions", sched_app=sched_app()) %}
+{% end %}
+
+{% block container %}
+<style type="text/css">
+    #tree{
+        padding: 10px;
+        max-height: 500px;
+        max-width: 30%;
+        overflow-y: auto;
+    }
+    #config{
+        
+    }
+    #info{
+        padding: 10px;
+        display: inline-block;
+    }
+
+</style>
+<div id="container" style="display: inline;">
+    <div id="tree" style="max-width: 20%; float:left;"></div>
+    <div id="info" style="max-width: 50%" >
+        <h2 id="action_id"><h2>
+        <h3>Action configuration </h3>
+        <pre id="config" class="prettyprint linenums languague-css"></pre>
+        <h3>Stats <small>(only data currently in flower database)</small></h3>
+        <table id="stats"></table>
+        <h3>Latest Runs<h3>
+        <table id="tasks-table" class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                  <th>UUID</th>
+                  <th>Cycle</th>
+                  <th>State</th>
+                  <th>Received</th>
+                  <th>Started</th>      
+                  <th>Scheduled</th>
+                  <th>Timestamp</th>
+                  <th>Runtime</th>
+                  <th>Worker</th>
+                  <th>Routing Key</th>
+                  <th>Retries</th>
+                  <th>Expires</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+{% end %}
+
+{% block extra_scripts %}
+<script type="text/javascript">
+    function get_tree_data(data){
+        var tree_data = [];
+        data.actions.forEach(function(action){
+            tree_data.push({
+                text: action
+            })
+        })
+        return tree_data;
+    }
+    $.get("/actions/data", function(data){
+        $('#tree').treeview({
+            levels: 1,
+            showTags: true,
+            showCheckbox: false,
+            multiSelect: false,
+            data: get_tree_data(data),
+            onNodeSelected: function(event, data){
+                $.get("/actions/data/"+data.text, function(action){
+                    $("#action_id").text(data.text);
+                    $("#config").text(action.config);
+                    console.log(action.tasks);
+                });
+            }
+        });    
+    });
+    
+</script>
+{% end %}

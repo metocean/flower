@@ -18,7 +18,7 @@ from .views.crontab import CrontabView, CrontabDataTable
 from .views.error import NotFoundErrorHandler
 from .views.dashboard import DashboardView, DashboardUpdateHandler
 from .views.tailer import UpdateLogfile
-from .views.action import ActionView
+from .views.actions import ActionsView, ActionsData, ActionData
 from .views.deps import DependencyPydotView
 from .utils import gen_cookie_secret
 
@@ -39,13 +39,18 @@ handlers = [
     url(r"/worker/(.+)", WorkerView, name='worker'),
     url(r"/task/(.+)", TaskView, name='task'),
     url(r"/pydot/(.+)", DependencyPydotView, name='deps'),
+    url(r"/actions", ActionsView, name='actions'),
+    url(r"/actions/data", ActionsData, name='actions_data'),
+    url(r"/actions/data/(.+)", ActionData, name='action_data'),
     url(r"/tasks", TasksView, name='tasks'),
     url(r"/cycles", CyclesView, name='cycles'),
     url(r"/cycles/datatable", CyclesDataTable),
     url(r"/tasks/datatable", TasksDataTable),
     url(r"/crontab", CrontabView, name='crontab'),
     url(r"/crontab/datatable", CrontabDataTable),
+    url(r"/nodes", TasksView, name='nodes'),
     url(r"/broker", BrokerView, name='broker'),
+
     # Worker API
     (r"/api/workers", workers.ListWorkers),
     (r"/api/worker/shutdown/(.+)", control.WorkerShutDown),
