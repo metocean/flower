@@ -5,6 +5,7 @@
 {% end %}
 
 {% block container %}
+<input type="hidden" value="{{ time }}" id='time'>
 <style type="text/css">
     #tree{
         padding: 10px;
@@ -13,7 +14,7 @@
         overflow-y: auto;
     }
     #config{
-        
+        display: inline-block;
     }
     #info{
         padding: 10px;
@@ -23,7 +24,7 @@
 </style>
 <div id="container" style="display: inline;">
     <div id="tree" style="max-width: 20%; float:left;"></div>
-    <div id="info" style="max-width: 50%" >
+    <div id="info" style="max-width: 70%" >
         <h2 id="action_id"><h2>
         <h3>Action configuration </h3>
         <pre id="config" class="prettyprint linenums languague-css"></pre>
@@ -33,21 +34,19 @@
                 <tr id='runtime'><td>Runtime (avg.)</td><td></td></tr>
             </tbody>
         </table>
-        <h3>Latest Runs<h3>
+        <h3>Latest Runs</h3>
         <table id="tasks-table" class="table table-bordered table-striped">
             <thead>
                 <tr>
                   <th>UUID</th>
                   <th>Cycle</th>
                   <th>State</th>
-                  <th>Received</th>
-                  <th>Started</th>      
+                  <th>Received</th>      
                   <th>Scheduled</th>
+                  <th>Started</th>
                   <th>Timestamp</th>
                   <th>Runtime</th>
                   <th>Worker</th>
-                  <th>Routing Key</th>
-                  <th>Retries</th>
                   <th>Expires</th>
                 </tr>
             </thead>
@@ -67,6 +66,63 @@
         })
         return tree_data;
     }
+    var tasks_table = $('#tasks-table').DataTable({
+        rowId: 0,
+        searching: false,
+        paginate: false,
+        select: true,
+        scrollX: true,
+        scrollY: 500,
+        scrollCollapse: true,
+        order: [
+            [6, "asc"]
+        ],
+        columnDefs: [{
+            targets: 0,
+            data: 'uuid',
+            render: function (data, type, full, meta) {
+                return '<a href="' + '/task/' + data + '">' + data + '</a>';
+            }
+        },{
+            targets: 1,
+            data: 'cycle_dt',
+        }, {
+            targets: 2,
+            data: 'state',
+            render: flower.render_status
+        }, {
+            targets: 3,
+            data: 'received',
+            render: flower.format_time
+        }, {
+            targets: 4,
+            data: 'eta',
+            render: flower.format_isotime
+        }, {
+            targets: 3,
+            data: 'started',
+            render: flower.format_time
+        },  {
+            targets: 5,
+            data: 'succeeded',
+            render: flower.format_time
+        }, {
+            targets: 6,
+            data: 'timestamp',
+            render: flower.format_time
+        }, {
+            targets: 7,
+            data: 'runtime',
+            render: flower.format_duration
+        },{
+            targets: 8,
+            data: 'worker',
+        },{
+            targets: 9,
+            data: 'expires',
+            render: flower.format_isotime
+        },],
+    });
     $.get("/actions/data", function(data){
         $('#tree').treeview({
             levels: 1,
@@ -78,50 +134,10 @@
                 $.get("/actions/data/"+data.text, function(action){
                     $("#action_id").text(data.text);
                     $("#config").text(action.config);
-                    $("#runtime td:eq(1)").text(action.stats.runtime)
-                    $('#workers-table').DataTable({
-                        rowId: 'uuid',
-                        searching: true,
-                        paginate: false,
-                        select: true,
-                        scrollX: true,
-                        scrollY: 500,
-                        scrollCollapse: true,
-                        order: [
-                            [1, "asc"]
-                        ],
-                        columnDefs: [{
-                            targets: 0,
-                            data: 'uuid',
-                            render: function (data, type, full, meta) {
-                                return '<a href="' + url_prefix() + '/worker/' + data + '">' + data + '</a>';
-                            }
-                        },{
-                            targets: 1,
-                            data: 'cycle_dt',
-                        }, {
-                            targets: 2,
-                            data: 'state',
-                        }, {
-                            targets: 3,
-                            data: 'received'
-                        }, {
-                            targets: 4,
-                            data: 'scheduled'
-                        }, {
-                            targets: 3,
-                            data: 'started'
-                        },  {
-                            targets: 5,
-                            data: 'succeeded'
-                        }, {
-                            targets: 6,
-                            data: 'timestamp'
-                        }, {
-                            targets: 6,
-                            data: 'runtime'
-                        },],
-                    });
+                    $("#runtime td:eq(1)").text(flower.format_duration(action.stats.runtime))
+                    tasks_table.clear();
+                    tasks_table.rows.add(action.tasks);
+                    tasks_table.draw();
                 });
             }
         });    

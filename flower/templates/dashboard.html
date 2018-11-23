@@ -62,3 +62,89 @@
     </div>
 
 {% end %}
+{% block extra_scripts %}
+<script type="text/javascript">
+  var table = $('#workers-table').DataTable({
+    rowId: 'name',
+    searching: true,
+    paginate: false,
+    select: true,
+    scrollX: true,
+    scrollY: 500,
+    scrollCollapse: true,
+    order: [
+        [1, "asc"]
+    ],
+    columnDefs: [{
+        targets: 0,
+        data: 'name',
+        render: function (data, type, full, meta) {
+            return '<a href="' + flower.url_prefix() + '/worker/' + data + '">' + data + '</a>';
+        }
+    }, {
+        targets: 1,
+        data: 'status',
+        render: function (data, type, full, meta) {
+            if (data) {
+                return '<span class="label label-success">Online</span>';
+            } else {
+                return '<span class="label label-important">Offline</span>';
+            }
+        }
+    }, {
+        targets: 2,
+        data: 'active'
+    }, {
+        targets: 3,
+        data: 'processed'
+    }, {
+        targets: 4,
+        data: 'failed'
+    }, {
+        targets: 5,
+        data: 'succeeded'
+    }, {
+        targets: 6,
+        data: 'retried'
+    }, {
+        targets: 7,
+        data: 'loadavg',
+        render: function (data, type, full, meta) {
+            if (Array.isArray(data)) {
+                return data.join(', ');
+            }
+            return data;
+        }
+    }, ],
+  });
+  function sum(a, b) {
+    return parseInt(a, 10) + parseInt(b, 10);
+  }
+  function on_dashboard_update(update) {
+    $.each(update, function (name, info) {
+        var row = table.row('#' + name);
+        if (row) {
+            row.data(info);
+        } else {
+            table.row.add(info);
+        }
+    });
+    table.draw();
+
+    $('a#btn-active').text('Active: ' + table.column(2).data().reduce(sum, 0));
+    $('a#btn-failed').text('Failed: ' + table.column(4).data().reduce(sum, 0));
+    $('a#btn-succeeded').text('Succeeded: ' + table.column(5).data().reduce(sum, 0));
+    $('a#btn-retried').text('Retried: ' + table.column(6).data().reduce(sum, 0));
+  }
+
+  var host = $(location).attr('host'),
+      protocol = $(location).attr('protocol') === 'http:' ? 'ws://' : 'wss://',
+      ws = new WebSocket(protocol + host + url_prefix() + "/update-dashboard");
+  
+  ws.onmessage = function (event) {
+      var update = $.parseJSON(event.data);
+      on_dashboard_update(update);
+  };
+  
+</script>
+{% end %}

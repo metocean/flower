@@ -76,3 +76,153 @@
   </table>
 </div>
 {% end %}
+
+{% block extra_scripts %}
+<script type="text/javascript">
+  function render_collapsable(data, type, full, meta) {
+    return '<span class="collapsable">'+data+'</span>'
+  }
+
+  function collapse_collapsable () { 
+    $('.collapsable').expander({slicePoint: 25,
+                                preserveWords: false,
+                                expandText: '-->',
+                                collapseText: '<--'});
+  }
+  function on_tasks_update(update) {
+    var table = $('#tasks-table').DataTable();
+    flower.update_table_data(update, table);
+  }
+
+  function connect_tasks_socket(update_func) {
+    var host = $(location).attr('host'),
+        protocol = $(location).attr('protocol') === 'http:' ? 'ws://' : 'wss://',
+        ws = new WebSocket(protocol + host + "/api/task/events/update-tasks/");
+    ws.onmessage = function (event) {
+        var update = $.parseJSON(event.data);
+        update_func(update)
+    };
+  }
+
+  $('#tasks-table').DataTable({
+      rowId: 'uuid',
+      searching: true,
+      paginate: true,
+      scrollX: true,
+      scrollCollapse: true,
+      processing: true,
+      serverSide: true,
+      colReorder: true,
+      lengthMenu: [ 50, 100, 200 ],
+      /*drawCallback: flower.collapse_collapsable,*/
+      initComplete: function() {
+        connect_tasks_socket(on_tasks_update);
+      },
+      ajax: {
+          url: flower.url_prefix() + '/tasks/datatable'
+      },
+      order: [
+          [8, "asc"]
+      ],
+      oSearch: {
+          "sSearch": $.urlParam('state') ? 'state:' + $.urlParam('state') : ''
+      },
+      columnDefs: [{
+          targets: 0,
+          data: 'name',
+          visible: flower.isColumnVisible('name'),
+          render: function (data, type, full, meta) {
+              return data;
+          }
+      }, {
+          targets: 1,
+          data: 'uuid',
+          visible: flower.isColumnVisible('uuid'),
+          orderable: false,
+          render: function (data, type, full, meta) {
+              return '<a href="' + flower.url_prefix() + '/task/' + data + '">' + data + '</a>';
+          }
+      },{
+          targets: 2,
+          data: 'action_id',
+          visible: flower.isColumnVisible('action_id'),
+          orderable: true,
+      },{
+          targets: 3,
+          data: 'cycle_dt',
+          orderable: true,
+          visible: flower.isColumnVisible('cycle_dt')
+      },{
+          targets: 4,
+          data: 'state',
+          visible: flower.isColumnVisible('state'),
+          render: flower.render_status
+      }, {
+          targets: 5,
+          data: 'args',
+          visible: flower.isColumnVisible('args'),
+          render: render_collapsable
+      }, {
+          targets: 6,
+          data: 'kwargs',
+          visible: flower.isColumnVisible('kwargs'),
+          render: render_collapsable
+      }, {
+          targets: 7,
+          data: 'result',
+          visible: flower.isColumnVisible('result'),
+          render: render_collapsable
+      }, {
+          targets: 8,
+          data: 'received',
+          visible: flower.isColumnVisible('received'),
+          render: flower.format_time
+
+      }, {
+          targets: 9,
+          data: 'started',
+          visible: flower.isColumnVisible('started'),
+          render: flower.format_time
+      }, {
+          targets: 10,
+          data: 'runtime',
+          visible: flower.isColumnVisible('runtime'),
+          render: flower.format_duration
+      }, {
+          targets: 11,
+          data: 'worker',
+          visible: flower.isColumnVisible('worker')
+      }, {
+          targets: 12,
+          data: 'exchange',
+          visible: flower.isColumnVisible('exchange')
+      }, {
+          targets: 13,
+          data: 'routing_key',
+          visible: flower.isColumnVisible('routing_key')
+      }, {
+          targets: 14,
+          data: 'retries',
+          visible: flower.isColumnVisible('retries')
+      }, {
+          targets: 15,
+          data: 'revoked',
+          visible: flower.isColumnVisible('revoked')
+      }, {
+          targets: 16,
+          data: 'exception',
+          visible: flower.isColumnVisible('exception'),
+          render: render_collapsable
+      }, {
+          targets: 17,
+          data: 'expires',
+          visible: flower.isColumnVisible('expires'),
+          render: flower.format_time
+      }, {
+          targets: 18,
+          data: 'eta',
+          visible: flower.isColumnVisible('eta')
+      }, ],
+  });
+</script>
+{% end %}

@@ -218,3 +218,191 @@
   </div>
 </div>
 {% end %}
+
+
+{% block extra_scripts %}
+<script type="text/javascript">
+  function add_or_update_field(field, data, after, before){
+    if ($("#"+field).length == 0){
+        if (after == null) {
+            $('#'+before).before('<tr id="'+field+'"><td>'+toTitleCase(field)+'</td><td>'+data+'</td></tr>');
+        } else {
+            $('#'+after).after('<tr id="'+field+'"><td>'+toTitleCase(field)+'</td><td>'+data+'</td></tr>');
+        }
+
+    } else {
+        $('#'+field+' td:eq(1)').html(data);
+    }
+  }
+
+  function on_task_update(update) {
+    var timestamp = moment.unix(update.timestamp).utc(),
+        tz = $('#tz').text(),
+        status = update.type.split('-')[1]
+    timestamp = timestamp.format("YYYY-MM-DD HH:mm:ss "+tz);
+    switch (status){
+      case "pending":
+          var label = "info",
+              button = "revoke",
+              state = "PENDING";
+          break;
+      case "sent":
+          var label = "default",
+              button = "revoke",
+              state = "SENT";
+          add_or_update_field('retries', update.retries, null, 'worker');
+          add_or_update_field('sent', timestamp, null, 'started');
+          add_or_update_field('routing_key', update.routing_key, null, 'clock');    
+      case "received":
+          var label = "default",
+              button = "revoke",
+              state = "RECEIVED";
+          add_or_update_field('received', timestamp, null, 'sent');
+          add_or_update_field('retries', update.retries, null, 'worker');
+          add_or_update_field('args', update.args, 'state', null);
+          add_or_update_field('kwargs', JSON.stringify(JSON.parse(update.kwargs),null,4), 'args', null);
+          add_or_update_field('expires', update.expires, null, 'retries');
+          if (update.eta) {
+              add_or_update_field('eta', update.eta, null, 'expires');
+          }
+          break;
+      case "started":
+          var label = "info",
+              button = "terminate",
+              state = "STARTED";
+          add_or_update_field("started", timestamp, "sent", null);
+          break;
+      case "running":
+          var label = "info",
+              button = "terminate",
+              state = "RUNNING";
+          update_progress($('#result td:eq(1)'), update)
+          console.log(update)
+          add_or_update_field('memory', update.result['memory_usage']+ ' / '+  update.result['memory_limit'], 'client', null);
+          break;
+      case "allocating":
+          var label = "queued",
+              button = "terminate",
+              state = "ALLOCATING";
+          break;
+      case "succeeded":
+          var label = "success",
+              button = "retry",
+              state = "SUCCESS";
+          add_or_update_field("result", update.result, "kwargs", null);
+          add_or_update_field("succedded", timestamp, "started", null);
+          add_or_update_field("runtime", update.runtime, "timestamp", null);
+          break;
+      case "retried":
+          var label = "warning",
+              button = "revoke",
+              state = "RETRY";              
+          add_or_update_field("retried", timestamp, "failed", null);
+          add_or_update_field("exception", update.exception, null, "timestamp");
+          add_or_update_field("traceback", "<pre>"+update.traceback+"</pre>", "timestamp", null);
+          break;
+      case "revoked":
+          var label = "important",
+              button = "retry",
+              state = "REVOKED";
+          break;
+      case "failed":
+          var label = "important",
+              button = "retry",
+              state = "FAILURE";
+          add_or_update_field("exception", update.exception, null, "timestamp");
+          add_or_update_field("traceback", "<pre>"+update.traceback+"</pre>", "timestamp", null);
+          add_or_update_field("failed", timestamp, "started", null);
+          break;
+      default:
+          var label = null,
+              button = null,
+              state = null;
+    }
+    $('h2 button').remove();
+    switch (button) {
+        case 'retry':
+            if ($.inArray('dedicated', update.hostname)) {
+                $('h2 button').remove();     
+            } else {
+                $('h2').append('<button style="float: right" class="btn btn-danger" onclick="flower.on_task_retry(event)">Retry</button>');
+            }
+            break;
+        case 'terminate':
+           $('h2').append('<button style="float: right" class="btn btn-danger" onclick="flower.on_task_terminate(event)">Terminate</button>');
+           break;
+        case 'revoke':
+            $('h2').append('<button  style="float: right" class="btn btn-danger" onclick="flower.on_task_revoke(event)">Revoke</button>');
+            break;
+        default:
+           $('h2 button').remove();
+    }
+    if (label) {
+      $("#state td:eq(1)").html('<span class="label label-'+label+'">'+state+'</span>');
+    }
+    $("#clock td:eq(1)").text(update.clock);
+    $("#timestamp td:eq(1)").text(timestamp);
+  }
+
+  function pprint_json(selector){
+    var object = JSON.stringify(JSON.parse($(selector).text()),undefined,4);
+      $(selector).text(object);
+  }
+  $('.collapsable').expander({slicePoint: 300,
+                              preserveWords: true,
+                              detailPrefix: '',
+                              afterExpand: function() {
+                                  $(".details", this).css("display",'inline');
+                              }
+                              });
+  
+  
+  if ($('#logfile').length > 0) {
+      $('#logfile').scrollTop($('#logfile')[0].scrollHeight);
+  }
+
+  function connect_task_socket(update_func, uuid) {
+    var host = $(location).attr('host'),
+        protocol = $(location).attr('protocol') === 'http:' ? 'ws://' : 'wss://',
+        ws = new WebSocket(protocol + host + "/api/task/events/update-task/"+uuid);
+    ws.onmessage = function (event) {
+        var update = $.parseJSON(event.data);
+        update_func(update)
+    };
+  }
+  
+  function logfile_update(update){
+        var logheight = $('#logfile')[0].scrollTopMax,
+            scrollpos = $('#logfile')[0].scrollTop;
+        $('#logfile').append(update);
+        if (scrollpos == logheight) {
+            $('#logfile').scrollTop($('#logfile')[0].scrollTopMax);
+        }
+    }
+
+  function connect_tail_socket(logfile) {
+    var host = $(location).attr('host'),
+        protocol = $(location).attr('protocol') == 'http:' ? 'ws://' : 'wss://';
+
+    var ws = new WebSocket(protocol + host + url_prefix() + '/update-logfile/' + logfile);
+    ws.onmessage = function (event) {
+        logfile_update(event.data+'<br>');
+    };
+    $(window).on('beforeunload', function(){
+        ws.close()    
+    });
+  }
+  
+  pprint_json('#kwargs pre');
+  
+  var uuid = $(location).attr('pathname').split('/')[2],
+      logpath = $('#logpath').text();
+
+  connect_task_socket(on_task_update, uuid);
+  
+  if (logpath){
+    connect_tail_socket(logpath)
+  };
+
+</script>
+{% end %}

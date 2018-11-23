@@ -22,7 +22,8 @@ logger = logging.getLogger(__name__)
 class ActionsView(BaseHandler):
     @web.authenticated
     def get(self):
-        self.render("actions.html")
+        time_type = 'natural-time' if self.application.options.natural_time else 'time'
+        self.render("actions.html", time=time_type)
 
 
 class ActionsData(BaseHandler):
@@ -40,6 +41,7 @@ class ActionData(BaseHandler):
                          'wrappers.SubprocessTask',
                          'chain.GroupChainTask']
         all_tasks = []
+
         
         tasks = iter_tasks(self.application.events,type=wrapper_tasks,
                                                    actions=[action_id])
