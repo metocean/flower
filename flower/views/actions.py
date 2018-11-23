@@ -41,8 +41,24 @@ class ActionData(BaseHandler):
                          'chain.GroupChainTask']
         all_tasks = []
         
-        tasks = [as_dict(t) for _,t in iter_tasks(self.application.events,
-                                                  type=wrapper_tasks,
-                                                  actions=[action_id])]
-        
-        self.write(dict(config=config, tasks=tasks))
+        tasks = iter_tasks(self.application.events,type=wrapper_tasks,
+                                                   actions=[action_id])
+
+        tasks_dict = []
+        success_tasks = []
+        for uuid, task in tasks:
+            if task.state == 'SUCCESS':
+                success_tasks.append(task)
+            t = as_dict(task)
+            t['worker'] = t['worker'].hostname if t['worker'] else None
+            tasks_dict.append(t)
+ 
+        stats = {}
+
+        if success_tasks:
+            stats['runtime'] = sum(t.runtime for t in success_tasks)/float(len(success_tasks))
+        else:
+            stats['runtime'] = 0.0
+
+
+        self.write(dict(config=config, tasks=tasks_dict, stats=stats))

@@ -28,7 +28,11 @@
         <h3>Action configuration </h3>
         <pre id="config" class="prettyprint linenums languague-css"></pre>
         <h3>Stats <small>(only data currently in flower database)</small></h3>
-        <table id="stats"></table>
+        <table id="stats" class="table table-bordered table-striped">
+            <tbody>
+                <tr id='runtime'><td>Runtime (avg.)</td><td></td></tr>
+            </tbody>
+        </table>
         <h3>Latest Runs<h3>
         <table id="tasks-table" class="table table-bordered table-striped">
             <thead>
@@ -74,7 +78,50 @@
                 $.get("/actions/data/"+data.text, function(action){
                     $("#action_id").text(data.text);
                     $("#config").text(action.config);
-                    console.log(action.tasks);
+                    $("#runtime td:eq(1)").text(action.stats.runtime)
+                    $('#workers-table').DataTable({
+                        rowId: 'uuid',
+                        searching: true,
+                        paginate: false,
+                        select: true,
+                        scrollX: true,
+                        scrollY: 500,
+                        scrollCollapse: true,
+                        order: [
+                            [1, "asc"]
+                        ],
+                        columnDefs: [{
+                            targets: 0,
+                            data: 'uuid',
+                            render: function (data, type, full, meta) {
+                                return '<a href="' + url_prefix() + '/worker/' + data + '">' + data + '</a>';
+                            }
+                        },{
+                            targets: 1,
+                            data: 'cycle_dt',
+                        }, {
+                            targets: 2,
+                            data: 'state',
+                        }, {
+                            targets: 3,
+                            data: 'received'
+                        }, {
+                            targets: 4,
+                            data: 'scheduled'
+                        }, {
+                            targets: 3,
+                            data: 'started'
+                        },  {
+                            targets: 5,
+                            data: 'succeeded'
+                        }, {
+                            targets: 6,
+                            data: 'timestamp'
+                        }, {
+                            targets: 6,
+                            data: 'runtime'
+                        },],
+                    });
                 });
             }
         });    
