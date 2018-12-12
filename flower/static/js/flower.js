@@ -81,10 +81,13 @@ var flower = (function () {
         
     }    
 
-    function pprint_json(selector){
-        var object = JSON.stringify(JSON.parse($(selector).text()),undefined,4);
-        $(selector).text(object);
-
+    function pprint_json(object, pre) {
+        var text = JSON.stringify(JSON.parse(object),undefined,4);
+        if (pre) {
+            return '<pre>'+text+'</pre>'
+        } else {
+            return text
+        }
     }
 
     function url_prefix() {
@@ -841,8 +844,8 @@ var flower = (function () {
                     state = "RECEIVED";
                 add_or_update_field('received', timestamp, null, 'sent');
                 add_or_update_field('retries', update.retries, null, 'worker');
-                add_or_update_field('args', update.args, 'state', null);
-                add_or_update_field('kwargs', JSON.stringify(JSON.parse(update.kwargs),null,4), 'args', null);
+                add_or_update_field('args', pprint_json(update.args, true), 'state', null);
+                add_or_update_field('kwargs', pprint_json(update.kwargs, true), 'args', null);
                 add_or_update_field('expires', update.expires, null, 'retries');
                 if (update.eta) {
                     add_or_update_field('eta', update.eta, null, 'expires');
@@ -871,7 +874,7 @@ var flower = (function () {
                 var label = "success",
                     button = "retry",
                     state = "SUCCESS";
-                add_or_update_field("result", update.result, "kwargs", null);
+                add_or_update_field("result", pprint_json(update.result, true), "kwargs", null);
                 add_or_update_field("succedded", timestamp, "started", null);
                 add_or_update_field("runtime", update.runtime, "timestamp", null);
                 break;
@@ -934,13 +937,6 @@ var flower = (function () {
             ws.onmessage = function (event) {
                 var update = $.parseJSON(event.data);
                 on_dashboard_update(update);
-            };
-        } else if ($.inArray('task', $(location).attr('pathname').split('/')) !== -1)  {
-            var uuid = $(location).attr('pathname').split('/')[2],
-                logpath = $('#logpath').text()
-            connect_task_socket(on_task_update, uuid);
-            if (logpath){
-                connect_tail_socket(logpath)
             };
         }
 
@@ -1472,21 +1468,6 @@ var flower = (function () {
                 var table = $('#cycles-table').DataTable();
                 table.draw();
             });
-        } else if ($.inArray('task', $(location).attr('pathname').split('/')) !== -1) {
-            $('.collapsable').expander({slicePoint: 300,
-                                        preserveWords: true,
-                                        detailPrefix: '',
-                                        afterExpand: function() {
-                                            $(".details", this).css("display",'inline');
-                                        }
-                                        });
-            
-            
-            if ($('#logfile').length > 0) {
-                $('#logfile').scrollTop($('#logfile')[0].scrollHeight);
-            }
-            pprint_json('#kwargs pre');
-            
         } else { return }
         window.last_draw = Date.now();
     });
@@ -1509,6 +1490,10 @@ var flower = (function () {
         on_task_terminate: on_task_terminate,
         on_task_retry: on_task_retry,
         on_task_update: on_task_update,
+        pprint_json: pprint_json,
+        connect_task_socket: connect_task_socket,
+        connect_tail_socket: connect_tail_socket,
+        on_task_update: on_tasks_update
     };
 
 }(jQuery));

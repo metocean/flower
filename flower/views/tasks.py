@@ -54,6 +54,8 @@ class TaskView(BaseHandler):
         else:
             action_conf = None
 
+        logger.info(task.result)
+
         if task.parent:
             parent_task = get_task_by_id(self.application.events, task.parent)
         else:

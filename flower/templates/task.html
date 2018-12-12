@@ -67,11 +67,11 @@
               </tr>
               <tr id='args'>
                 <td>args</td>
-                <td><pre class="collapsable">{{ to_json(task.args) }}</pre></td>
+                <td><pre>{{ to_json(task.args) }}</pre></td>
               </tr>
               <tr id='kwargs'>
                 <td>kwargs</td>
-                <td><pre class="collapsable">{{ to_json(task.kwargs) }}</pre></td>
+                <td><pre>{{ to_json(task.kwargs) }}</pre></td>
               </tr>
               <tr id='result'>
                 <td>Result</td>
@@ -86,6 +86,7 @@
                   </div>
                 {% else %}
                   <pre>{{ task.result }}</pre>
+                  <span>View the full <a href="/api/task/result/{{ task.uuid }}">result object</a></span>
                 {% end %}</td>
               </tr>
               {% if parent_task %}
@@ -217,4 +218,40 @@
     </div>
   </div>
 </div>
+{% end %}
+
+{% block extra_scripts %}
+
+<script type="text/javascript">
+  var json_fields=['args', 'kwargs', 'result'];
+  json_fields.forEach(function (field) {
+    var content = $('#'+field+' pre');
+    if (content != undefined) {
+      content.text(flower.pprint_json(content.text()));
+    }
+  });
+
+  $('.collapsable').expander({
+    slicePoint: 300,
+    preserveWords: true,
+    detailPrefix: '',
+    afterExpand: function() {
+        $(".details", this).css("display",'inline');
+      }
+  });
+                        
+  if ($('#logfile').length > 0) {
+    $('#logfile').scrollTop($('#logfile')[0].scrollHeight);
+  }
+  var uuid = $(location).attr('pathname').split('/')[2],
+      logpath = $('#logpath').text();
+
+  flower.connect_task_socket(flower.on_task_update, uuid);
+
+  if (logpath){
+    flower.connect_tail_socket(logpath)
+  };
+
+</script>
+
 {% end %}

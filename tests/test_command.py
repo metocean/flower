@@ -1,3 +1,4 @@
+import os
 import sys
 import unittest
 import subprocess
@@ -37,9 +38,9 @@ class TestFlowerCommand(AsyncHTTPTestCase):
         def grep(patter, filename):
             return int(subprocess.check_output(
                 'grep "%s" %s|wc -l' % (patter, filename), shell=True))
-
-        defined = grep('^define(', 'flower/options.py') - 4
-        documented = grep('^~~', 'docs/config.rst')
+        BASEDIR = os.path.dirname(os.path.abspath(os.path.join(__file__,'..')))
+        defined = grep('^define(', os.path.join(BASEDIR,'flower/options.py')) - 4
+        documented = grep('^~~', os.path.join(BASEDIR,'docs/config.rst'))
         self.assertEqual(defined, documented,
                 msg='Missing option documentation. Make sure all options '
                     'are documented in docs/config.rst')
