@@ -122,6 +122,8 @@
                     <a href="{{ reverse_url('worker', task.worker.hostname) }}">{{ task.worker.hostname }}</a>
                     {% elif name in ['traceback','exception'] %}
                     <pre>{{ getattr(task, name, None) }}</pre>
+                    {% elif name == 'runtime' %}
+                    {{ datetime.timedelta(seconds=getattr(task, name, 0)) }}
                     {% else %}
                       {{ getattr(task, name, None) }}
                     {% end %}

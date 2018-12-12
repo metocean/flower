@@ -876,7 +876,7 @@ var flower = (function () {
                     state = "SUCCESS";
                 add_or_update_field("result", pprint_json(update.result, true), "kwargs", null);
                 add_or_update_field("succedded", timestamp, "started", null);
-                add_or_update_field("runtime", update.runtime, "timestamp", null);
+                add_or_update_field("runtime", format_duration(update.runtime), "timestamp", null);
                 break;
             case "retried":
                 var label = "warning",
@@ -1247,7 +1247,13 @@ var flower = (function () {
                 }, {
                     targets: 18,
                     data: 'eta',
-                    visible: isColumnVisible('eta')
+                    visible: isColumnVisible('eta'),
+                    render: function (data, type, full, meta) {
+                        if (data) {
+                            return format_isotime(data);
+                        }
+                        return data;
+                    }
                 }, ],
             });
         } else if ($.inArray($(location).attr('pathname'), ['/cycles']) !== -1) {
