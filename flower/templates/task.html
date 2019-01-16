@@ -225,7 +225,7 @@
 {% block extra_scripts %}
 
 <script type="text/javascript">
-  var json_fields=['args', 'kwargs', 'result'];
+  var json_fields=['args', 'kwargs'];
   json_fields.forEach(function (field) {
     var content = $('#'+field+' pre');
     if (content != undefined) {
