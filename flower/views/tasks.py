@@ -49,12 +49,7 @@ class TaskView(BaseHandler):
         child_tasks = iter_tasks(self.application.events,parent=[task_id],
                                  sort_by='received')
 
-        if task.action_id:
-            action_conf = get_action_conf(task.template or task.action_id)
-        else:
-            action_conf = None
-
-        logger.info(task.result)
+        action_conf, template_conf = get_action_conf(task.template or task.action_id)
 
         if task.parent:
             parent_task = get_task_by_id(self.application.events, task.parent)
@@ -63,6 +58,7 @@ class TaskView(BaseHandler):
 
         self.render("task.html", task=task,
                                  action_conf=action_conf,
+                                 template_conf=template_conf,
                                  logfile=logfile,
                                  logpath=logpath,
                                  cycle_dt=task.cycle_dt,
