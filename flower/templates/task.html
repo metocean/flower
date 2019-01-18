@@ -154,9 +154,15 @@
     <div class="row-fluid">
       <div class="span6">
           {% if action_conf %}
-          <h3>Action configuration <small><a href="{{ reverse_url('deps', task.uuid) }}">Dependencies graph</a></small></h3>
+          <h3>Action configuration <small> - <a href="{{ reverse_url('deps', task.uuid) }}">Dependencies graph</a></small></h3>
           <pre class="prettyprint linenums languague-css">
             {{ action_conf }}
+          </pre>
+          {% end %}
+          {% if template_conf %}
+          <h3>Template configuration</h3>
+          <pre class="prettyprint linenums languague-css">
+            {{ template_conf }}
           </pre>
           {% end %}
           {% if task.actions_id or task.workflows_id %}

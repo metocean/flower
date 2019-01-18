@@ -126,7 +126,8 @@ def expand_kwargs(task):
         task.cycle_dt = task.kwargs.get('cycle_dt', None)
         task.end_cycle_dt = task.kwargs.get('end_cycle_dt', None)
         task.parent = task.kwargs.get('parent', None)
-        task.template = task.kwargs.get('template', None)
+        ensemble_template = task.kwargs.get('ensemble', {}).get('template',None)
+        task.template = task.kwargs.get('template', ensemble_template)
         task.workflows_id = task.kwargs.get('workflows_id', [])
         task.actions_id = task.kwargs.get('actions_id', [])
         if not hasattr(task, 'memory'):
