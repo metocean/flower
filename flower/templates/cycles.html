@@ -105,7 +105,7 @@
       <option value='active'>All active cycles</option>
       <option value='previous'>All previous cycles</option>
       <option value='all'>All cycles</option>
-      <option value='none'>Actions without parent</option>
+      <option value='none'>No parent Cycle</option>
       {% for uuid,task in cycle_tasks %}
         <option {% if uuid and uuid == selected %} selected {% end %} value={{uuid}}>
           {{ task.cycle_dt }}{% if task.end_cycle_dt %}--{{task.end_cycle_dt}}{% end %} ({{smart_truncate(uuid,8,'')}})

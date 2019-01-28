@@ -44,20 +44,21 @@ class CyclesView(BaseHandler):
 class CyclesDataTable(BaseHandler):
 
     def _get_cycles(self, selected):
-        tasks = sorted(iter_tasks(self.application.events, type='cycle.CycleTask'))
         seleted_cycle_tasks = []
-        for uuid, task in tasks:
-            kwargs = ast.literal_eval(str(getattr(task, 'kwargs', {}))) or {}
-            if selected == 'active'  and task.state in ['STARTED', 'RUNNING','RETRY']:
-                seleted_cycle_tasks.append(uuid)
-            elif selected == 'previous' and task.state not in ['STARTED','RUNNING','RETRY']:
-                seleted_cycle_tasks.append(uuid)
-            elif selected == 'all': 
-                seleted_cycle_tasks.append(uuid)
-            elif selected == 'none': 
-                seleted_cycle_tasks.append(None)
-            elif selected == uuid:
-                seleted_cycle_tasks.append(uuid)
+        if selected == 'none':
+            seleted_cycle_tasks.append(None)
+        else:
+            tasks = sorted(iter_tasks(self.application.events, type='cycle.CycleTask'))
+            for uuid, task in tasks:
+                kwargs = ast.literal_eval(str(getattr(task, 'kwargs', {}))) or {}
+                if selected == 'active'  and task.state in ['STARTED', 'RUNNING','RETRY']:
+                    seleted_cycle_tasks.append(uuid)
+                elif selected == 'previous' and task.state not in ['STARTED','RUNNING','RETRY']:
+                    seleted_cycle_tasks.append(uuid)
+                elif selected == 'all': 
+                    seleted_cycle_tasks.append(uuid)
+                elif selected == uuid:
+                    seleted_cycle_tasks.append(uuid)
         return seleted_cycle_tasks
 
     def _squash_allocation(self, selected_cycles, search):
