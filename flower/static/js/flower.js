@@ -654,6 +654,7 @@ var flower = (function () {
     }
 
     function connect_task_socket(update_func, uuid) {
+        console.log('Connected to task socket')
         var host = $(location).attr('host'),
             protocol = $(location).attr('protocol') === 'http:' ? 'ws://' : 'wss://',
             ws = new WebSocket(protocol + host + "/api/task/events/update-task/"+uuid);
@@ -708,6 +709,7 @@ var flower = (function () {
     }
 
     function on_task_update(update) {
+        console.log(update);
         var timestamp = moment.unix(update.timestamp).utc(),
             tz = $('#tz').text(),
             status = update.type.split('-')[1];
@@ -1402,7 +1404,6 @@ var flower = (function () {
         pprint_json: pprint_json,
         connect_task_socket: connect_task_socket,
         connect_tail_socket: connect_tail_socket,
-        on_task_update: on_tasks_update
     };
 
 }(jQuery));

@@ -7,7 +7,8 @@ import tailer
 def get_action_conf(action_id):
     if action_id is None:
         return None, None
-    rediscover_config(action_id, 'DISCOVERED_ACTIONS', ACTIONS_DIR)
+    DISCOVERED_ACTIONS = rediscover_config(action_id, 'DISCOVERED_ACTIONS', 
+                                           ACTIONS_DIR)
     if action_id in DISCOVERED_ACTIONS:
         with open(DISCOVERED_ACTIONS[action_id]) as conf:
             config = conf.read()
