@@ -13,7 +13,7 @@ except ImportError:
 from tornado import web
 
 from ..views import BaseHandler
-from ..utils.tasks import iter_tasks, get_task_by_id, as_dict
+from ..utils.tasks import iter_tasks, get_task_by_id, as_dict, get_states
 from .tasks import TasksDataTable
 
 logger = logging.getLogger(__name__)
@@ -39,6 +39,7 @@ class CyclesView(BaseHandler):
             cycle_tasks = cycle_tasks,
             selected='',
             time=time,
+            states=get_states(),
         )
 
 class CyclesDataTable(BaseHandler):
@@ -61,9 +62,10 @@ class CyclesDataTable(BaseHandler):
                     seleted_cycle_tasks.append(uuid)
         return seleted_cycle_tasks
 
-    def _squash_allocation(self, selected_cycles, search):
+    def _squash_allocation(self, selected_cycles, state, search):
         alloc_tasks = map(self.format_task, iter_tasks(self.application.events,
                                                 search=search, 
+                                                state=state,
                                                 type=['chain.AllocateChainTask'],
                                                 parent=selected_cycles))
 
@@ -75,6 +77,7 @@ class CyclesDataTable(BaseHandler):
 
         other_tasks = map(self.format_task, iter_tasks(self.application.events,
                                                  search=search, 
+                                                 state=state,
                                                  type=wrapper_tasks,
                                                  parent=alloc_uuid+selected_cycles))
                 
@@ -99,6 +102,7 @@ class CyclesDataTable(BaseHandler):
         sort_by = self.get_argument('columns[%s][data]' % column, type=str)
         sort_order = self.get_argument('order[0][dir]', type=str) == 'asc'
         selected = self.get_argument('selected', type=str)
+        state = self.get_argument('state', type=str)
         
         selected_cycles = self._get_cycles(selected)
 
@@ -110,7 +114,7 @@ class CyclesDataTable(BaseHandler):
             
         filtered_tasks = []
         i = 0
-        for task in self._squash_allocation(selected_cycles, search=search):
+        for task in self._squash_allocation(selected_cycles, state, search):
             task = as_dict(task)
             task['worker'] = getattr(task.get('worker',None),'hostname',None)
             if i < start:

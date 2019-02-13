@@ -3,9 +3,9 @@ from __future__ import absolute_import
 import datetime
 import time
 import ast
+import celery
 
 from .search import satisfies_search_terms, parse_search_terms
-
 from celery.events.state import Task
 
 def iter_tasks(events, limit=None, type=None, worker=None, state=None,
@@ -85,6 +85,11 @@ def get_task_by_id(events, task_id):
             task._fields = _fields
         return expand_kwargs(task)
 
+
+def get_states():
+    states = set(celery.states.ALL_STATES)
+    states.update({'ALLOCATING','SENT'})
+    return sorted(list(states))
 
 def as_dict(task):
     # as_dict is new in Celery 3.1.7
