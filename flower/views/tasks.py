@@ -6,6 +6,7 @@ import logging
 import ast
 import json
 import os
+import celery
 
 try:
     from itertools import imap
@@ -80,13 +81,17 @@ class TasksDataTable(BaseHandler):
         sort_by = self.get_argument('columns[%s][data]' % column, type=str)
         sort_order = self.get_argument('order[0][dir]', type=str) == 'asc'
 
+        task_type = self.get_argument('task_type', type=str)
+        state = self.get_argument('state', type=str)
+        
         def key(item):
             val = getattr(item[1], sort_by)
             if sys.version_info[0] == 3:
                 val = str(val)
             return val
 
-        tasks = sorted(iter_tasks(app.events, search=search),
+        tasks = sorted(iter_tasks(app.events, search=search, type=task_type,
+                                  state=state),
                        key=key, reverse=sort_order)
         tasks = list(map(self.format_task, tasks))
         filtered_tasks = []
@@ -127,9 +132,16 @@ class TasksView(BaseHandler):
         if capp.conf.CELERY_TIMEZONE:
             time += '-' + capp.conf.CELERY_TIMEZONE
 
+        task_types = [t for t in capp.tasks.keys() if t.split('.')[0] in\
+           ['allocate', 'chain', 'wrappers'] or t == 'celery.backend_cleanup']
+        states = set(celery.states.ALL_STATES)
+        states.update({'ALLOCATING','SENT'})
+
         self.render(
             "tasks.html",
             tasks=[],
             columns=app.options.tasks_columns,
             time=time,
+            task_types=sorted(task_types),
+            states=sorted(list(states)),
         )
