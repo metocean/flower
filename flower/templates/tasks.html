@@ -10,19 +10,23 @@
 <input type="hidden" value="{{ columns }}" id='columns'>
 
 <div class="container-fluid">
-  Type <select id="select-type" name="selected">
-      <option value="">All types</option>
-      {% for task_type in task_types  %}
-      <option value="{{ task_type }}">{{ task_type }}</option>
-      {% end %} 
-  </select>
+    <div class="controls"> Type 
+        <select id="select-type" name="selected">
+          <option value="">All types</option>
+          {% for task_type in task_types  %}
+          <option value="{{ task_type }}">{{ task_type }}</option>
+          {% end %} 
+        </select>
+    </div>
 
-  State <select id="select-state" name="selected">
-      <option value="">All states</option>
-      {% for state in states  %}
-      <option value="{{ state }}">{{ state }}</option>
-      {% end %} 
-  </select>
+    <div class="controls">State 
+        <select id="select-state" name="selected">
+            <option value="">All states</option>
+            {% for state in states  %}
+            <option value="{{ state }}">{{ state }}</option>
+            {% end %} 
+        </select>
+    </div>
   <table id="tasks-table" class="table table-bordered table-striped">
     <thead>
     <tr>

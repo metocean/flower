@@ -113,6 +113,14 @@
       {% end %}
     </select>
   </div>
+  <div class="controls">State 
+    <select id="select-state" name="selected">
+      <option value="">All states</option>
+      {% for state in states  %}
+      <option value="{{ state }}">{{ state }}</option>
+      {% end %} 
+    </select>
+  </div>
   <table id="cycles-table" class="table table-bordered table-striped">
     <thead>
     <tr>
@@ -178,6 +186,7 @@ $('#cycles-table').DataTable({
       url: flower.url_prefix() + '/cycles/datatable',
       data: function ( d ) {
           d.selected = $('#select-cycle option:selected').val();
+          d.state = $('#select-state option:selected').val();
       }   
   },
   order: [
@@ -275,6 +284,9 @@ $('#cycles-table').DataTable({
   },],
 });
 $('#select-cycle').change(function(){
+  $('#cycles-table').DataTable().draw();
+});
+$('#select-state').change(function(){
   $('#cycles-table').DataTable().draw();
 });
 </script>

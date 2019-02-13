@@ -13,7 +13,7 @@ import celery
 from tornado import web
 
 from ..views import BaseHandler
-from ..utils.tasks import iter_tasks, get_task_by_id, as_dict
+from ..utils.tasks import iter_tasks, get_task_by_id, as_dict, get_states
 from ..utils.actions import get_action_conf, get_log
 
 from scheduler.core import get_action_logfile, get_cycle_logfile
@@ -185,9 +185,7 @@ class TasksView(BaseHandler):
             time += '-' + str(capp.conf.CELERY_TIMEZONE)
 
         task_types = [t for t in capp.tasks.keys() if t.split('.')[0] in\
-           ['allocate', 'chain', 'wrappers'] or t == 'celery.backend_cleanup']
-        states = set(celery.states.ALL_STATES)
-        states.update({'ALLOCATING','SENT'})
+             ['allocate', 'chain', 'wrappers'] or t == 'celery.backend_cleanup']
 
         self.render(
             "tasks.html",
@@ -198,6 +196,6 @@ class TasksView(BaseHandler):
         )
 =======
             task_types=sorted(task_types),
-            states=sorted(list(states)),
+            states=get_states(),
         )
 >>>>>>> 8ca7ee0 (Added state and task type selectors to Tasks page and refactor a bit)
