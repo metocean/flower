@@ -44,8 +44,8 @@ class CrontabView(BaseHandler):
         action_ids = []
         for action_id in sorted(actions.keys()):
             action_ids.append(action_id)
-            cron = actions[action_id]['schedule']['crontab']
-            countdown = actions[action_id]['schedule'].get('countdown', 0)
+            cron = actions[action_id]['crontab']
+            countdown = actions[action_id].get('countdown', 0)
             nr = get_crontab_next_run(cron, countdown) 
             task = {'action_id': action_id,
                     'crontab': crontab(**cron),

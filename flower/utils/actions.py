@@ -1,16 +1,14 @@
 import os
 
-from scheduler.core import rediscover_config, DISCOVERED_ACTIONS
-from scheduler.settings import LOGDIR, ACTIONS_DIR
+from scheduler import core, settings
 import tailer
 
 def get_action_conf(action_id):
     if action_id is None:
         return None, None
-    DISCOVERED_ACTIONS = rediscover_config(action_id, 'DISCOVERED_ACTIONS', 
-                                           ACTIONS_DIR)
-    if action_id in DISCOVERED_ACTIONS:
-        with open(DISCOVERED_ACTIONS[action_id]) as conf:
+    core.rediscover_config(action_id, 'DISCOVERED_ACTIONS', settings.ACTIONS_DIR)
+    if action_id in core.DISCOVERED_ACTIONS:
+        with open(core.DISCOVERED_ACTIONS[action_id]) as conf:
             config = conf.read()
             template_config = None
             for line in config.splitlines():
