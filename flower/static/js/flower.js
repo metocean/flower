@@ -82,7 +82,7 @@ var flower = (function () {
     }    
 
     function pprint_json(object, pre) {
-        var text = JSON.stringify(JSON.parse(object),undefined,4);
+        var text = JSON.stringify(JSON.parse(object.replace(/'/g, '"')),undefined,4);
         if (pre) {
             return '<pre>'+text+'</pre>'
         } else {
@@ -560,6 +560,7 @@ var flower = (function () {
                 var progresscell = $("#"+update.uuid+" td:eq(3)"),
                     timestampcell = $("#"+update.uuid+" td:eq(5)"),
                     workercell = $("#"+update.uuid+" td:eq(6)");
+                    result = update.result || Object()
                 update_progress(progresscell, update);
                 timestampcell.text(format_time(update.timestamp));
                 workercell.text(update.hostname);
@@ -663,27 +664,29 @@ var flower = (function () {
         };
     }
 
-    function update_progress(container, update){
-        var progress = update.result['progress']*100,
-            state = update.result['status'];
-    
-        if (container.children('.progress').length == 0) {
-            container.text("");
-            var pbar = container.prepend('<div class="progress"></div>').children(),
-                bar = pbar.append('<div class="bar" style="width:'+ 
-                                             progress + '%"'+state+'></div>').children();
-            if (state) {
-                bar.text(progress.toFixed(1)+'% - '+state);
+    function update_progress(container, result){
+        if ('progress' in result) {
+            var progress = result['progress']*100,
+                state = result['status'];
+        
+            if (container.children('.progress').length == 0) {
+                container.text("");
+                var pbar = container.prepend('<div class="progress"></div>').children(),
+                    bar = pbar.append('<div class="bar" style="width:'+ 
+                                                 progress + '%"'+state+'></div>').children();
+                if (state) {
+                    bar.text(progress.toFixed(1)+'% - '+state);
+                } else {
+                    bar.text(progress.toFixed(1)+'%');
+                }
             } else {
-                bar.text(progress.toFixed(1)+'%');
-            }
-        } else {
-            var bar = container.children('.progress').children('.bar');
-            bar.css('width', progress+'%');
-            if (state) {
-                bar.text(progress.toFixed(1)+'% - '+state);
-            } else {
-                bar.text(progress.toFixed(1)+'%');
+                var bar = container.children('.progress').children('.bar');
+                bar.css('width', progress+'%');
+                if (state) {
+                    bar.text(progress.toFixed(1)+'% - '+state);
+                } else {
+                    bar.text(progress.toFixed(1)+'%');
+                }
             }
         }
     }
@@ -747,9 +750,12 @@ var flower = (function () {
             case "running":
                 var label = "info",
                     button = "terminate",
-                    state = "RUNNING";
-                update_progress($('#result td:eq(1)'), update)
-                add_or_update_field('memory', update.result['memory_usage']+ ' / '+  update.result['memory_limit'], 'client', null);
+                    state = "RUNNING",
+                    result =  update.result || Object(),
+                    memory_usage = result.memory_usage || 0,
+                    memory_limit = result.memory_limit || 0;
+                update_progress($('#result td:eq(1)'), result)
+                add_or_update_field('memory', memory_usage+ ' / '+  memory_limit, 'client', null);
                 break;
             case "allocating":
                 var label = "queued",
