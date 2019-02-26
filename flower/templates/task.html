@@ -67,11 +67,11 @@
               </tr>
               <tr id='args'>
                 <td>args</td>
-                <td><pre>{{ to_json(task.args) }}</pre></td>
+                <td><pre id="args-content" class="collapse" style="min-height: 20px;" class="collapse">{{ to_json(task.args) }}</pre><a data-toggle="collapse" href="#args-content">show all</a></td>
               </tr>
               <tr id='kwargs'>
                 <td>kwargs</td>
-                <td><pre>{{ to_json(task.kwargs) }}</pre></td>
+                <td><pre id="kwargs-content" class="collapse" style="min-height: 30px;">{{ to_json(task.kwargs) }}</pre><a data-toggle="collapse" href="#kwargs-content">show all</a></td>
               </tr>
               <tr id='result'>
                 <td>Result</td>
@@ -155,20 +155,16 @@
       <div class="span6">
           {% if action_conf %}
           <h3>Action configuration <small> - <a href="{{ reverse_url('deps', task.uuid) }}">Dependencies graph</a></small></h3>
-          <pre class="prettyprint linenums languague-css">
-            {{ action_conf }}
-          </pre>
+          <pre>{{ action_conf }}</pre>
           {% end %}
           {% if template_conf %}
           <h3>Template configuration</h3>
-          <pre class="prettyprint linenums languague-css">
-            {{ template_conf }}
-          </pre>
+          <pre>{{ template_conf }}</pre>
           {% end %}
           {% if task.actions_id or task.workflows_id %}
             {% if isinstance(task.result, dict) and task.result.has_key('state') %}
               <h3>Pending <small>(Waiting for dependencies)</small></h3> 
-              <pre class="collapsable prettyprint linenums languague-css">
+              <pre class="collapsable">
               {% for cycle_str in sorted(task.result['state']['pending']) %}
                   {% for action_id in task.result['state']['pending'][cycle_str] %}
                     - {{ action_id }} @ {{ cycle_str }}<br>
@@ -177,34 +173,34 @@
               {% end %}
               </pre>
               <h3>Scheduled/Running</h3> 
-              <pre class="collapsable prettyprint linenums languague-css">
+              <pre class="collapsable">
               {% for cycle_str in sorted(task.result['state']['running']) %}
-                  {% for action_id in task.result['state']['running'][cycle_str] %}
-                    - {{ action_id }} @ {{ cycle_str }}<br>
+                  {% for action_id in sorted(task.result['state']['running'][cycle_str]) %}
+                    - {{ action_id }} @ {{ cycle_str }}
                   {% end %}
               {% end %}
               </pre>
               <h3>Failed</h3>
-              <pre class="collapsable prettyprint linenums languague-css">
+              <pre class="collapsable">
                 {% for cycle_str in sorted(task.result['state']['failed']) %}
-                  {% for action_id in task.result['state']['failed'][cycle_str] %}
-                    - {{ action_id }} @ {{ cycle_str }}<br>
+                  {% for action_id in sorted(task.result['state']['failed'][cycle_str]) %}
+                    - {{ action_id }} @ {{ cycle_str }}
                   {% end %}
               {% end %}
               </pre>
               <h3>Success</h3>
-              <pre class="collapsable prettyprint linenums languague-css">
+              <pre class="collapsable">
                 {% for cycle_str in sorted(task.result['state']['success']) %}
-                  {% for action_id in task.result['state']['success'][cycle_str] %}
-                    - {{ action_id }} @ {{ cycle_str }}<br>
+                  {% for action_id in sorted(task.result['state']['success'][cycle_str]) %}
+                    - {{ action_id }} @ {{ cycle_str }}
                   {% end %}
               {% end %}
               </pre>
             {% end %}
             <h3>Full workflow <small><a href="{{ reverse_url('deps', task.uuid) }}">Dependencies graph</a></small></h3>
-            <pre class="collapsable prettyprint linenums languague-css">
+            <pre class="collapsable">
               {% for action_id in sorted(task.actions_id) %}
-                - {{ action_id }}<br>
+                - {{ action_id }}
               {% end %}
             </pre>
           {% end %}

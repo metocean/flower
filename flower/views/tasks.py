@@ -185,7 +185,8 @@ class TasksView(BaseHandler):
             time += '-' + str(capp.conf.CELERY_TIMEZONE)
 
         task_types = [t for t in capp.tasks.keys() if t.split('.')[0] in\
-             ['allocate', 'chain', 'wrappers'] or t == 'celery.backend_cleanup']
+             ['allocate', 'chain', 'wrappers','cycle'] or\
+             t == 'celery.backend_cleanup']
 
         self.render(
             "tasks.html",
