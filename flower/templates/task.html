@@ -156,35 +156,38 @@
           {% if task.actions_id or task.workflows_id %}
             {% if isinstance(task.result, dict) and task.result.has_key('state') %}
               <h3>Pending <small>(Waiting for dependencies)</small></h3> 
-              <pre class="collapsable">
+              <pre class="collapsable prettyprint">
               {% for cycle_str in sorted(task.result['state']['pending']) %}
+                <strong>Cycle {{ cycle_str }}</strong>:
                   {% for action_id in task.result['state']['pending'][cycle_str] %}
-                    - {{ action_id }} @ {{ cycle_str }}<br>
+                  - {{ action_id }}
                   {% end %}
-                
               {% end %}
               </pre>
               <h3>Scheduled/Running</h3> 
               <pre class="collapsable">
               {% for cycle_str in sorted(task.result['state']['running']) %}
+                <strong>Cycle {{ cycle_str }}</strong>:
                   {% for action_id in sorted(task.result['state']['running'][cycle_str]) %}
-                    - {{ action_id }} @ {{ cycle_str }}
+                  - {{ action_id }}
                   {% end %}
               {% end %}
               </pre>
               <h3>Failed</h3>
               <pre class="collapsable">
                 {% for cycle_str in sorted(task.result['state']['failed']) %}
+                <strong>Cycle {{ cycle_str }}</strong>:
                   {% for action_id in sorted(task.result['state']['failed'][cycle_str]) %}
-                    - {{ action_id }} @ {{ cycle_str }}
+                  - {{ action_id }} @ {{ cycle_str }}
                   {% end %}
               {% end %}
               </pre>
               <h3>Success</h3>
               <pre class="collapsable">
                 {% for cycle_str in sorted(task.result['state']['success']) %}
+                <strong>Cycle {{ cycle_str }}</strong>:
                   {% for action_id in sorted(task.result['state']['success'][cycle_str]) %}
-                    - {{ action_id }} @ {{ cycle_str }}
+                  - {{ action_id }} @ {{ cycle_str }}
                   {% end %}
               {% end %}
               </pre>
