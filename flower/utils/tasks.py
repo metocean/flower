@@ -88,7 +88,7 @@ def get_task_by_id(events, task_id):
 
 def get_states():
     states = set(celery.states.ALL_STATES)
-    states.update({'ALLOCATING','SENT'})
+    states.update({'ALLOCATING','SENT','RUNNING'})
     return sorted(list(states))
 
 def as_dict(task):
