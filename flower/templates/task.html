@@ -94,8 +94,8 @@
               {% end %}
               {% if child_tasks %}
               <tr><td>Children</td><td>
-                <ul id="children" class="collapse">{% for cuuid,child in child_tasks %}
-                  <li>{% if getattr(child, 'action_id', None) != getattr(task, 'action_id', None) %}<strong>{{ getattr(child, 'action_id', None) }}@{{ getattr(child, 'cycle_dt', None)}}:</strong> {% end %}{{ getattr(child, 'name', None) }}(<a href="/task/{{cuuid}}">{{cuuid}}</a>)</li>
+                <ul id="children" class="collapse"  style="min-height: 53px;">{% for cuuid,child in child_tasks %}
+                  <li>{% if getattr(child, 'action_id', None) != getattr(task, 'action_id', None) %}<strong>{{ getattr(child, 'action_id', None) }}@{{ getattr(child, 'cycle_dt', None)}}:</strong> {% else %}{{ getattr(child, 'name', None) }}{% end %}(<a href="/task/{{cuuid}}">{{cuuid}}</a>)</li>
                 {% end %}
                 </ul>
                 <a data-toggle="collapse" href="#children">show all</a>
@@ -157,25 +157,25 @@
           {% if task.actions_id or task.workflows_id %}
             {% if isinstance(task.result, dict) and task.result.has_key('state') %}
               <h3>Pending <small>(Waiting for dependencies) <a data-toggle="collapse" href="#pending" >show all</a></small></h3> 
-              <pre id="pending" class="collapse prettyprint" style="min-height: 70px;">{% for cycle_str in sorted(task.result['state']['pending']) %}
+              <pre id="pending" class="collapse prettyprint" style="min-height: 80px;">{% for cycle_str in sorted(task.result['state']['pending']) %}
                 <strong>Cycle {{ cycle_str }}</strong>:{% for action_id in task.result['state']['pending'][cycle_str] %}
                   - {{ action_id }}{% end %}
                   {% end %}
               </pre>
               <h3>Scheduled/Running <small><a data-toggle="collapse" href="#running"">show all</a></small></h3>
-              <pre id='running' class="collapse" style="min-height: 70px;">{% for cycle_str in sorted(task.result['state']['running']) %}
+              <pre id='running' class="collapse prettyprint" style="min-height: 80px;">{% for cycle_str in sorted(task.result['state']['running']) %}
                 <strong>Cycle {{ cycle_str }}</strong>:{% for action_id in sorted(task.result['state']['running'][cycle_str]) %}
                   - {{ action_id }}{% end %}
                   {% end %}
               </pre>
-              <h3>Failed <small><a data-toggle="collapse" href="#failed">show all</a></small></h3>
-              <pre id='failed' class="collapse" style="min-height: 70px;">{% for cycle_str in sorted(task.result['state']['failed']) %}
+              <h3>Failure <small><a data-toggle="collapse" href="#failure">show all</a></small></h3>
+              <pre id='failure' class="collapse prettyprint" style="min-height: 80px;">{% for cycle_str in sorted(task.result['state']['failed']) %}
                 <strong>Cycle {{ cycle_str }}</strong>:{% for action_id in sorted(task.result['state']['failed'][cycle_str]) %}
                   - {{ action_id }}{% end %}
                   {% end %}
               </pre>
               <h3>Success <small><a data-toggle="collapse" href="#success">show all</a></small></h3>
-              <pre id='success' class="collapse" style="min-height: 70px;">{% for cycle_str in sorted(task.result['state']['success']) %}
+              <pre id='success' class="collapse prettyprint" style="min-height: 80px;">{% for cycle_str in sorted(task.result['state']['success']) %}
                 <strong>Cycle {{ cycle_str }}</strong>:{% for action_id in sorted(task.result['state']['success'][cycle_str]) %}
                   - {{ action_id }}{% end %}
                   {% end %}
