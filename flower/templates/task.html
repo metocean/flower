@@ -158,7 +158,7 @@
             {% if isinstance(task.result, dict) and task.result.has_key('state') %}
               <h3>Pending <small>(Waiting for dependencies) <a data-toggle="collapse" href="#pending" >show all</a></small></h3> 
               <pre id="pending" class="collapse prettyprint" style="min-height: 80px;">{% for cycle_str in sorted(task.result['state']['pending']) %}
-                <strong>Cycle {{ cycle_str }}</strong>:{% for action_id in task.result['state']['pending'][cycle_str] %}
+                <strong>Cycle {{ cycle_str }}</strong>:{% for action_id in sorted(task.result['state']['pending'][cycle_str]) %}
                   - {{ action_id }}{% end %}
                   {% end %}
               </pre>
