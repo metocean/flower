@@ -39,13 +39,15 @@ class CrontabView(BaseHandler):
     
     @run_on_executor(executor='pool')
     def _get_crontab_actions(self):
-        actions = SchedulerBeat(cycles=False).crontab_actions
+        beats = SchedulerBeat(cycles=False)
+        actions = beats.crontab_actions
         crontab_actions = []
         action_ids = []
-        for action_id in sorted(actions.keys()):
+        for action_id in sorted(actions):
             action_ids.append(action_id)
-            cron = actions[action_id]['crontab']
-            countdown = actions[action_id].get('countdown', 0)
+            schedule = beats.actions[action_id]
+            cron = schedule['crontab']
+            countdown = schedule.get('countdown', 0)
             nr = get_crontab_next_run(cron, countdown) 
             task = {'action_id': action_id,
                     'crontab': crontab(**cron),
