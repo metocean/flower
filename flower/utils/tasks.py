@@ -4,6 +4,7 @@ import datetime
 import time
 import ast
 import celery
+import six
 
 from .search import satisfies_search_terms, parse_search_terms
 from celery.events.state import Task
@@ -105,7 +106,7 @@ def as_dict(task):
         return task.info(fields=task._defaults.keys())
 
 def to_python(val, _type=None):
-    if isinstance(val,(str, unicode)):
+    if isinstance(val, six.string_types):
         try:
             return ast.literal_eval(val)
         except:
