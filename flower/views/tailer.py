@@ -80,7 +80,8 @@ class UpdateLogfile(websocket.WebSocketHandler):
         pass
 
     def on_close(self):
-        for logpath, listeners in self.listeners.items():
+        listeners_copy = self.listeners.copy()
+        for logpath, listeners in listeners_copy.items():
             if self in listeners:
                 self.listeners[logpath].remove(self)
             if not self.listeners[logpath]:
