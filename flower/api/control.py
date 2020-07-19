@@ -29,10 +29,9 @@ class ControlHandler(BaseHandler):
     @gen.coroutine
     def update_workers(cls, app, workername=None):
         logger.debug("Updating %s worker's cache...", workername or 'all')
-
         futures = []
         destination = [workername] if workername else None
-        timeout = app.options.inspect_timeout / 1000.0
+        timeout = app.options.inspect_timeout / 2000.0
         inspect = app.capp.control.inspect(
             timeout=timeout, destination=destination)
         for method in cls.INSPECT_METHODS:

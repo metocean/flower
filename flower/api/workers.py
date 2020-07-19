@@ -157,7 +157,6 @@ List workers
         refresh = self.get_argument('refresh', default=False, type=bool)
         status = self.get_argument('status', default=False, type=bool)
         workername = self.get_argument('workername', default=None)
-
         if status:
             info = {}
             for name, worker in self.application.events.state.workers.items():

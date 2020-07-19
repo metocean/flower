@@ -33,7 +33,7 @@ class ListWorkersTest(AsyncHTTPTestCase):
 
         r = self.get('/api/workers?refresh=1')
         celery.control.inspect.assert_called_once_with(
-            timeout=1,
+            timeout=0.5,
             destination=None
         )
 
