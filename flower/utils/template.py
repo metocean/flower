@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 import sys
 import json
+import six
 
 from celery import current_app
 from datetime import datetime
@@ -19,10 +20,6 @@ from babel.dates import format_timedelta
 from pytz import timezone, utc
 
 from scheduler.settings import APPLICATION as scheduler_app
-
-
-PY2 = sys.version_info[0] == 2
-string_types = (str, unicode) if PY2 else (str,)
 
 
 KEYWORDS_UP = ('ssl', 'uri', 'url', 'uuid', 'eta')
@@ -73,14 +70,14 @@ def humanize(obj, type=None, length=None):
             obj = format_timedelta(delta, locale='en_US') + ' ago'
         else:
             obj = format_time(float(obj), tz) if obj else ''
-    elif isinstance(obj, string_types) and not re.match(UUID_REGEX, obj):
+    elif isinstance(obj, six.string_types) and not re.match(UUID_REGEX, obj):
         obj = obj.replace('-', ' ').replace('_', ' ')
         obj = re.sub('|'.join(KEYWORDS_UP),
                      lambda m: m.group(0).upper(), obj)
         if obj and obj not in KEYWORDS_DOWN:
             obj = obj[0].upper() + obj[1:]
     elif isinstance(obj, list):
-        if all(isinstance(x, (int, float) + string_types) for x in obj):
+        if all(isinstance(x, (int, float) + six.string_types) for x in obj):
             obj = ', '.join(map(str, obj))
     if length is not None and len(obj) > length:
         obj = obj[:length - 4] + ' ...'
