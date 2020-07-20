@@ -42,7 +42,7 @@
               [{{smart_truncate(', '.join(task.workflows_id+task.actions_id),64)}}]
             </td>
             <td>
-            {% if isinstance(task.result, dict) and 'progress' in task.result and task.result['progress'] and task.state == 'RUNNING'> 0%}
+            {% if isinstance(task.result, dict) and 'progress' in task.result and task.result['progress'] and task.state == 'RUNNING' %}
             <div class="progress">
               <div class="bar" style="width: {{task.result['progress']*100}}%;">{{round(task.result['progress']*100,1)}}%
               {% if task.result['status'] %} - {{task.result['status']}}{%end%}</div>
