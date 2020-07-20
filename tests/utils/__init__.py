@@ -51,23 +51,57 @@ class HtmlTableParser(HTMLParser):
                 cells = r.findall('td')
                 return list(map(lambda x: getattr(x, 'text'), cells))
 
+def cycle_task(worker, cycle, state='STARTED', workflow=list(), 
+                       id=None, name='cycle.CycleTask'):
+    id = id or uuid() 
+    events = [Event('task-received', uuid=id, name=name,
+                  args='[]', 
+                  kwargs="{'cycle_dt': '%s', 'workflow': '%s'}" % (cycle, workflow),
+                  retries=0, eta=None, hostname=worker),
+             Event('task-started', uuid=id, hostname=worker)]
+    if state in ['RUNNING','SUCCESS','FAILURE','RETRY']:
+        events.append(Event('task-running', uuid=id, 
+                  result={'progress':0.5, 'status': 'Half-way there!'},
+                  runtime=0.1234, hostname=worker))
+    if state == 'SUCCESS':
+        events.append(Event('task-success', uuid=id, 
+                  result='Completed',
+                  runtime=0.1234, hostname=worker))
+    elif state == 'FAILURE':
+        events.append(Event('task-failed', uuid=id, 
+                  traceback='line 1 at main',
+                  exception="KeyError('foo')",
+                  runtime=0.1234, hostname=worker))
+    return events
 
-def task_succeeded_events(worker, id=None, name=None):
+def task_running_events(worker, id=None, name=None, kwargs=None):
     id = id or uuid()
     name = name or 'sometask'
     return [Event('task-received', uuid=id, name=name,
-                  args='(2, 2)', kwargs="{'foo': 'bar'}",
+                  kwargs=kwargs or "{'foo': 'bar'}",
+                  retries=0, eta=None, hostname=worker),
+            Event('task-started', uuid=id, hostname=worker),
+            Event('task-running', uuid=id, 
+                  result={'progress':0.5, 'status':'Half-way there'},
+                  hostname=worker)]
+
+
+def task_succeeded_events(worker, id=None, name=None, kwargs=None):
+    id = id or uuid()
+    name = name or 'sometask'
+    return [Event('task-received', uuid=id, name=name,
+                  args='(2, 2)', kwargs=kwargs or "{'foo': 'bar'}",
                   retries=0, eta=None, hostname=worker),
             Event('task-started', uuid=id, hostname=worker),
             Event('task-succeeded', uuid=id, result='4',
                   runtime=0.1234, hostname=worker)]
 
 
-def task_failed_events(worker, id=None, name=None):
+def task_failed_events(worker, id=None, name=None, kwargs=None):
     id = id or uuid()
     name = name or 'sometask'
     return [Event('task-received', uuid=id, name=name,
-                  args='(2, 2)', kwargs="{'foo': 'bar'}",
+                  args='(2, 2)', kwargs=kwargs or "{'foo': 'bar'}",
                   retries=0, eta=None, hostname=worker),
             Event('task-started', uuid=id, hostname=worker),
             Event('task-failed', uuid=id, exception="KeyError('foo')",

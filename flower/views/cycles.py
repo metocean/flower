@@ -80,7 +80,6 @@ class CyclesDataTable(BaseHandler):
                                                  state=state,
                                                  type=wrapper_tasks,
                                                  parent=alloc_uuid+selected_cycles)))
-                
         for uuid, task in other_tasks+alloc_tasks:
             if task.name == 'chain.AllocateChainTask' and task.state in \
             ['RUNNING', 'SUCCESS']:
@@ -101,8 +100,8 @@ class CyclesDataTable(BaseHandler):
         column = self.get_argument('order[0][column]', type=int)
         sort_by = self.get_argument('columns[%s][data]' % column, type=str)
         sort_order = self.get_argument('order[0][dir]', type=str) == 'asc'
-        selected = self.get_argument('selected', type=str)
-        state = self.get_argument('state', type=str)
+        selected = self.get_argument('selected', type=str, default='all')
+        state = self.get_argument('state', type=str, default='')
         
         selected_cycles = self._get_cycles(selected)
 

@@ -108,7 +108,6 @@ class TasksDataTable(BaseHandler):
                 task['worker'] = task['worker'].hostname
             filtered_tasks.append(task)
             i += 1
-
         self.write(dict(draw=draw, data=filtered_tasks,
                         recordsTotal=len(tasks),
                         recordsFiltered=len(tasks)))

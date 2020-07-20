@@ -72,7 +72,6 @@ class TasksTest(AsyncHTTPTestCase):
             e['local_received'] = time.time()
             state.event(e)
         self.app.events.state = state
-
         params = dict(draw=1, start=0, length=10)
         params['search[value]'] = ''
         params['order[0][column]'] = 0
