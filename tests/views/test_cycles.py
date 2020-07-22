@@ -40,7 +40,7 @@ class CycleTest(AsyncHTTPTestCase):
         self.app.events.state = state
         r = self.get('/cycles')
         self.assertEqual(200, r.code)
-        self.assertIn('/task/'+task_id, r.body.decode())
+        self.assertIn('/task/'+task_id, r.body.decode("utf-8"))
 
         params = dict(draw=1, start=0, length=10)
         params['search[value]'] = ''
@@ -71,7 +71,7 @@ class CycleTest(AsyncHTTPTestCase):
         self.app.events.state = state
         r = self.get('/cycles')
         self.assertEqual(200, r.code)
-        self.assertIn('/task/'+task_id, r.body.decode())
+        self.assertIn('/task/'+task_id, r.body.decode("utf-8"))
 
         params = dict(draw=1, start=0, length=10)
         params['search[value]'] = ''
@@ -102,7 +102,7 @@ class CycleTest(AsyncHTTPTestCase):
         self.app.events.state = state
         r = self.get('/cycles')
         self.assertEqual(200, r.code)
-        self.assertIn('/task/'+task_id, r.body.decode())
+        self.assertIn('/task/'+task_id, r.body.decode("utf-8"))
 
         params = dict(draw=1, start=0, length=10)
         params['search[value]'] = ''
@@ -140,7 +140,7 @@ class CycleTest(AsyncHTTPTestCase):
         self.app.events.state = state
         r = self.get('/cycles')
         self.assertEqual(200, r.code)
-        self.assertIn('/task/'+cycle_id, r.body.decode())
+        self.assertIn('/task/'+cycle_id, r.body.decode("utf-8"))
 
         params = dict(draw=1, start=0, length=10, selected='previous')
         params['search[value]'] = ''
@@ -197,7 +197,7 @@ class CycleTest(AsyncHTTPTestCase):
         self.app.events.state = state
         r = self.get('/cycles')
         self.assertEqual(200, r.code)
-        self.assertIn('/task/'+cycle_id, r.body.decode())
+        self.assertIn('/task/'+cycle_id, r.body.decode("utf-8"))
 
         params = dict(draw=1, start=0, length=10, selected='previous')
         params['search[value]'] = ''
@@ -261,7 +261,7 @@ class CycleTest(AsyncHTTPTestCase):
         self.app.events.state = state
         r = self.get('/cycles')
         self.assertEqual(200, r.code)
-        self.assertIn('/task/'+cycle_id, r.body.decode())
+        self.assertIn('/task/'+cycle_id, r.body.decode("utf-8"))
 
         params = dict(draw=1, start=0, length=10, selected='previous')
         params['search[value]'] = ''
@@ -324,7 +324,7 @@ class CycleTest(AsyncHTTPTestCase):
         self.app.events.state = state
         r = self.get('/cycles')
         self.assertEqual(200, r.code)
-        self.assertIn('/task/'+cycle_id, r.body.decode())
+        self.assertIn('/task/'+cycle_id, r.body.decode("utf-8"))
 
         params = dict(draw=1, start=0, length=10, selected='previous')
         params['search[value]'] = ''
@@ -387,7 +387,7 @@ class CycleTest(AsyncHTTPTestCase):
         self.app.events.state = state
         r = self.get('/cycles')
         self.assertEqual(200, r.code)
-        self.assertIn('/task/'+cycle_id, r.body.decode())
+        self.assertIn('/task/'+cycle_id, r.body.decode("utf-8"))
 
         params = dict(draw=1, start=0, length=10, selected='previous')
         params['search[value]'] = ''
