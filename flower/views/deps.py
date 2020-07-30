@@ -22,8 +22,8 @@ from ..utils.tasks import get_task_by_id
 
 from scheduler import settings
 from scheduler.command.__main__ import SchedulerCommand
-from scheduler.core import (gen_deps_tree, resolve_deps, 
-                            evaluate_cycles,load_workflows)
+from scheduler.core import evaluate_cycles,load_workflows
+from scheduler.action import resolve_deps
 from scheduler.beat import SchedulerBeat
 
 
@@ -31,7 +31,7 @@ def resolve_deps_for_cycle(action_id, cycle_dt,):
     cycles_dt, cycles_str = evaluate_cycles(cycle_dt)
     cycle_dt = cycles_dt[0]
 
-    beat = SchedulerBeat(now=cycle_dt, crontabs=False)
+    beat = SchedulerBeat(now=cycle_dt)
 
     if cycle_dt not in beat.cycles_workflows:
         return []
