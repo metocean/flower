@@ -2,6 +2,7 @@ import re
 import sys
 import json
 import six
+import os
 
 from celery import current_app
 from datetime import datetime
@@ -36,6 +37,9 @@ format_progress = lambda x: x*100
 
 def sched_app():
     return scheduler_app.title()
+
+def docs_url():
+    return os.getenv('SCHEDULER_DOCS_URL') or '/docs'
 
 def smart_truncate(content, length=100, suffix='...'):
     content = str(content)

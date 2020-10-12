@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block navbar %}
-  {% module Template("navbar.html", active_tab="workers", sched_app=sched_app()) %}
+  {% module Template("navbar.html", active_tab="workers", sched_app=sched_app(), docs_url=docs_url()) %}
 {% end %}
 
 {% block container %}

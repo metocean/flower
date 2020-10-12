@@ -42,7 +42,7 @@
 
   <body>
     {% block navbar %}
-        {% module Template("navbar.html", active_tab="", sched_app=sched_app()) %}
+        {% module Template("navbar.html", active_tab="", sched_app=sched_app(), docs_url=docs_url()) %}
     {% end %}
 
     <div class="container-fluid">
