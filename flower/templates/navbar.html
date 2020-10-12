@@ -17,7 +17,7 @@
             <li {% if active_tab == "monitor" %}class="active"{% end %}><a href="{{ reverse_url('monitor') }}">Monitor</a></li>
         </ul>
         <ul class="nav pull-right">
-          <li><a href="https://github.com/metocean/scheduler/wiki" target="_blank">Docs</a></li>
+          <li><a href="{{ docs_url }}" target="_blank">Docs</a></li>
           <li><a href="https://github.com/metocean/scheduler" target="_blank">Code</a></li>
         </ul>
       </div>
