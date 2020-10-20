@@ -48,7 +48,7 @@ class DependencyPydotView(BaseHandler):
     def _plot_deps(self, task_id):
         task = get_task_by_id(self.application.events, task_id)
         if task:
-            output = '/tmp/%s_%s.png' % (task.action_id, task.cycle_dt)
+            output = '/tmp/%s.png' % task_id
             if not os.path.exists(output):
                 actions_id = getattr(task,'actions_id',[])
                 workflows_id = getattr(task,'workflows_id',[])
@@ -60,21 +60,20 @@ class DependencyPydotView(BaseHandler):
                                                       [task.action_id]
                 if workflow:
                     try:
-                        command = SchedulerCommand(['deps','-w', ','.join(workflow),
-                                                        '-o', output])
-                        command.run()
+                        SchedulerCommand(['deps', '-c', task.cycle_dt, '-w', ','.join(workflow), '-o', output]).command()
                     except SystemExit as exc:
-                        raise
                         if exc.code == 0:
                             pass
                         else:
-                            return self.render('404.html', message="Error generating graphs")
+                            return self.write_error(500, exc_info=sys.exc_info())
+                    except Exception as exc:
+                        return self.write_error(500, exc_info=sys.exc_info())
                 else:
                     return self.render('404.html', message="Task has no dependencies")
         else:
             return self.render('404.html', message="Task UUID Not found")
 
-        with open(output) as dep_plot:
+        with open(output, 'rb') as dep_plot:
             self.set_header("Content-Type", "image/png")
             return dep_plot.read()
 

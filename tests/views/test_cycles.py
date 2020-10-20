@@ -1,3 +1,4 @@
+import os
 import json
 import time
 
@@ -23,6 +24,26 @@ class CycleTest(AsyncHTTPTestCase):
         self.assertEqual(200, r.code)
         self.assertTrue('UUID' in str(r.body))
         self.assertNotIn('<tr id=', str(r.body))
+    
+    def test_dependencies_graph(self):
+        worker = 'headworker1'
+        state = EventsState()
+        state.get_or_create_worker(worker)
+        task_id = uuid()
+        events = [Event('worker-online', hostname=worker)]
+        cycle = '20000101_0000z'
+        cycle_events = cycle_task(worker, cycle, 'RUNNING', id=task_id, 
+                                  workflow=['default'])
+        events.extend(cycle_events)
+        for i, e in enumerate(events):
+            e['clock'] = i
+            e['local_received'] = time.time()
+            state.event(e)
+        self.app.events.state = state
+        resp = self.get('/pydot/%s' % task_id)
+        self.assertEqual(200, resp.code)
+        self.assertEqual(resp.headers['Content-Type'], 'image/png')
+        self.assertTrue(os.path.exists('/tmp/%s.png'%task_id))
 
     def test_running_cycle(self):
         worker = 'headworker1'

@@ -31,7 +31,7 @@ class Flower(tornado.web.Application):
         self.options = options or default_options
         self.io_loop = io_loop or ioloop.IOLoop.instance()
         self.ssl_options = kwargs.get('ssl_options', None)
-
+        self.pool = self.pool_executor_cls(max_workers=self.max_workers)
         self.capp = capp or celery.Celery()
         self.events = events or Events(
             self.capp, db=self.options.db,
@@ -43,7 +43,6 @@ class Flower(tornado.web.Application):
         self.started = False
 
     def start(self):
-        self.pool = self.pool_executor_cls(max_workers=self.max_workers)
         self.events.start()
 
         if not self.options.unix_socket:

@@ -56,7 +56,7 @@ def cycle_task(worker, cycle, state='STARTED', workflow=list(),
     id = id or uuid() 
     events = [Event('task-received', uuid=id, name=name,
                   args='[]', 
-                  kwargs="{'cycle_dt': '%s', 'workflow': '%s'}" % (cycle, workflow),
+                  kwargs={'cycle_dt': cycle, 'workflows_id': workflow},
                   retries=0, eta=None, hostname=worker),
              Event('task-started', uuid=id, hostname=worker)]
     if state in ['RUNNING','SUCCESS','FAILURE','RETRY']:
