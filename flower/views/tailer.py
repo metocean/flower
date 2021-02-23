@@ -24,7 +24,8 @@ class Tailer(tailer.Tailer):
             self.where = self.file.tell()
         else:
             self.seek(self.where)
-        for line in self.file:
+        line = self.file.readline()
+        while line:
             if trailing and line in self.line_terminators:
                 # This is just the line terminator added to the end of the file
                 # before a new line, ignore.
@@ -40,6 +41,7 @@ class Tailer(tailer.Tailer):
             trailing = False
             yield line
             self.where = self.file.tell()
+            line = self.file.readline()
 
 class UpdateLogfile(websocket.WebSocketHandler):
     listeners = {}
