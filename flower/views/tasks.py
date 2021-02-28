@@ -81,7 +81,7 @@ class TasksDataTable(BaseHandler):
         sort_by = self.get_argument('columns[%s][data]' % column, type=str)
         sort_order = self.get_argument('order[0][dir]', type=str) == 'asc'
 
-        task_type = self.get_argument('task_type[value]', type=str, default='')
+        task_type = self.get_argument('task_type', type=str, default='')
         state = self.get_argument('state', type=str, default='')
         
         def key(item):
@@ -89,7 +89,6 @@ class TasksDataTable(BaseHandler):
             if sys.version_info[0] == 3:
                 val = str(val)
             return val
-
         tasks = sorted(iter_tasks(app.events, search=search, type=task_type,
                                   state=state),
                        key=key, reverse=sort_order)
