@@ -23,7 +23,8 @@ def iter_tasks(events, limit=None, type=None, worker=None, state=None,
     search_terms = parse_search_terms(search or {})
     for uuid, task in tasks:
         task = expand_kwargs(task)
-
+        if task.cycle_dt is None:
+            continue
         if parent and getattr(task,'parent',None) not in parent:
             continue
         if type and task.name and task.name not in type:
