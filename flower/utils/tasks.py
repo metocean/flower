@@ -9,6 +9,17 @@ import six
 from .search import satisfies_search_terms, parse_search_terms
 from celery.events.state import Task
 
+SCHEDUELER_TASKS = [
+    'cycle.CycleTask',
+    'wrappers.WrapperTask',
+    'wrappers.SubprocessTask',
+    'chain.AllocateChainTask',
+    'group.GroupChainTask',
+    'allocate.AllocateTask',
+    'allocate.DeallocateTask',
+    'base.SchedulerTask'
+]
+
 def iter_tasks(events, limit=None, type=None, worker=None, state=None,
                sort_by=None, received_start=None, received_end=None,
                started_start=None, started_end=None, search=None,
@@ -23,7 +34,8 @@ def iter_tasks(events, limit=None, type=None, worker=None, state=None,
     search_terms = parse_search_terms(search or {})
     for uuid, task in tasks:
         task = expand_kwargs(task)
-        if task.cycle_dt is None:
+
+        if task.name in SCHEDUELER_TASKS and getattr(task,'cycle_dt',None) is None:
             continue
         if parent and getattr(task,'parent',None) not in parent:
             continue
@@ -52,7 +64,7 @@ def iter_tasks(events, limit=None, type=None, worker=None, state=None,
         if not task.kwargs:
             task.kwargs = {}
         
-        if actions and task.action_id not in actions:
+        if actions and hasattr(task.action_id) and task.action_id not in actions:
             continue
 
         yield uuid, task
@@ -121,7 +133,7 @@ def to_python(val, _type=None):
 
 
 def expand_kwargs(task):
-    if task is not None:
+    if task is not None and task.name in SCHEDUELER_TASKS:
         task.kwargs = to_python(task.kwargs, dict)
         task.args = to_python(task.args, list)
         task.result = to_python(task.result)
