@@ -38,12 +38,12 @@ def iter_tasks(events, limit=None, type=None, worker=None, state=None,
     search_terms = parse_search_terms(search or {})
     for uuid, task in tasks:
         task = expand_kwargs(task)
-
+        
         if task.name in SCHEDUELER_TASKS and getattr(task,'cycle_dt',None) is None:
             continue
         if parent and getattr(task,'parent',None) not in parent:
             continue
-        if type and task.name and task.name not in type:
+        if type and (task.name and task.name not in type or not task.name):
             continue
         if worker and task.worker and task.worker.hostname != worker:
             continue
@@ -138,7 +138,7 @@ def to_python(val, _type=None):
 
 
 def expand_kwargs(task):
-    if task is not None and task.name in SCHEDUELER_TASKS:
+    if task is not None:
         task.kwargs = to_python(task.kwargs, dict)
         task.args = to_python(task.args, list)
         task.result = to_python(task.result)
