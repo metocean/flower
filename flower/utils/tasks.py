@@ -134,10 +134,10 @@ def to_python(val, _type=None):
 
 def expand_kwargs(task):
     if task is not None:
-        cycle_dt = task.kwargs.get('cycle_dt', None)
         task.kwargs = to_python(task.kwargs, dict)
         task.args = to_python(task.args, list)
         task.result = to_python(task.result)
+        cycle_dt = task.kwargs.get('cycle_dt', None)
         task.action_id = task.kwargs.get('action_id', None)
         task.cycle_dt = str(cycle_dt) if cycle_dt is not None else cycle_dt
         task.end_cycle_dt = task.kwargs.get('end_cycle_dt', None)
