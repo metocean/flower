@@ -30,7 +30,8 @@ class CyclesView(BaseHandler):
         if capp.conf.CELERY_TIMEZONE:
             time += '-' + capp.conf.CELERY_TIMEZONE
         columns = 'action_id,cycle_dt,state,received,eta,started,timestamp,runtime,worker,routing_key,retries,expires'
-        cycle_tasks = sorted(iter_tasks(app.events, type='cycle.CycleTask'), key=lambda x: x[1].cycle_dt, reverse=True)
+        cycle_tasks = sorted(iter_tasks(app.events, type='cycle.CycleTask'), 
+                             key=lambda x: str(x[1].cycle_dt), reverse=True)
 
         self.render(
             "cycles.html",
