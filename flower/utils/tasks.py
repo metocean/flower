@@ -151,9 +151,10 @@ def expand_kwargs(task):
         task.workflows_id = task.kwargs.get('workflows_id', [])
         task.actions_id = task.kwargs.get('actions_id', [])
         if not hasattr(task, 'memory'):
-            task.memory = {'limit':0,'usage':0}
+            task.memory = {'limit':0,'usage':0,'max':0}
         if isinstance(task.result, dict) and 'memory_usage' in task.result:
             task.memory = {
                 'limit': task.result.get('memory_limit', 0),
-                'usage': task.result.get('memory_usage', 0)}
+                'usage': task.result.get('memory_usage', 0),
+                'max': task.result.get('memory_max', 0)}
     return task

@@ -4,4 +4,3 @@ prometheus_client>=0.8.0
 humanize
 pytz
 tailer
-#scheduler >= 3.5.0
