@@ -747,8 +747,9 @@ var flower = (function () {
                     result =  update.result || Object(),
                     memory_usage = result.memory_usage || 0,
                     memory_limit = result.memory_limit || 0;
+                    memory_max = result.memory_max || 0;
                 update_progress($('#result td:eq(1)'), result)
-                add_or_update_field('memory', memory_usage+ ' / '+  memory_limit, 'client', null);
+                add_or_update_field('memory', memory_usage+ ' / '+memory_max+ ' / '+  memory_limit, 'client', null);
                 break;
             case "allocating":
                 var label = "queued",

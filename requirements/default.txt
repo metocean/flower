@@ -3,4 +3,3 @@ tornado==4.2.0
 babel>=1.0
 pytz
 tailer
-#scheduler >= 3.5.0
