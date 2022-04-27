@@ -68,7 +68,7 @@ def iter_tasks(events, limit=None, type=None, worker=None, state=None,
         if not task.kwargs:
             task.kwargs = {}
         
-        if actions and hasattr(task.action_id) and task.action_id not in actions:
+        if actions and hasattr(task, 'action_id') and task.action_id not in actions:
             continue
 
         yield uuid, task
