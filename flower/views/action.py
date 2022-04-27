@@ -33,7 +33,7 @@ class ActionView(BaseHandler):
         action_id = task.kwargs.get('action_id',  None)
         
         if action_id and cycle_dt:
-            logfile, logpath = get_log(get_action_logfile(action_id, cycle_dt))
+            logfile, logpath = get_log(get_action_logfile(task_id, action_id, cycle_dt))
         else:
             logfile, logpath = (None, None)
 
