@@ -40,7 +40,8 @@ class TaskView(BaseHandler):
             raise web.HTTPError(404, "Unknown task '%s'" % task_id)
 
         if task.action_id and task.cycle_dt:
-            logfile, logpath = get_log(get_action_logfile(task.action_id, 
+            logfile, logpath = get_log(get_action_logfile(task_id,
+                                                          task.action_id, 
                                                           task.cycle_dt))
         elif task.name and task.name.startswith('cycle.'):
             logfile, logpath = get_log(get_cycle_logfile(task_id))
