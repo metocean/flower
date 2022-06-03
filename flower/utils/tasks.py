@@ -26,8 +26,10 @@ SCHEDUELER_TASKS = [
 def iter_tasks(events, limit=None, type=None, worker=None, state=None,
                sort_by=None, received_start=None, received_end=None,
                started_start=None, started_end=None, search=None,
-               parent=[], actions=[]):
+               parent=None, actions=None, follow_children=False):
     i = 0
+    parent = parent or []
+    actions = actions or []
     tasks = events.state.tasks_by_timestamp()
     if sort_by is not None:
         tasks = sort_tasks(tasks, sort_by)
@@ -36,12 +38,11 @@ def iter_tasks(events, limit=None, type=None, worker=None, state=None,
         return time.mktime(datetime.datetime.strptime(x, '%Y-%m-%d %H:%M').timetuple())
 
     search_terms = parse_search_terms(search or {})
+    orphan_childs = []
     for uuid, task in tasks:
         task = expand_kwargs(task)
         
         if task.name in SCHEDUELER_TASKS and getattr(task,'cycle_dt',None) is None:
-            continue
-        if parent and getattr(task,'parent',None) not in parent:
             continue
         if type and (task.name and task.name not in type or not task.name):
             continue
@@ -71,11 +72,23 @@ def iter_tasks(events, limit=None, type=None, worker=None, state=None,
         if actions and hasattr(task, 'action_id') and task.action_id not in actions:
             continue
 
+        if parent and getattr(task,'parent') not in parent:
+            orphan_childs.append((uuid,task))
+            continue
+
         yield uuid, task
         i += 1
         if limit != None:
             if i == limit + offset:
                 break
+
+    if follow_children and orphan_childs:
+        for uuid, task in orphan_childs:
+            child_parent = get_task_by_id(events, task.parent)
+            if child_parent and getattr(child_parent,'parent') not in parent:
+                continue
+            else:
+                yield uuid,task
 
 
 sort_keys = {'name': str, 'state': str, 'received': float, 'started': float}
