@@ -31,7 +31,7 @@ class CyclesView(BaseHandler):
             time += '-' + capp.conf.CELERY_TIMEZONE
         columns = 'action_id,cycle_dt,state,received,eta,started,timestamp,runtime,worker,routing_key,retries,expires'
         cycle_tasks = sorted(iter_tasks(app.events, type='cycle.CycleTask'), 
-                             key=lambda x: str(x[1].cycle_dt), reverse=True)
+                             key=lambda x: str(x[1].cycle_dt), reverse=True,)
 
         self.render(
             "cycles.html",
@@ -68,19 +68,20 @@ class CyclesDataTable(BaseHandler):
                                                 search=search, 
                                                 state=state,
                                                 type=['chain.AllocateChainTask'],
-                                                parent=selected_cycles)))
+                                                parent=selected_cycles,
+                                                follow_children=True)))
 
         alloc_uuid = [uuid for uuid,task in alloc_tasks if task.name=='chain.AllocateChainTask']
 
         wrapper_tasks = ['wrappers.WrapperTask',
                          'wrappers.SubprocessTask',
                          'chain.GroupChainTask']
-
         other_tasks = list(map(self.format_task, iter_tasks(self.application.events,
                                                  search=search, 
                                                  state=state,
                                                  type=wrapper_tasks,
-                                                 parent=alloc_uuid+selected_cycles)))
+                                                 parent=alloc_uuid+selected_cycles,
+                                                 follow_children=True)))
         for uuid, task in other_tasks+alloc_tasks:
             if task.name == 'chain.AllocateChainTask' and task.state in \
             ['RUNNING', 'SUCCESS']:
