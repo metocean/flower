@@ -13,6 +13,7 @@ from . import BaseApiHandler
 from tornado.web import HTTPError
 
 from ..utils.tasks import get_task_by_id
+from scheduler.action import Action
 
 logger = logging.getLogger(__name__)
 
@@ -559,15 +560,26 @@ Retry a task
         logger.debug("Invoking a task '%s' with '%s' and '%s'",
                      taskname, args, kwargs)
 
-        task = self.capp.tasks[taskname]
         retries = ftask.retries + 1
         ftask.state = 'RETRY'
 
-        result = task.apply_async(args=args, kwargs=kwargs, 
-                                  task_id=taskid, 
-                                  retries=retries,
-                                  routing_key=routing_key, 
-                                  exchange=exchange)
+        if 'action_id' in kwargs:
+            action = Action(action_id=kwargs['action_id'], 
+                            config=kwargs.get('config'))
+            kwargs = {
+                'cycle_dt': kwargs.get('cycle_dt'),
+                'parent': kwargs.get('parent'),
+            }
+        else:
+            action = self.capp.tasks[taskname]
+            kwargs = {'args': args, 'kwargs': kwargs}
+
+        kwargs.update(dict(task_id=taskid,
+                           retries=retries,
+                           routing_key=routing_key, 
+                           exchange=exchange))
+
+        result = action.apply_async(**kwargs)
 
         ftask.retried = ftask.sent
 
