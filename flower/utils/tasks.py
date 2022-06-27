@@ -35,6 +35,7 @@ def iter_tasks(events, limit=None, type=None, worker=None, state=None,
     )
     search_terms = parse_search_terms(search or {})
     orphan_childs = []
+
     for uuid, task in tasks:
         task = expand_kwargs(task)
         
@@ -68,7 +69,7 @@ def iter_tasks(events, limit=None, type=None, worker=None, state=None,
         if actions and hasattr(task, 'action_id') and task.action_id not in actions:
             continue
 
-        if parent and getattr(task,'parent') not in parent:
+        if parent and hasattr(task,'parent') and task.parent not in parent:
             orphan_childs.append((uuid,task))
             continue
 
@@ -79,12 +80,9 @@ def iter_tasks(events, limit=None, type=None, worker=None, state=None,
 
     if follow_children and orphan_childs:
         for uuid, task in orphan_childs:
-            child_parent = get_task_by_id(events, task.parent)
-            if child_parent and getattr(child_parent,'parent') not in parent:
-                continue
-            else:
+            child_parent_task = get_task_by_id(events, task.parent)
+            if getattr(child_parent_task,'parent',None) in parent:
                 yield uuid,task
-
 
 sort_keys = {'name': str, 'state': str, 'received': float, 'started': float}
 
