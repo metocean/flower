@@ -18,6 +18,7 @@ from .app import Flower
 from .urls import settings
 from .utils import abs_path, prepend_url
 from .options import DEFAULT_CONFIG_FILE, default_options
+from .views.auth import validate_auth_option
 
 try:
     from logging import NullHandler
@@ -141,6 +142,10 @@ def extract_settings():
         if options.ca_certs:
             settings['ssl_options']['ca_certs'] = abs_path(options.ca_certs)
 
+    if options.auth and not validate_auth_option(options.auth):
+        logger.error("Invalid '--auth' option: %s", options.auth)
+        sys.exit(1)
+
 
 def is_flower_option(arg):
     name, _, _ = arg.lstrip('-').partition("=")
@@ -174,3 +179,5 @@ def print_banner(app, ssl):
         pformat(sorted(app.tasks.keys()))
     )
     logger.debug('Settings: %s', pformat(settings))
+    if not (options.basic_auth or options.auth):
+        logger.warning('Running without authentication')
