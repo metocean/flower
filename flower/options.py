@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 import types
 
+from prometheus_client import Histogram
 from tornado.options import define
 from tornado.options import options
 
@@ -49,6 +50,8 @@ define("xheaders", type=bool, default=False,
        help="enable support for the 'X-Real-Ip' and 'X-Scheme' headers.")
 define("auto_refresh", default=True,
        help="refresh dashboards", type=bool)
+define("purge_offline_workers", default=None, type=int,
+       help="time (in seconds) after which offline workers are purged from dashboard")
 define("cookie_secret", type=str, default=None,
        help="secure cookie secret")
 define("conf", default=DEFAULT_CONFIG_FILE,
@@ -65,6 +68,8 @@ define("tasks_columns", type=str,
 define("auth_provider", default='flower.views.auth.GoogleAuth2LoginHandler',
        help="auth handler class")
 define("url_prefix", type=str, help="base url prefix")
+define("task_runtime_metric_buckets", type=float, default=Histogram.DEFAULT_BUCKETS,
+       multiple=True, help="histogram latency bucket value")
 
 # deprecated options
 define("inspect", default=False, help="inspect workers", type=bool)
