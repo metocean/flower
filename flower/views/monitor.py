@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+import prometheus_client
+
 from collections import defaultdict
 
 from tornado import web
@@ -10,6 +12,12 @@ from ..views import BaseHandler
 from ..utils.broker import Broker
 from ..api.control import ControlHandler
 
+
+class Metrics(BaseHandler):
+    @gen.coroutine
+    def get(self):
+        self.write(prometheus_client.generate_latest())
+        self.set_header("Content-Type", "text/plain")
 
 class Monitor(BaseHandler):
     @web.authenticated
