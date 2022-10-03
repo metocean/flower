@@ -91,6 +91,8 @@ handlers = [
     (r"/monitor/failed-tasks", monitor.FailedTaskMonitor),
     (r"/monitor/completion-time", monitor.TimeToCompletionMonitor),
     (r"/monitor/broker", monitor.BrokerMonitor),
+    # Metrics
+    (r"/metrics", monitor.Metrics),
     # Static
     (r"/static/(.*)", StaticFileHandler,
      {"path": settings['static_path']}),
