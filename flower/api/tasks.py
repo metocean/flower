@@ -4,10 +4,11 @@ import json
 import logging
 
 from datetime import datetime
-from threading import Thread
+# from threading import Thread
 
 from tornado import web
 from tornado import gen
+from tornado.ioloop import IOLoop
 from tornado.escape import json_decode
 from tornado.web import HTTPError
 
@@ -80,7 +81,8 @@ class BaseTaskHandler(BaseHandler):
 
 class TaskApply(BaseTaskHandler):
     @web.authenticated
-    @web.asynchronous
+    # @web.asynchronous
+    @gen.coroutine
     def post(self, taskname):
         """
 Execute a task by name and wait results
@@ -140,9 +142,13 @@ Execute a task by name and wait results
 
         # In tornado for not blocking event loop we must return results
         # from other thread by self.finish()
-        th = Thread(target=self.wait_results, args=(result, response, ))
-        th.start()
+        # th = Thread(target=self.wait_results, args=(result, response, ))
+        # th.start()
         # So just exit
+        response = yield IOLoop.current().run_in_executor(
+            None, self.wait_results, result, response
+        )
+        self.write(response)
 
     def wait_results(self, result, response):
         # Wait until task finished and do not raise anything
@@ -151,7 +157,8 @@ Execute a task by name and wait results
         self.update_response_result(response, result)
         if self.backend_configured(result):
             response.update(state=result.state)
-        self.finish(response)
+        # self.finish(response)
+        return response
 
 
 class TaskAsyncApply(BaseTaskHandler):
