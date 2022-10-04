@@ -86,6 +86,8 @@ class EventsState(State):
         self.metrics = get_prometheus_metrics()
 
     def event(self, event):
+        # Save the event
+        super(EventsState, self).event(event)
 
         worker_name = event['hostname']
         event_type = event['type']
@@ -94,20 +96,20 @@ class EventsState(State):
 
         if event_type.startswith('task-'):
             task_id = event['uuid']
-            task = self.tasks.get(task_id)
+            task = Task(task_id)
             task_name = event.get('name', '')
             if not task_name and task_id in self.tasks:
                 task_name = task.name or ''
             self.metrics.events.labels(worker_name, event_type, task_name).inc()
 
-            runtime = event.get('rutime', 0)
+            runtime = event.get('runtime', 0)
             if runtime:
-                self.metrics.runtime.labels(worker_name, task_name).observer(runtime)
+                self.metrics.runtime.labels(worker_name, task_name).observe(runtime)
 
             task_started = task.started
             task_received = task.received
 
-            if event_type == 'task-receibed' and not task.eta and task_received:
+            if event_type == 'task-received' and not task.eta and task_received:
                 self.metrics.number_of_prefetched_tasks.labels(worker_name, task_name).inc()
 
             if event_type == 'task-started' and not task.eta and task_started and task_received:
@@ -139,8 +141,7 @@ class EventsState(State):
         if 'task' in event_type:
             api.events.TasksUpdate.send_message(event)
 
-        # Save the event
-        super(EventsState, self).event(event)
+
 
 
 class Events(threading.Thread):
