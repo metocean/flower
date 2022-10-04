@@ -9,6 +9,7 @@ try:
 except ImportError:
     from urllib import urlencode
 
+import tornado.gen
 import tornado.web
 import tornado.auth
 
@@ -22,7 +23,7 @@ from ..views import BaseHandler
 class GoogleAuth2LoginHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
     _OAUTH_SETTINGS_KEY = 'oauth'
 
-    @tornado.web.asynchronous
+    @tornado.gen.coroutine
     def get(self):
         redirect_uri = self.settings[self._OAUTH_SETTINGS_KEY]['redirect_uri']
         if self.get_argument('code', False):
@@ -40,6 +41,8 @@ class GoogleAuth2LoginHandler(BaseHandler, tornado.auth.GoogleOAuth2Mixin):
                 extra_params={'approval_prompt': 'auto'}
             )
 
+
+    @tornado.gen.coroutine
     def _on_auth(self, user):
         if not user:
             raise tornado.web.HTTPError(403, 'Google auth failed')
@@ -78,7 +81,8 @@ class GithubLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
     _OAUTH_NO_CALLBACKS = False
     _OAUTH_SETTINGS_KEY = 'oauth'
 
-    @tornado.auth._auth_return_future
+    # @tornado.auth._auth_return_future
+    @tornado.gen.coroutine
     def get_authenticated_user(self, redirect_uri, code, callback):
         http = self.get_auth_http_client()
         body = urlencode({
@@ -96,7 +100,7 @@ class GithubLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
             headers={'Content-Type': 'application/x-www-form-urlencoded',
                      'Accept': 'application/json'}, body=body)
 
-    @tornado.web.asynchronous
+    @tornado.gen.coroutine
     def _on_access_token(self, future, response):
         if response.error:
             future.set_exception(tornado.auth.AuthError(
@@ -108,7 +112,7 @@ class GithubLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
     def get_auth_http_client(self):
         return httpclient.AsyncHTTPClient()
 
-    @tornado.web.asynchronous
+    @tornado.gen.coroutine
     def get(self):
         redirect_uri = self.settings[self._OAUTH_SETTINGS_KEY]['redirect_uri']
         if self.get_argument('code', False):
@@ -126,7 +130,7 @@ class GithubLoginHandler(BaseHandler, tornado.auth.OAuth2Mixin):
                 extra_params={'approval_prompt': 'auto'}
             )
 
-    @tornado.web.asynchronous
+    @tornado.gen.coroutine
     def _on_auth(self, user):
         if not user:
             raise tornado.web.HTTPError(500, 'OAuth authentication failed')
