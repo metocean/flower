@@ -125,7 +125,8 @@ class EventsState(State):
         if event_type == 'worker-offline':
             self.metrics.worker_online.labels(worker_name).set(0)
 
-
+        # Save the event
+        super(EventsState, self).event(event)
 
 class Events(threading.Thread):
     events_enable_interval = 5000
