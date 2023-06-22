@@ -120,6 +120,32 @@ var flower = (function () {
         }
     }
 
+    function restart_selected(event) {
+        var selected_workers = get_selected_workers();
+        if (selected_workers.length === 0) {
+            show_error_alert('Please select a worker');
+            return;
+        }
+
+        $.each(selected_workers, function (index, worker) {
+
+            $.ajax({
+                type: 'POST',
+                url: url_prefix() + '/api/worker/pool/restart/' + worker,
+                dataType: 'json',
+                data: {
+                    workername: worker
+                },
+                success: function (data) {
+                    show_success_alert(data.message);
+                },
+                error: function (data) {
+                    show_error_alert(data.responseText);
+                }
+            });
+        });
+    }
+
     function refresh_selected(event) {
         var selected_workers = get_selected_workers();
 
@@ -157,7 +183,7 @@ var flower = (function () {
             });
         });
     }
-    
+
     function on_worker_refresh(event) {
         event.preventDefault();
         event.stopPropagation();
