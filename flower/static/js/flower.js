@@ -103,6 +103,31 @@ var flower = (function () {
         return '';
     }
 
+    function shutdown_selected(event) {
+        var selected_workers = get_selected_workers();
+        if (selected_workers.length === 0) {
+            show_error_alert('Please select a worker');
+            return;
+        }
+
+        $.each(selected_workers, function (index, worker) {
+            $.ajax({
+                type: 'POST',
+                url: url_prefix() + '/api/worker/shutdown/' + worker,
+                dataType: 'json',
+                data: {
+                    workername: worker
+                },
+                success: function (data) {
+                    show_success_alert(data.message);
+                },
+                error: function (data) {
+                    show_error_alert(data.responseText);
+                }
+            });
+        });
+    }
+
     //https://github.com/DataTables/DataTables/blob/1.10.11/media/js/jquery.dataTables.js#L14882
     function htmlEscapeEntities(d) {
         return typeof d === 'string' ?
