@@ -120,6 +120,44 @@ var flower = (function () {
         }
     }
 
+    function refresh_selected(event) {
+        var selected_workers = get_selected_workers();
+
+        if (!selected_workers.length) {
+            $.ajax({
+                type: 'GET',
+                url: url_prefix() + '/api/workers',
+                data: {
+                    refresh: 1
+                },
+                success: function (data) {
+                    show_success_alert('Refreshed');
+                },
+                error: function (data) {
+                    show_error_alert(data.responseText);
+                }
+            });
+        }
+
+        $.each(selected_workers, function (index, worker) {
+            $.ajax({
+                type: 'GET',
+                url: url_prefix() + '/api/workers',
+                dataType: 'json',
+                data: {
+                    workername: unescape(worker),
+                    refresh: 1
+                },
+                success: function (data) {
+                    show_success_alert(data.message || 'Refreshed');
+                },
+                error: function (data) {
+                    show_error_alert(data.responseText);
+                }
+            });
+        });
+    }
+    
     function on_worker_refresh(event) {
         event.preventDefault();
         event.stopPropagation();
@@ -464,6 +502,25 @@ var flower = (function () {
         var table = $('#workers-table').DataTable();
         $('a#btn-active').text('Active: ' + table.column(2).data().reduce(sum, 0));
         $('a#btn-processed').text('Processed: ' + table.column(3).data().reduce(sum, 0));
+
+        $.each(update, function (name, info) {
+            var row = table.row('#' + name);
+            if (row) {
+                row.data(info);
+            } else {
+                table.row.add(info);
+            }
+        });
+        table.draw();
+
+        $('a#btn-active').text('Active: ' + table.column(2).data().reduce(sum, 0));
+        $('a#btn-failed').text('Failed: ' + table.column(4).data().reduce(sum, 0));
+        $('a#btn-succeeded').text('Succeeded: ' + table.column(5).data().reduce(sum, 0));
+        $('a#btn-retried').text('Retried: ' + table.column(6).data().reduce(sum, 0));
+    }
+
+    function on_dashboard_update(update) {
+        var table = $('#workers-table').DataTable();
 
         $.each(update, function (name, info) {
             var row = table.row('#' + name);
