@@ -466,49 +466,54 @@ var flower = (function () {
         });
         table.draw();
 
-        /*$('a#btn-active').text('Active: ' + table.column(2).data().reduce(sum, 0));
+        $('a#btn-active').text('Active: ' + table.column(2).data().reduce(sum, 0));
         $('a#btn-failed').text('Failed: ' + table.column(4).data().reduce(sum, 0));
         $('a#btn-succeeded').text('Succeeded: ' + table.column(5).data().reduce(sum, 0));
-        $('a#btn-retried').text('Retried: ' + table.column(6).data().reduce(sum, 0));*/
+        $('a#btn-retried').text('Retried: ' + table.column(6).data().reduce(sum, 0));
     }
 
     function update_row_data(rowdata, update){
         var rowdata = rowdata;
         rowdata.timestamp = update.timestamp
-        rowdata.state = update.type.split('-')[1].toUpperCase()
         rowdata.worker = update.hostname
-        console.log(update)
-        if (update.attr('result')) {
-            rowdata.result = rowdata.result;
+        if (update.type == "task-succeeded") {
+            rowdata.state = "SUCCESS"
+        } else {
+            rowdata.state = update.type.split('-')[1].toUpperCase()
         }
-        if (update.attr('args')) {
-            rowdata.args = rowdata.args;
+        if (update.hasOwnProperty('result')) {
+            rowdata.result = update.result;
         }
-        if (update.attr('kwargs')) {
-            rowdata.kwargs = rowdata.kwargs;
+        if (update.hasOwnProperty('args')) {
+            rowdata.args = update.args;
         }
-        if (update.attr('runtime')) {
-            rowdata.runtime = rowdata.runtime;
+        if (update.hasOwnProperty('kwargs')) {
+            rowdata.kwargs = update.kwargs;
         }
-        if (update.attr('name')) {
-            rowdata.name = rowdata.name;
+        if (update.hasOwnProperty('runtime')) {
+            rowdata.runtime = update.runtime;
         }
-        if (update.attr('eta')) {
-            rowdata.eta = rowdata.eta;
+        if (update.hasOwnProperty('name')) {
+            rowdata.name = update.name;
         }
-        if (update.attr('retries')) {
-            rowdata.retries = rowdata.retries;
+        if (update.hasOwnProperty('eta')) {
+            rowdata.eta = update.eta;
         }
-        if (update.attr('routing_key')) {
-            rowdata.routing_key = rowdata.routing_key;
+        if (update.hasOwnProperty('retries')) {
+            rowdata.retries = update.retries;
+        }
+        if (update.hasOwnProperty('routing_key')) {
+            rowdata.routing_key = update.routing_key;
         }
 
         return rowdata
     }
 
     function update_table_data(update, table) {
-        if (update.type == 'task-received'){
+        if ((update.type == 'task-received') && 
+             ((Date.now() - window.last_draw) > 10000 )) {
             table.draw();
+            window.last_draw = Date.now();
         } else {
             var row = table.row('#'+update.uuid);
             if (row.data()) {
@@ -527,7 +532,6 @@ var flower = (function () {
 
     function on_cycles_update(update) {
         var table = $('#cycles-table').DataTable();
-        console.log(update)
         if (update.hostname.indexOf("cycler") > -1) { 
             if  ($.inArray(update.type, ['task-started','task-succeeded','task-failed']) > -1 ) {
                 window.location.reload();
@@ -1168,7 +1172,7 @@ var flower = (function () {
         } else if ($.inArray('task', $(location).attr('pathname').split('/')) !== -1) {
             $('#logfile').scrollTop($('#logfile')[0].scrollHeight);
         } else { return }
-
+        window.last_draw = Date.now();
     });
 
     return {
