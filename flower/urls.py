@@ -65,6 +65,27 @@ handlers = [
     # Metrics
     (r"/metrics", monitor.Metrics),
     (r"/healthcheck", monitor.Healthcheck),
+    (r"/api/task/terminate/(.+)", control.TaskTerminate),
+    (r"/api/task/retry/(.+)", control.TaskRetry),
+    # Events WebSocket API
+    (r"/api/task/events/task-sent/(.*)", events.TaskSent),
+    (r"/api/task/events/task-received/(.*)", events.TaskReceived),
+    (r"/api/task/events/task-started/(.*)", events.TaskStarted),
+    (r"/api/task/events/task-succeeded/(.*)", events.TaskSucceeded),
+    (r"/api/task/events/task-failed/(.*)", events.TaskFailed),
+    (r"/api/task/events/task-revoked/(.*)", events.TaskRevoked),
+    (r"/api/task/events/task-retried/(.*)", events.TaskRetried),
+    (r"/api/task/events/task-custom/(.*)", events.TaskCustom),
+    (r"/api/task/events/update-tasks/", events.TasksUpdate),
+    # WebSocket Updates
+    (r"/update-dashboard", DashboardUpdateHandler),
+    (r"/update-logfile/(.*)", UpdateLogfile),
+    # Monitors
+    url(r"/monitor", monitor.Monitor, name='monitor'),
+    (r"/monitor/succeeded-tasks", monitor.SucceededTaskMonitor),
+    (r"/monitor/failed-tasks", monitor.FailedTaskMonitor),
+    (r"/monitor/completion-time", monitor.TimeToCompletionMonitor),
+    (r"/monitor/broker", monitor.BrokerMonitor),
     # Static
     (r"/static/(.*)", StaticFileHandler,
      {"path": settings['static_path']}),

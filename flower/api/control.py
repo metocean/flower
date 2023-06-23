@@ -2,6 +2,7 @@ import time
 import logging
 import datetime
 import collections
+import ast
 
 from tornado import web
 from tornado import gen
@@ -456,7 +457,7 @@ Terminate a task
       "message": "Terminated '1480b55c-b8b2-462c-985e-24af3e9158f9'"
   }
 
-:query terminate: terminate the task if it is running
+:query destination: worker executing this task to be terminated
 :reqheader Authorization: optional OAuth token to authenticate
 :statuscode 200: no error
 :statuscode 401: unauthorized request
@@ -469,8 +470,75 @@ Terminate a task
                                   reply=True,
                                   arguments={'task_id': taskid,
                                              'signal': 'USR1'})
-        
+
         self.write(dict(message="Terminated '%s'" % taskid))
+
+
+class TaskRetry(BaseHandler):
+    DATE_FORMAT = '%Y-%m-%d %H:%M:%S.%f'
+
+    @web.authenticated
+    def post(self, taskid):
+        """
+Retry a task
+
+**Example request**:
+
+.. sourcecode:: http
+
+  POST /api/task/retry/1480b55c-b8b2-462c-985e-24af3e9158f9 HTTP/1.1
+  Content-Length: 0
+  Content-Type: application/x-www-form-urlencoded; charset=utf-8
+  Host: localhost:5555
+
+**Example response**:
+
+.. sourcecode:: http
+
+  HTTP/1.1 200 OK
+  Content-Length: 71
+  Content-Type: application/json; charset=UTF-8
+  Date: Sun, 13 Apr 2014 15:55:00 GMT
+
+  {
+      "message": "Retried '1480b55c-b8b2-462c-985e-24af3e9158f9'"
+  }
+
+:reqheader Authorization: optional OAuth token to authenticate
+:statuscode 200: no error
+:statuscode 401: unauthorized request
+:statuscode 404: unknown task
+        """
+        
+        stats = self.application.events.state.tasks[taskid]
+
+        taskname = stats.name
+        args = ast.literal_eval(stats.args) if not isinstance(stats.args, (list,tuple)) else stats.args
+        kwargs = ast.literal_eval(stats.kwargs) if not isinstance(stats.kwargs, dict) else stats.kwargs
+        routing_key = stats.routing_key
+        exchange = stats.exchange
+
+        logger.debug("Invoking a task '%s' with '%s' and '%s'",
+                     taskname, args, kwargs)
+
+        try:
+            task = self.capp.tasks[taskname]
+        except KeyError:
+            raise HTTPError(404, "Unknown task '%s'" % taskname)
+
+        retries = stats.retries + 1
+
+        stats.state = 'RETRY'
+
+        result = task.apply_async(args=args, kwargs=kwargs, 
+                                  task_id=taskid, 
+                                  retries=retries,
+                                  routing_key=routing_key, 
+                                  exchange=exchange)
+        
+        stats.retried = stats.sent
+
+        self.write(dict(message="Retried '%s'" % taskid))
 
 class TaskTimout(ControlHandler):
     @web.authenticated

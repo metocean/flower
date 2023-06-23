@@ -353,7 +353,7 @@ var flower = (function () {
 
         var taskid = $('#taskid').text(),
             destination = $('#worker').children('td:eq(1)').text();
-        console.log('terminate ' + destination )
+
         $.ajax({
             type: 'POST',
             url: url_prefix() + '/api/task/terminate/' + taskid,
@@ -365,6 +365,24 @@ var flower = (function () {
                 show_success_alert(data.message);
             },
             error: function (data) {
+                show_error_alert(data.responseText);
+            }
+        });
+    }
+
+    function on_task_retry(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        var task_id = $('#uuid').children('td:eq(1)').text();
+
+        $.ajax({
+            type: 'POST',
+            url: url_prefix() + '/api/task/retry/' + task_id,
+            success: function (data) {
+                show_success_alert(data.message);
+            },
+            error: function (data) {    
                 show_error_alert(data.responseText);
             }
         });
@@ -827,6 +845,7 @@ var flower = (function () {
         on_cancel_task_filter: on_cancel_task_filter,
         on_task_revoke: on_task_revoke,
         on_task_terminate: on_task_terminate,
+        on_task_retry: on_task_retry
     };
 
 }(jQuery));
