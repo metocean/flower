@@ -382,6 +382,11 @@ var flower = (function () {
         $('a#btn-retried').text('Retried: ' + table.column(6).data().reduce(sum, 0));
     }
 
+    function on_tasks_update(update) {
+        var table = $('#tasks-table').DataTable();
+        table.draw('page');
+    }
+
     function on_cancel_task_filter(event) {
         event.preventDefault();
         event.stopPropagation();
