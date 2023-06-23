@@ -574,10 +574,10 @@ var flower = (function () {
     }
 
     $(document).ready(function () {
-        if ($.inArray($(location).attr('pathname'), ['/', '/dashboard']) !== -1) {
+        if ($.inArray($(location).attr('pathname'), [url_prefix() + '/', url_prefix() + '/dashboard']) !== -1) {
             var host = $(location).attr('host'),
                 protocol = $(location).attr('protocol') === 'http:' ? 'ws://' : 'wss://',
-                ws = new WebSocket(protocol + host + "/update-dashboard");
+                ws = new WebSocket(protocol + host + url_prefix() + "/update-dashboard");
             ws.onmessage = function (event) {
                 var update = $.parseJSON(event.data);
                 on_dashboard_update(update);
@@ -611,10 +611,101 @@ var flower = (function () {
             });
         });
 
+        if ($(location).attr('pathname') === url_prefix() + '/monitor') {
+            var sts = current_unix_time(),
+                fts = current_unix_time(),
+                tts = current_unix_time(),
+                updateinterval = parseInt($.urlParam('updateInterval'), 10) || 3000,
+                succeeded_graph = null,
+                failed_graph = null,
+                time_graph = null,
+                broker_graph = null;
+
+            $.ajax({
+                type: 'GET',
+                url: url_prefix() + '/monitor/succeeded-tasks',
+                data: {
+                    lastquery: current_unix_time()
+                },
+                success: function (data) {
+                    succeeded_graph = create_graph(data, '-succeeded');
+                    succeeded_graph.update();
+
+                    succeeded_graph.series.setTimeInterval(updateinterval);
+                    setInterval(function () {
+                        update_graph(succeeded_graph,
+                            url_prefix() + '/monitor/succeeded-tasks',
+                            sts);
+                        sts = current_unix_time();
+                    }, updateinterval);
+
+                },
+            });
+
+            $.ajax({
+                type: 'GET',
+                url: url_prefix() + '/monitor/completion-time',
+                data: {
+                    lastquery: current_unix_time()
+                },
+                success: function (data) {
+                    time_graph = create_graph(data, '-time', null, null, 's');
+                    time_graph.update();
+
+                    time_graph.series.setTimeInterval(updateinterval);
+                    setInterval(function () {
+                        update_graph(time_graph,
+                            url_prefix() + '/monitor/completion-time',
+                            tts);
+                        tts = current_unix_time();
+                    }, updateinterval);
+
+                },
+            });
+
+            $.ajax({
+                type: 'GET',
+                url: url_prefix() + '/monitor/failed-tasks',
+                data: {
+                    lastquery: current_unix_time()
+                },
+                success: function (data) {
+                    failed_graph = create_graph(data, '-failed');
+                    failed_graph.update();
+
+                    failed_graph.series.setTimeInterval(updateinterval);
+                    setInterval(function () {
+                        update_graph(failed_graph,
+                            url_prefix() + '/monitor/failed-tasks',
+                            fts);
+                        fts = current_unix_time();
+                    }, updateinterval);
+
+                },
+            });
+
+            $.ajax({
+                type: 'GET',
+                url: url_prefix() + '/monitor/broker',
+                success: function (data) {
+                    broker_graph = create_graph(data, '-broker');
+                    broker_graph.update();
+
+                    broker_graph.series.setTimeInterval(updateinterval);
+                    setInterval(function () {
+                        update_graph(broker_graph,
+                            url_prefix() + '/monitor/broker');
+                    }, updateinterval);
+
+                },
+            });
+
+        }
+
     });
 
     $(document).ready(function () {
-        if (!active_page('/') && !active_page('/dashboard')) {
+        if ($.inArray($(location).attr('pathname'), [url_prefix() + '/tasks', url_prefix() + '/broker', url_prefix() + '/monitor']) !== -1) {
             return;
         }
 
