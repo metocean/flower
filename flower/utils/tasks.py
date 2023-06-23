@@ -108,7 +108,7 @@ def to_python(val, _type=None):
             return ast.literal_eval(val)
         except:
             return val        
-    elif _type and isinstance(val, _type):
+    elif (_type and isinstance(val, _type)) or (val and _type is None):
         return val
     elif val == None and _type:
         return _type()

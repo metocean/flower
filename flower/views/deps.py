@@ -39,9 +39,8 @@ def resolve_deps_for_cycle(action_id, cycle_dt):
         return []
     else:
         workflow = flow.cycle_hours[cycle_hour]
-        deps = resolve_deps(action_id, workflow)
+        deps = resolve_deps(action_id, workflow, upstream=True)
         return deps
-
 
 def get_workflow_for_task(task):
     workflow  = []
@@ -51,31 +50,33 @@ def get_workflow_for_task(task):
                                            task.cycle_dt)
     return workflow
     
-
 class DependencyPydotView(BaseHandler):
     def __init__(self, *args, **kwargs):
         super(DependencyPydotView, self).__init__(*args,**kwargs)
         self.pool = self.application.pool
+
     @run_on_executor(executor='pool')
     def _plot_deps(self, task_id):
         task = get_task_by_id(self.application.events, task_id)
-        workflow = task.workflow or get_workflow_for_task(task)
-        if workflow:
-            output = '/tmp/%s.png' % task_id
-            if not os.path.exists(output):
+        output = '/tmp/%s_%s.png' % (task.action_id, task.cycle_dt)
+        if not os.path.exists(output):
+            workflow = task.workflow or get_workflow_for_task(task)
+            if workflow:
                 try:
                     command = SchedulerCommand(['deps','-w', ','.join(workflow),
-                                                '-o', output])
+                                                    '-o', output])
                     command.run()
                 except SystemExit as exc:
                     if exc.code == 0:
                         pass
                     else:
                         raise Exception('Dependency graph error')
-            with open(output) as dep_plot:
-                return dep_plot.read()
-        else:
-            return self.render('404.html', message="Task has no dependencies")
+            else:
+                return self.render('404.html', message="Task has no dependencies")
+
+        with open(output) as dep_plot:
+            self.set_header("Content-Type", "image/png")
+            return dep_plot.read()
 
     @web.authenticated
     @tornado.gen.coroutine
@@ -83,34 +84,4 @@ class DependencyPydotView(BaseHandler):
         app = self.application
         capp = self.application.capp
         result = yield self._plot_deps(task_id)
-        self.set_header("Content-Type", "image/png")
-        self.write(result)    
-
-class DependencySankeyView(BaseHandler):
-    @web.authenticated
-    def get(self, task_id):
-        app = self.application
-        capp = self.application.capp
-        task = get_task_by_id(self.application.events, task_id)
-        workflow = task.workflow or get_workflow_for_task(task)
-        logging.warn(workflow)
-        if workflow:
-            tree = gen_deps_tree(workflow)
-            cache = shelve.open('/tmp/sankey_cache.shelve')
-            task_id = str(task_id)
-            if cache.has_key(task_id):
-                table = cache[task_id]
-            else:
-                table = []    
-                for action_id, deps in tree.items():
-                    row = []
-                    for dep_id in deps['hard']:
-                        row.append([action_id,dep_id,1,'true','hard'])
-                    for dep_id in deps['soft']:
-                        row.append([action_id,dep_id,0.1,'false','soft'])
-                    table.extend(row)
-                cache[task_id] = table
-            cache.close()
-            self.render('deps.html', table=table)
-        else:
-            self.render('404.html', message="Task has no dependencies")
+        self.write(result)
