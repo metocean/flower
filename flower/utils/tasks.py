@@ -38,6 +38,7 @@ def iter_tasks(events, limit=None, offset=0, type=None, worker=None, state=None,
         if started_end and task.started and\
                 task.started > convert(started_end):
             continue
+
         if not satisfies_search_terms(task, search_terms):
             continue
         if i >= offset:

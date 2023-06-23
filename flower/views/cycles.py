@@ -52,9 +52,6 @@ class CyclesDataTable(BaseHandler):
     @web.authenticated
     def get(self):
         try:
-            # args = self.request.query_arguments.keys()
-            # args.sort()
-            # for a in args: print a
             app = self.application
             draw = self.get_argument('draw', type=int)
             start = self.get_argument('start', type=int)
@@ -105,7 +102,7 @@ class CyclesDataTable(BaseHandler):
             import traceback, StringIO, os
             exc_buffer = StringIO.StringIO()
             traceback.print_exc(file=exc_buffer)
-            self.write(exc_buffer.getvalue().replace(os.linesep,"<br>"))
+            print exc_buffer.getvalue()
 
     def format_task(self, args):
         uuid, task = args
