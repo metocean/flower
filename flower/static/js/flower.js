@@ -387,6 +387,11 @@ var flower = (function () {
         table.draw('page');
     }
 
+    function on_cycles_update(update) {
+        var table = $('#cycles-table').DataTable();
+        table.draw('page');
+    }
+
     function on_cancel_task_filter(event) {
         event.preventDefault();
         event.stopPropagation();
@@ -429,6 +434,32 @@ var flower = (function () {
     };
 
     $(document).ready(function () {
+        if ($.inArray($(location).attr('pathname'), ['/', '/dashboard']) !== -1) {
+            var host = $(location).attr('host'),
+                protocol = $(location).attr('protocol') === 'http:' ? 'ws://' : 'wss://',
+                ws = new WebSocket(protocol + host + "/update-dashboard");
+            ws.onmessage = function (event) {
+                var update = $.parseJSON(event.data);
+                on_dashboard_update(update);
+            };
+        } else if ($.inArray($(location).attr('pathname'), ['/tasks']) !== -1) {
+            var host = $(location).attr('host'),
+                protocol = $(location).attr('protocol') === 'http:' ? 'ws://' : 'wss://',
+                ws = new WebSocket(protocol + host + "/api/task/events/update-tasks/");
+            ws.onmessage = function (event) {
+                var update = $.parseJSON(event.data);
+                on_tasks_update(update)
+            };
+        } else if ($.inArray($(location).attr('pathname'), ['/cycles']) !== -1) {
+            var host = $(location).attr('host'),
+                protocol = $(location).attr('protocol') === 'http:' ? 'ws://' : 'wss://',
+                ws = new WebSocket(protocol + host + "/api/task/events/update-tasks/");
+            ws.onmessage = function (event) {
+                var update = $.parseJSON(event.data);
+                on_cycles_update(update)
+            };
+        }
+
         //https://github.com/twitter/bootstrap/issues/1768
         var shiftWindow = function () {
             scrollBy(0, -50);
@@ -528,138 +559,230 @@ var flower = (function () {
     });
 
     $(document).ready(function () {
-        if ($.inArray($(location).attr('pathname'), ['/', '/dashboard', '/broker', '/monitor', '/cycles']) !== -1) {
-            return;
-        }
+        if ($.inArray($(location).attr('pathname'), ['/tasks']) !== -1) {
+            $('#tasks-table').DataTable({
+                rowId: 'uuid',
+                searching: true,
+                paginate: true,
+                scrollX: true,
+                scrollCollapse: true,
+                processing: true,
+                serverSide: true,
+                colReorder: true,
+                ajax: {
+                    url: url_prefix() + '/tasks/datatable'
+                },
+                order: [
+                    [7, "asc"]
+                ],
+                oSearch: {
+                    "sSearch": $.urlParam('state') ? 'state:' + $.urlParam('state') : ''
+                },
+                columnDefs: [{
+                    targets: 0,
+                    data: 'name',
+                    visible: isColumnVisible('name'),
+                    render: function (data, type, full, meta) {
+                        return data;
+                    }
+                }, {
+                    targets: 1,
+                    data: 'uuid',
+                    visible: isColumnVisible('uuid'),
+                    orderable: false,
+                    render: function (data, type, full, meta) {
+                        return '<a href="' + url_prefix() + '/task/' + data + '">' + data + '</a>';
+                    }
+                }, {
+                    targets: 2,
+                    data: 'state',
+                    visible: isColumnVisible('state'),
+                    render: function (data, type, full, meta) {
+                        switch (data) {
+                        case 'SUCCESS':
+                            return '<span class="label label-success">' + data + '</span>';
+                        case 'FAILURE':
+                            return '<span class="label label-important">' + data + '</span>';
+                        default:
+                            return '<span class="label label-default">' + data + '</span>';
+                        }
+                    }
+                }, {
+                    targets: 3,
+                    data: 'args',
+                    visible: isColumnVisible('args')
+                }, {
+                    targets: 4,
+                    data: 'kwargs',
+                    visible: isColumnVisible('kwargs')
+                }, {
+                    targets: 5,
+                    data: 'result',
+                    visible: isColumnVisible('result')
+                }, {
+                    targets: 6,
+                    data: 'received',
+                    visible: isColumnVisible('received'),
+                    render: function (data, type, full, meta) {
+                        if (data) {
+                            return format_time(data);
+                        }
+                        return data;
+                    }
 
-        $('#tasks-table').DataTable({
-            rowId: 'uuid',
-            searching: true,
-            paginate: true,
-            scrollX: true,
-            scrollCollapse: true,
-            processing: true,
-            serverSide: true,
-            colReorder: true,
-            ajax: {
-                type: 'POST',
-                url: url_prefix() + '/tasks/datatable'
-            },
-            order: [
-                [7, "desc"]
-            ],
-            oSearch: {
-                "sSearch": $.urlParam('state') ? 'state:' + $.urlParam('state') : ''
-            },
-            columnDefs: [{
-                targets: 0,
-                data: 'name',
-                visible: isColumnVisible('name'),
-                render: function (data, type, full, meta) {
-                    return data;
-                }
-            }, {
-                targets: 1,
-                data: 'uuid',
-                visible: isColumnVisible('uuid'),
-                orderable: false,
-                render: function (data, type, full, meta) {
-                    return '<a href="' + url_prefix() + '/task/' + encodeURIComponent(data) + '">' + data + '</a>';
-                }
-            }, {
-                targets: 2,
-                data: 'state',
-                visible: isColumnVisible('state'),
-                render: function (data, type, full, meta) {
-                    switch (data) {
-                    case 'SUCCESS':
-                        return '<span class="label label-success">' + data + '</span>';
-                    case 'FAILURE':
-                        return '<span class="label label-important">' + data + '</span>';
-                    default:
-                        return '<span class="label label-default">' + data + '</span>';
+                }, {
+                    targets: 7,
+                    data: 'started',
+                    visible: isColumnVisible('started'),
+                    render: function (data, type, full, meta) {
+                        if (data) {
+                            return format_time(data);
+                        }
+                        return data;
                     }
-                }
-            }, {
-                targets: 3,
-                data: 'args',
-                visible: isColumnVisible('args'),
-                render: htmlEscapeEntities
-            }, {
-                targets: 4,
-                data: 'kwargs',
-                visible: isColumnVisible('kwargs'),
-                render: htmlEscapeEntities
-            }, {
-                targets: 5,
-                data: 'result',
-                visible: isColumnVisible('result'),
-                render: htmlEscapeEntities
-            }, {
-                targets: 6,
-                data: 'received',
-                visible: isColumnVisible('received'),
-                render: function (data, type, full, meta) {
-                    if (data) {
-                        return format_time(data);
+                }, {
+                    targets: 8,
+                    data: 'runtime',
+                    visible: isColumnVisible('runtime'),
+                    render: function (data, type, full, meta) {
+                        return data ? data.toFixed(3) : data;
                     }
-                    return data;
-                }
+                }, {
+                    targets: 9,
+                    data: 'worker',
+                    visible: isColumnVisible('worker')
+                }, {
+                    targets: 10,
+                    data: 'exchange',
+                    visible: isColumnVisible('exchange')
+                }, {
+                    targets: 11,
+                    data: 'routing_key',
+                    visible: isColumnVisible('routing_key')
+                }, {
+                    targets: 12,
+                    data: 'retries',
+                    visible: isColumnVisible('retries')
+                }, {
+                    targets: 13,
+                    data: 'revoked',
+                    visible: isColumnVisible('revoked')
+                }, {
+                    targets: 14,
+                    data: 'exception',
+                    visible: isColumnVisible('exception')
+                }, {
+                    targets: 15,
+                    data: 'expires',
+                    visible: isColumnVisible('expires')
+                }, {
+                    targets: 16,
+                    data: 'eta',
+                    visible: isColumnVisible('eta')
+                }, ],
+            });
+        } else if ($.inArray($(location).attr('pathname'), ['/cycles']) !== -1) {
+            $('#cycles-table').DataTable({
+                rowId: 'uuid',
+                searching: true,
+                paginate: true,
+                scrollX: true,
+                scrollCollapse: true,
+                processing: true,
+                serverSide: true,
+                colReorder: true,
+                ajax: {
+                    url: url_prefix() + '/cycles/datatable'
+                },
+                order: [
+                    [7, "asc"]
+                ],
+                oSearch: {
+                    "sSearch": $.urlParam('state') ? 'state:' + $.urlParam('state') : ''
+                },
+                columnDefs: [{
+                    targets: 0,
+                    data: 'action_id',
+                    visible: isColumnVisible('action_id'),
+                    orderable: false,
+                    render: function (data, type, full, meta) {
+                        return data;
+                    }
+                },{
+                    targets: 1,
+                    data: 'cycle_dt',
+                    visible: isColumnVisible('cycle_dt')
+                }, {
+                    targets: 2,
+                    data: 'state',
+                    visible: isColumnVisible('state'),
+                    render: function (data, type, full, meta) {
+                        switch (data) {
+                        case 'SUCCESS':
+                            return '<span class="label label-success">' + data + '</span>';
+                        case 'FAILURE':
+                            return '<span class="label label-important">' + data + '</span>';
+                        default:
+                            return '<span class="label label-default">' + data + '</span>';
+                        }
+                    }
+                }, {
+                    targets: 3,
+                    data: 'received',
+                    visible: isColumnVisible('received'),
+                    render: function (data, type, full, meta) {
+                        if (data) {
+                            return format_time(data);
+                        }
+                        return data;
+                    }
 
-            }, {
-                targets: 7,
-                data: 'started',
-                visible: isColumnVisible('started'),
-                render: function (data, type, full, meta) {
-                    if (data) {
-                        return format_time(data);
+                }, {
+                    targets: 4,
+                    data: 'started',
+                    visible: isColumnVisible('started'),
+                    render: function (data, type, full, meta) {
+                        if (data) {
+                            return format_time(data);
+                        }
+                        return data;
                     }
-                    return data;
-                }
-            }, {
-                targets: 8,
-                data: 'runtime',
-                visible: isColumnVisible('runtime'),
-                render: function (data, type, full, meta) {
-                    return data ? data.toFixed(3) : data;
-                }
-            }, {
-                targets: 9,
-                data: 'worker',
-                visible: isColumnVisible('worker'),
-                render: function (data, type, full, meta) {
-                    return '<a href="' + url_prefix() + '/worker/' + encodeURIComponent(data) + '">' + data + '</a>';
-                }
-            }, {
-                targets: 10,
-                data: 'exchange',
-                visible: isColumnVisible('exchange')
-            }, {
-                targets: 11,
-                data: 'routing_key',
-                visible: isColumnVisible('routing_key')
-            }, {
-                targets: 12,
-                data: 'retries',
-                visible: isColumnVisible('retries')
-            }, {
-                targets: 13,
-                data: 'revoked',
-                visible: isColumnVisible('revoked')
-            }, {
-                targets: 14,
-                data: 'exception',
-                visible: isColumnVisible('exception')
-            }, {
-                targets: 15,
-                data: 'expires',
-                visible: isColumnVisible('expires')
-            }, {
-                targets: 16,
-                data: 'eta',
-                visible: isColumnVisible('eta')
-            }, ],
-        });
+                }, {
+                    targets: 5,
+                    data: 'eta',
+                    visible: isColumnVisible('eta')
+                },  {
+                    targets: 6,
+                    data: 'timestamp',
+                    visible: isColumnVisible('timestamp'),
+                    render: function (data, type, full, meta) {
+                        if (data) {
+                            return format_time(data);
+                        }
+                        return data;
+                    }
+                },{
+                    targets: 7,
+                    data: 'runtime',
+                    visible: isColumnVisible('runtime'),
+                    render: function (data, type, full, meta) {
+                        return data ? data.toFixed(3) : data;
+                    }
+                }, {
+                    targets: 8,
+                    data: 'worker',
+                    visible: isColumnVisible('worker')
+                }, {
+                    targets: 9,
+                    data: 'routing_key',
+                    visible: isColumnVisible('routing_key')
+                }, {
+                    targets: 10,
+                    data: 'retries',
+                    visible: isColumnVisible('retries')
+                },],
+            });
+        } else { return }
 
     });
 
