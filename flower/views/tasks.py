@@ -21,6 +21,12 @@ class TaskView(BaseHandler):
     def get(self, task_id):
         task = get_task_by_id(self.application.events, task_id)
 
+        capp = self.application.capp
+        if capp.conf.CELERY_TIMEZONE:
+            tz = capp.conf.CELERY_TIMEZONE
+        else:
+            tz = 'UTC'
+
         if task is None:
             raise web.HTTPError(404, "Unknown task '%s'" % task_id)
 
@@ -42,7 +48,8 @@ class TaskView(BaseHandler):
                                  action_conf=action_conf,
                                  logfile=logfile,
                                  logpath=logpath,
-                                 cycle_dt=cycle_dt)
+                                 cycle_dt=cycle_dt,
+                                 tz=tz)
 
 
 @total_ordering
@@ -79,7 +86,23 @@ class TasksDataTable(BaseHandler):
         sort_order = self.get_argument('order[0][dir]', type=str) == 'desc'
 
         def key(item):
-            return Comparable(getattr(item[1], sort_by))
+            val = getattr(item[1], sort_by)
+            if sys.version_info[0] == 3:
+                val = str(val)
+            return val
+
+        tasks = sorted(iter_tasks(app.events, search=search),
+                       key=key, reverse=sort_order)
+        tasks = list(map(self.format_task, tasks))
+        filtered_tasks = []
+        i = 0
+        for _, task in tasks:
+            if i < start:
+                i += 1
+                continue
+            if i >= (start + length):
+                break
+            task = as_dict(task)
 
         self.maybe_normalize_for_sort(app.events.state.tasks_by_timestamp(), sort_by)
 

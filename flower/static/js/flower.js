@@ -665,22 +665,23 @@ var flower = (function () {
     }
 
     function on_task_update(update) {
-        var timestamp = moment.unix(update.timestamp).utc();
+        var timestamp = moment.unix(update.timestamp).utc(),
+            tz = $('#tz').text();
         if (update.type == 'task-received') {
             $("#state td:eq(1)").children('span').removeClass().addClass("label label-default").text('RECEIVED');
-            $("#received td:eq(1)").text(timestamp.format('DD-MM-YYYY HH:mm:ss'))
+            $("#received td:eq(1)").text(timestamp.format('YYYY-MM-DD HH:mm:ss '+tz))
             $("#eta td:eq(1)").text(update.eta ? update.eta : "");
         } else if (update.type == 'task-started') {
             $("#state td:eq(1)").children('span').removeClass().addClass("label label-info").text('STARTED');
-            $("#started td:eq(1)").text(timestamp.format('DD-MM-YYYY HH:mm:ss'));
+            $("#started td:eq(1)").text(timestamp.format('YYYY-MM-DD HH:mm:ss '+tz));
         } else if (update.type == 'task-succeeded') {
             $("#state td:eq(1)").children('span').removeClass().addClass("label label-success").text('SUCCESS');
             $("#result td:eq(1)").text(update.result);
             if ($("#succeeded").length == 0){
                 $('#started').after('<tr><td id="#succedded">Succeeded</td><td>'+ 
-                                     timestamp.format('DD-MM-YYYY HH:mm:ss') +'</td>')
+                                     timestamp.format('YYYY-MM-DD HH:mm:ss '+tz) +'</td>')
             } else {
-                $("#succedded td:eq(1)").text(timestamp.format('DD-MM-YYYY HH:mm:ss'))
+                $("#succedded td:eq(1)").text(timestamp.format('YYYY-MM-DD HH:mm:ss '+tz))
             }
             if ($("#runtime").length == 0){
                 $('#clock').before('<tr><td id="#runtime">Runtime</td><td>'+update.runtime+'</td>')
@@ -695,9 +696,9 @@ var flower = (function () {
             $("#state td:eq(1)").children('span').removeClass().addClass("label label-important").text('REVOKED');
             if ($("#revoked").length == 0){
                 $('#expires').before('<tr><td id="#revoked">Revoked</td><td>'+ 
-                                     timestamp.format('DD-MM-YYYY HH:mm:ss') +'</td>')
+                                     timestamp.format('YYYY-MM-DD HH:mm:ss '+tz) +'</td>')
             } else {
-                $("#revoked td:eq(1)").text(timestamp.format('DD-MM-YYYY HH:mm:ss'))
+                $("#revoked td:eq(1)").text(timestamp.format('YYYY-MM-DD HH:mm:ss '+tz))
             }
             $('h2 button').remove()
             $('h2').append('<button class="btn btn-danger" onclick="flower.on_task_retry(event)" style="float: right">Retry</button>')
@@ -706,9 +707,9 @@ var flower = (function () {
             $("#state td:eq(1)").text(update.result);
             if ($("#retried").length == 0){
                 $('#started').after('<tr><td id="#retried">Retried</td><td>'+ 
-                                     timestamp.format('DD-MM-YYYY HH:mm:ss') +'</td>')
+                                     timestamp.format('YYYY-MM-DD HH:mm:ss '+tz) +'</td>')
             } else {
-                $("#retried td:eq(1)").text(timestamp.format('DD-MM-YYYY HH:mm:ss'))
+                $("#retried td:eq(1)").text(timestamp.format('YYYY-MM-DD HH:mm:ss '+tz))
             }
         } else if (update.type == 'task-running') {
             var container = $("#result td:eq(1)");
@@ -727,7 +728,7 @@ var flower = (function () {
                 $("#exception td:eq(1)").text(update.exception)
             }
         }
-        $("#timestamp td:eq(1)").text(timestamp.format('DD-MM-YYYY HH:mm:ss'));
+        $("#timestamp td:eq(1)").text(timestamp.format('YYYY-MM-DD HH:mm:ss '+tz));
         $("#clock td:eq(1)").text(update.clock);
     }
 

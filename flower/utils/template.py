@@ -27,6 +27,7 @@ def format_isotime(time):
     dt = dparser.parse(time)
     return dt.strftime("%Y-%m-%d %H:%M:%S %Z")
 
+format_progress = lambda x: x*100
 
 def humanize(obj, type=None, length=None):
     if obj is None:

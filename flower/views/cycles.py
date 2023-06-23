@@ -82,7 +82,7 @@ class CyclesDataTable(BaseHandler):
             else:
                 filter_tasks.append(task)
         for task in filter_tasks:
-            if 'tasks.' in task['name'] \
+            if task['name'] and 'tasks.' in task['name'] \
             and task['action_id'] in alloc_actions \
             and task['state'] in ['FAILURE']:
                 filter_tasks.remove(task)
