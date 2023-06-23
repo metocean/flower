@@ -31,12 +31,14 @@ class CyclesView(BaseHandler):
             time += '-' + capp.conf.CELERY_TIMEZONE
         columns = 'action_id,cycle_dt,state,received,eta,started,timestamp,runtime,worker,routing_key,retries'
         tasks = sorted(iter_tasks(app.events, type='cycle.CycleTask'))
+        cycle_tasks = []
         cycles = []
         for uuid, task in tasks:
             task.kwargs = ast.literal_eval(str(task.kwargs)) if task.kwargs else {}
             cycle = task.cycle_dt = task.kwargs.get('cycle_dt')
-            if cycle and cycle not in cycles:
+            if cycle != None and cycle not in cycles:
                 cycles.append(cycle)
+                cycles_tasks.append(task)
 
         cycles.sort(reverse=True)
         tasks.sort(key=lambda x: x[1].cycle_dt, reverse=True)
@@ -47,7 +49,7 @@ class CyclesView(BaseHandler):
             tasks=[],
             columns=columns,
             cycles_dt = cycles,
-            cycle_tasks = tasks,
+            cycle_tasks = cycle_tasks,
             cycle_dt=cycles[0] if cycles else '',
             time=time,
         )
@@ -58,7 +60,7 @@ class CyclesDataTable(BaseHandler):
         tasks = sorted(iter_tasks(self.application.events, type='cycle.CycleTask'))
         cycles = []
         for uuid, task in tasks:
-            kwargs = ast.literal_eval(str(getattr(task, 'kwargs', {})))
+            kwargs = ast.literal_eval(str(getattr(task, 'kwargs', {}))) or {}
             cycle_dt = kwargs.get('cycle_dt')
             if 'active' in state and task.state in ['STARTED', 'RUNNING']:
                 cycles.append(cycle_dt)
