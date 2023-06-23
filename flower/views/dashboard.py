@@ -21,6 +21,9 @@ class DashboardView(BaseHandler):
         json = self.get_argument('json', default=False, type=bool)
 
         events = self.application.events.state
+        app = self.application
+        state = app.events.state
+        broker = app.capp.connection().as_uri()
 
         if refresh:
             try:
@@ -30,11 +33,11 @@ class DashboardView(BaseHandler):
 
         workers = {}
         for name, values in events.counter.items():
-            if name not in events.workers:
+            if name not in state.workers:
                 continue
-            worker = events.workers[name]
+            worker = state.workers[name]
             if 'dedicated' in name and not worker.alive:
-                events.workers.pop(name)
+                state.workers.pop(name)
                 continue
             info = dict(values)
             info.update(self._as_dict(worker))

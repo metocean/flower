@@ -629,6 +629,108 @@ var flower = (function () {
         };
     }
 
+    function connect_task_socket(update_func, uuid) {
+        var host = $(location).attr('host'),
+            protocol = $(location).attr('protocol') === 'http:' ? 'ws://' : 'wss://',
+            ws = new WebSocket(protocol + host + "/api/task/events/update-task/"+uuid);
+        ws.onmessage = function (event) {
+            var update = $.parseJSON(event.data);
+            update_func(update)
+        };
+    }
+
+    function update_progress(container, update){
+        var progress = update.result['progress']*100,
+            state = update.result['status'];
+    
+        if (container.children('.progress').length == 0) {
+            container.text("");
+            var pbar = container.prepend('<div class="progress"></div>').children(),
+                bar = pbar.append('<div class="bar" style="width:'+ 
+                                             progress + '%"'+state+'></div>').children();
+            if (state) {
+                bar.text(progress.toFixed(1)+'% - '+state);
+            } else {
+                bar.text(progress.toFixed(1)+'%');
+            }
+        } else {
+            var bar = container.children('.progress').children('.bar');
+            bar.css('width', progress+'%');
+            if (state) {
+                bar.text(progress.toFixed(1)+'% - '+state);
+            } else {
+                bar.text(progress.toFixed(1)+'%');
+            }
+        }
+    }
+
+    function on_task_update(update) {
+        var timestamp = moment.unix(update.timestamp).utc();
+        if (update.type == 'task-received') {
+            $("#state td:eq(1)").children('span').removeClass().addClass("label label-default").text('RECEIVED');
+            $("#received td:eq(1)").text(timestamp.format('DD-MM-YYYY HH:mm:ss'))
+            $("#eta td:eq(1)").text(update.eta ? update.eta : "");
+        } else if (update.type == 'task-started') {
+            $("#state td:eq(1)").children('span').removeClass().addClass("label label-info").text('STARTED');
+            $("#started td:eq(1)").text(timestamp.format('DD-MM-YYYY HH:mm:ss'));
+        } else if (update.type == 'task-succeeded') {
+            $("#state td:eq(1)").children('span').removeClass().addClass("label label-success").text('SUCCESS');
+            $("#result td:eq(1)").text(update.result);
+            if ($("#succeeded").length == 0){
+                $('#started').after('<tr><td id="#succedded">Succeeded</td><td>'+ 
+                                     timestamp.format('DD-MM-YYYY HH:mm:ss') +'</td>')
+            } else {
+                $("#succedded td:eq(1)").text(timestamp.format('DD-MM-YYYY HH:mm:ss'))
+            }
+            if ($("#runtime").length == 0){
+                $('#clock').before('<tr><td id="#runtime">Runtime</td><td>'+update.runtime+'</td>')
+            } else {
+                $("#runtime").text(update.runtime)
+            }
+            $('h2 button').remove()
+        } else if (update.type == 'task-failed') {
+            $("#state td:eq(1)").children('span').removeClass().addClass("label label-important").text('FAILURE');
+            $("#result td:eq(1)").text("None");
+        } else if (update.type == 'task-revoked') {
+            $("#state td:eq(1)").children('span').removeClass().addClass("label label-important").text('REVOKED');
+            if ($("#revoked").length == 0){
+                $('#expires').before('<tr><td id="#revoked">Revoked</td><td>'+ 
+                                     timestamp.format('DD-MM-YYYY HH:mm:ss') +'</td>')
+            } else {
+                $("#revoked td:eq(1)").text(timestamp.format('DD-MM-YYYY HH:mm:ss'))
+            }
+            $('h2 button').remove()
+            $('h2').append('<button class="btn btn-danger" onclick="flower.on_task_retry(event)" style="float: right">Retry</button>')
+        } else if (update.type == 'task-retried') {
+            $("#state td:eq(1)").children('span').removeClass().addClass("label label-important").text('RETRY');
+            $("#state td:eq(1)").text(update.result);
+            if ($("#retried").length == 0){
+                $('#started').after('<tr><td id="#retried">Retried</td><td>'+ 
+                                     timestamp.format('DD-MM-YYYY HH:mm:ss') +'</td>')
+            } else {
+                $("#retried td:eq(1)").text(timestamp.format('DD-MM-YYYY HH:mm:ss'))
+            }
+        } else if (update.type == 'task-running') {
+            var container = $("#result td:eq(1)");
+            $("#state td:eq(1)").children('span').removeClass().addClass("label label-info").text('RUNNING');
+            update_progress(container, update);
+        }
+        if ($.inArray(update.type, ['task-retried', 'task-failed']) != -1){
+            if ($("#traceback").length == 0){
+                $('#clock').before('<td id="traceback">Traceback</td><td><pre>'+ update.traceback +'</pre></td>')
+            } else {
+                $("#traceback td:eq(1)").text(update.traceback)
+            }
+            if ($("#exception").length == 0){
+                $('#worker').after('<td id="exception">Exception</td><td>'+update.exception+'</td>')
+            } else {
+                $("#exception td:eq(1)").text(update.exception)
+            }
+        }
+        $("#timestamp td:eq(1)").text(timestamp.format('DD-MM-YYYY HH:mm:ss'));
+        $("#clock td:eq(1)").text(update.clock);
+    }
+
     $(document).ready(function () {
         if ($.inArray($(location).attr('pathname'), [url_prefix() + '/', url_prefix() + '/dashboard']) !== -1) {
             var host = $(location).attr('host'),
@@ -641,7 +743,7 @@ var flower = (function () {
         } else if ($.inArray('task', $(location).attr('pathname').split('/')) !== -1)  {
             var uuid = $(location).attr('pathname').split('/')[2],
                 logpath = $('#logpath').text()
-            //connect_tasks_socket(on_task_update, uuid)
+            connect_task_socket(on_task_update, uuid);
             if (logpath){
                 connect_tail_socket(logpath)
             };
@@ -1210,7 +1312,8 @@ var flower = (function () {
         on_cancel_task_filter: on_cancel_task_filter,
         on_task_revoke: on_task_revoke,
         on_task_terminate: on_task_terminate,
-        on_task_retry: on_task_retry
+        on_task_retry: on_task_retry,
+        on_task_update: on_task_update,
     };
 
 }(jQuery));
