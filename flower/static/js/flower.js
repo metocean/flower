@@ -389,7 +389,14 @@ var flower = (function () {
 
     function on_cycles_update(update) {
         var table = $('#cycles-table').DataTable();
-        table.draw('page');
+        console.log(update);
+        if (update.hostname.indexOf("cycler") > -1) { 
+            if  ($.inArray(update.type, ['task-started','task-succeeded','task-failed']) > -1 ) {
+                window.location.reload();
+            }
+        } else {
+            table.draw('page');
+        }
     }
 
     function on_cancel_task_filter(event) {
@@ -726,6 +733,14 @@ var flower = (function () {
                             return '<span class="label label-success">' + data + '</span>';
                         case 'FAILURE':
                             return '<span class="label label-important">' + data + '</span>';
+                        case 'RUNNING':
+                            if (full.result.hasOwnProperty('progress')){
+                                var progress = full.result.progress * 100,
+                                    status = '- ' + full.result.status;
+                                return '<div class="progress"><div class="bar" style="width: '+progress+'%;">'+progress.toFixed(1)+'% '+status+'</div>'
+                            } else {
+                            return '<span class="label label-default">' + data + '</span>';
+                            }
                         default:
                             return '<span class="label label-default">' + data + '</span>';
                         }

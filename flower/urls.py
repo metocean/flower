@@ -12,7 +12,13 @@ from .views.workers import WorkerView
 from .views.tasks import TaskView, TasksView, TasksDataTable
 from .views.cycles import CyclesView, CyclesDataTable
 from .views.error import NotFoundErrorHandler
+<<<<<<< HEAD
 from .views.dashboard import DashboardView
+=======
+from .views.dashboard import DashboardView, DashboardUpdateHandler
+from .views.tailer import UpdateLogfile
+from .views.action import ActionView
+>>>>>>> e8a5860 (Added progress bar, logfile tail and action config)
 from .utils import gen_cookie_secret
 
 
@@ -31,6 +37,7 @@ handlers = [
     url(r"/dashboard", DashboardView, name='dashboard'),
     url(r"/worker/(.+)", WorkerView, name='worker'),
     url(r"/task/(.+)", TaskView, name='task'),
+    url(r"/action/(.+)", ActionView, name='task'),
     url(r"/tasks", TasksView, name='tasks'),
     url(r"/cycles", CyclesView, name='cycles'),
     url(r"/cycles/datatable", CyclesDataTable),

@@ -49,6 +49,25 @@ class CyclesView(BaseHandler):
         )
 
 class CyclesDataTable(BaseHandler):
+
+    def _squash_allocation(self, tasks):
+        # Get tasks allocating and 
+        filter_tasks = []
+        alloc_actions = []
+        for task in tasks:
+            if task['name'] == 'chain.AllocateChainTask':
+                alloc_actions.append(task['kwargs']['action_id'])
+            if task['name'] == 'chain.AllocateChainTask' and task['state'] in ['STARTED', 'RUNNING', 'SUCCESS']:
+                continue
+            else:
+                filter_tasks.append(task)
+        for task in filter_tasks:
+            if 'tasks.' in task['name'] \
+            and task['kwargs']['action_id'] in alloc_actions \
+            and task['state'] in ['FAILURE']:
+                filter_tasks.remove(task)
+        return filter_tasks
+
     @web.authenticated
     def get(self):
         try:
@@ -83,17 +102,18 @@ class CyclesDataTable(BaseHandler):
                 if i >= (start + length):
                     break
                 task = as_dict(task)
-                try:
-                    kwargs = ast.literal_eval(task.get('kwargs'))
-                    task['cycle_dt'] = kwargs.get('cycle_dt')
-                    task['action_id'] = kwargs.get('action_id')
-                    if cycle_dt and task['cycle_dt'] != cycle_dt:
-                        continue
-                except :
+                if task['name'] not in cycle_tasks:
+                    continue
+                task['kwargs'] = ast.literal_eval(str(task.get('kwargs')))
+                task['cycle_dt'] = task['kwargs'].get('cycle_dt', None)
+                task['action_id'] = task['kwargs'].get('action_id', None)
+                if cycle_dt and task['cycle_dt'] != cycle_dt:
                     continue
                 task['worker'] = task['worker'].hostname
                 filtered_tasks.append(task)
                 i += 1
+
+            filtered_tasks = self._squash_allocation(filtered_tasks)
 
             self.write(dict(draw=draw, data=filtered_tasks,
                             recordsTotal=len(filtered_tasks),

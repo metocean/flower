@@ -98,4 +98,11 @@
       </div>
     </div>
   </div>
+{% if action_id %}
+  {% module Template("action.html", 
+                      action_id=action_id,
+                      action_conf=action_conf,
+                      logfile=logfile,
+                      logpath=logpath) %}
+{% end %}
 {% end %}

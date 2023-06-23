@@ -580,6 +580,8 @@ pre {
 }
 pre.prettyprint {
   margin-bottom: 18px;
+  margin: 10px;
+  border-color: #c7ecb8;
 }
 pre code {
   padding: 0;
