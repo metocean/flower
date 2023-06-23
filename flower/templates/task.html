@@ -67,11 +67,11 @@
               </tr>
               <tr id='args'>
                 <td>args</td>
-                <td><pre>{{ json.dumps(task.args) }}</pre></td>
+                <td><pre class="collapsable">{{ task.args }}</pre></td>
               </tr>
               <tr id='kwargs'>
                 <td>kwargs</td>
-                <td><pre>{{ json.dumps(task.kwargs) }}</pre></td>
+                <td><pre class="collapsable">{{ task.kwargs }}</pre></td>
               </tr>
               <tr id='result'>
                 <td>Result</td>
@@ -143,34 +143,34 @@
           {% if workflow %}
             {% if isinstance(task.result, dict) and task.result.has_key('state') %}
               <h3>Pending <small>(Waiting for dependencies)</small></h3> 
-              <pre class="prettyprint linenums languague-css">
+              <pre class="collapsable prettyprint linenums languague-css">
                 {% for action_id in sorted(task.result['state']['pending']) %}
-                  - {{ action_id }}
+                  - {{ action_id }}<br>
                 {% end %}
               </pre>
-              <h3>Running/Scheduled</h3>
-              <pre class="prettyprint linenums languague-css">
+              <h3>Scheduled/Running</h3>
+              <pre class="collapsable prettyprint linenums languague-css">
                 {% for action_id in sorted(task.result['state']['running']) %}
-                  - {{ action_id }}
+                 - {{ action_id }}<br>
                 {% end %}
               </pre>
               <h3>Failed</h3>
-              <pre class="prettyprint linenums languague-css">
+              <pre class="collapsable prettyprint linenums languague-css">
                 {% for action_id in sorted(task.result['state']['failed']) %}
-                  - {{ action_id }}
+                  - {{ action_id }}<br>
                 {% end %}
               </pre>
               <h3>Success</h3>
-              <pre class="prettyprint linenums languague-css">
+              <pre class="collapsable prettyprint linenums languague-css">
                 {% for action_id in sorted(task.result['state']['success']) %}
-                  - {{ action_id }}
+                  - {{ action_id }}<br>
                 {% end %}
               </pre>
             {% end %}
             <h3>Complete workflow <small><a href="{{ reverse_url('deps', task.uuid, task.cycle_dt) }}?workflow={{ ','.join(workflow) }}">Dependency chains</a></small></h3>
-            <pre class="prettyprint linenums languague-css">
+            <pre class="collapsable prettyprint linenums languague-css">
               {% for action_id in sorted(workflow) %}
-                - {{ action_id }}
+                - {{ action_id }}<br>
               {% end %}
             </pre>
           {% end %}

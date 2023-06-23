@@ -124,3 +124,6 @@
 .nav-collapse .dropdown-menu a {
   color: #ffffff;
 }
+.details {
+  display: inline;
+}

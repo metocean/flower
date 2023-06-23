@@ -29,6 +29,12 @@ def format_isotime(time):
 
 format_progress = lambda x: x*100
 
+def smart_truncate(content, length=100, suffix='...'):
+    if len(content) <= length:
+        return content
+    else:
+        return content[:length].rsplit(' ', 1)[0]+suffix
+
 def humanize(obj, type=None, length=None):
     if obj is None:
         obj = ''
