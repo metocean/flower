@@ -880,11 +880,11 @@ var flower = (function () {
                     targets: 2,
                     data: 'action_id',
                     visible: isColumnVisible('action_id'),
-                    orderable: false,
+                    orderable: true,
                 },{
                     targets: 3,
                     data: 'cycle_dt',
-                    orderable: false,
+                    orderable: true,
                     visible: isColumnVisible('cycle_dt')
                 },{
                     targets: 4,
@@ -997,14 +997,14 @@ var flower = (function () {
                     targets: 0,
                     data: 'action_id',
                     visible: isColumnVisible('action_id'),
-                    orderable: false,
+                    orderable: true,
                     render: function (data, type, full, meta) {
                         return '<a href="' + url_prefix() + '/task/' + full.uuid + '">' + data + '</a>';
                     }
                 },{
                     targets: 1,
                     data: 'cycle_dt',
-                    orderable: false,
+                    orderable: true,
                     visible: isColumnVisible('cycle_dt')
                 }, {
                     targets: 2,
@@ -1069,6 +1069,10 @@ var flower = (function () {
                     targets: 10,
                     data: 'retries',
                     visible: isColumnVisible('retries')
+                },{
+                    targets: 11,
+                    data: 'expires',
+                    visible: isColumnVisible('expires')
                 },],
             });
             $('#select-cycle').change(function(){
@@ -1102,14 +1106,14 @@ var flower = (function () {
                     targets: 0,
                     data: 'action_id',
                     visible: isColumnVisible('action_id'),
-                    orderable: false,
+                    orderable: true,
                     render: function (data, type, full, meta) {
                         return '<a href="' + url_prefix() + '/task/' + full.uuid + '">' + data + '</a>';
                     }
                 },{
                     targets: 1,
                     data: 'cycle_dt',
-                    orderable: false,
+                    orderable: true,
                     visible: isColumnVisible('cycle_dt')
                 }, {
                     targets: 2,
@@ -1166,17 +1170,6 @@ var flower = (function () {
                     targets: 8,
                     data: 'worker',
                     visible: isColumnVisible('worker')
-                }, {
-                    targets: 9,
-                    orderable: false,
-                    data: 'next_run',
-                    visible: isColumnVisible('next_run'),
-                    render: function (data, type, full, meta) {
-                        if (data) {
-                            return format_time(data);
-                        }
-                        return data;
-                    }
                 },],
             });
             $('#select-cycle').change(function(){

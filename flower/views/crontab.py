@@ -80,53 +80,27 @@ class CrontabDataTable(BaseHandler):
         sort_by = self.get_argument('columns[%s][data]' % column, type=str)
         sort_order = self.get_argument('order[0][dir]', type=str) == 'asc'
 
-        tasks = sorted(iter_tasks(app.events, search=search),
-                       key=lambda x: getattr(x[1], sort_by),
-                       reverse=sort_order)
-
         actions = CrontabFlow().crontab_actions
 
-        crontab_tasks = []
-        for _, task in tasks:
-
-            task = as_dict(task)
-
-            kwargs = ast.literal_eval(str(task.get('kwargs')))
-            if kwargs:
-                task['action_id'] = kwargs.get('action_id', None)
-            else:
-                continue
-
-            if task['action_id']  not in actions.keys():
-                continue
-
-            task['cycle_dt'] = kwargs.get('cycle_dt', None)
-            task['worker'] = getattr(task.get('worker',None),'hostname',None)
-
-            cron = actions[task['action_id']]['schedule']['crontab']
-            countdown = actions[task['action_id']]['schedule'].get('countdown', 0)
-
-            if task.get('started', None):
-                nr = get_crontab_next_run(cron, countdown)
-                task['next_run'] = time.mktime(nr.timetuple())
-            else:
-                task['next_run'] = task.get('eta', None)
-
-            crontab_tasks.append(task)
-
-
+        tasks = sorted(iter_tasks(app.events, search=search, actions=actions.keys()),
+                       key=lambda x: getattr(x[1], sort_by),
+                       reverse=sort_order)
+        
         filtered_tasks = []
         i = 0
-        for task in crontab_tasks:
+        for _, task in tasks:
             if i < start:
                 i += 1
                 continue
             if i >= (start + length):
-                break                    
+                break
+            task = as_dict(task)
 
+            if task['worker']:
+                task['worker'] = task['worker'].hostname
             filtered_tasks.append(task)
             i += 1
         
         self.write(dict(draw=draw, data=filtered_tasks,
-                        recordsTotal=len(crontab_tasks),
-                        recordsFiltered=len(crontab_tasks)))
+                        recordsTotal=len(tasks),
+                        recordsFiltered=len(filtered_tasks)))

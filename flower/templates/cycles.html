@@ -31,9 +31,9 @@
           </thead>
           <tbody>
           {% for uuid, task in cycle_tasks %}
-          {% if task.state in ["STARTED","RUNNING","RETRY"] and task.kwargs.has_key('cycle_dt') %}
+          {% if task.state in ["STARTED","RUNNING","RETRY"] and task.cycle_dt %}
           <tr id="{{ uuid }}">
-            <td><a href="/task/{{uuid}}">{{ task.kwargs['cycle_dt'] }}</td>
+            <td><a href="/task/{{uuid}}">{{ task.cycle_dt }}</td>
             <td>
             {% if isinstance(task.result, dict) and task.result.has_key('progress') and task.result['progress'] and task.state == 'RUNNING'> 0%}
             <div class="progress">
@@ -74,7 +74,7 @@
           {% for uuid, task in cycle_tasks %}
           {% if task.state in ["FAILURE","SUCCESS","REVOKED"] %}
           <tr id="{{ uuid }}">
-            <td><a href="/task/{{uuid}}">{{ task.kwargs.get('cycle_dt', 'undefined') }}</td>
+            <td><a href="/task/{{uuid}}">{{ task.cycle_dt }}</td>
             <td>{{ task.state }}</td>
             <td>{{ humanize(task.started, type=time) }}</td>
             <td>{{ humanize(task.timestamp, type=time) }}</td>
@@ -108,6 +108,7 @@
       <th>Worker</th>
       <th>Routing Key</th>
       <th>Retries</th>
+      <th>Expires</th>
     </tr>
     </thead>
     <tbody>
@@ -130,7 +131,8 @@
       <td>{{ task.eta }}</td>
       <td>{{ task.worker }}</td>
       <td>{{ task.routing_key }}</td>
-      <td>{{ task.retries }}</td>      
+      <td>{{ task.retries }}</td>   
+      <td>{{ task.expires }}</td>      
     </tr>
       {% end %}
     </tbody>
