@@ -528,7 +528,7 @@ var flower = (function () {
     });
 
     $(document).ready(function () {
-        if (!active_page('/tasks')) {
+        if ($.inArray($(location).attr('pathname'), ['/', '/dashboard', '/broker', '/monitor', '/cycles']) !== -1) {
             return;
         }
 

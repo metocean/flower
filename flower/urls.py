@@ -10,6 +10,7 @@ from .views import monitor
 from .views.broker import BrokerView
 from .views.workers import WorkerView
 from .views.tasks import TaskView, TasksView, TasksDataTable
+from .views.cycles import CyclesView, CyclesDataTable
 from .views.error import NotFoundErrorHandler
 from .views.dashboard import DashboardView
 from .utils import gen_cookie_secret
@@ -31,6 +32,8 @@ handlers = [
     url(r"/worker/(.+)", WorkerView, name='worker'),
     url(r"/task/(.+)", TaskView, name='task'),
     url(r"/tasks", TasksView, name='tasks'),
+    url(r"/cycles", CyclesView, name='cycles'),
+    url(r"/cycles/datatable", CyclesDataTable),
     url(r"/tasks/datatable", TasksDataTable),
     url(r"/broker", BrokerView, name='broker'),
     # Worker API
