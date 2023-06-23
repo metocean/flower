@@ -98,7 +98,11 @@ def get_task_by_id(events, task_id):
 def as_dict(task):
     # as_dict is new in Celery 3.1.7
     if hasattr(Task, 'as_dict'):
-        return task.as_dict()
+        action_id = getattr(task, 'action_id', None)
+        cycle_dt = getattr(task, 'cycle_dt', None)
+        result = task.as_dict()
+        result.update(dict(action_id=action_id,cycle_dt=cycle_dt))
+        return result
     # old version
     else:
         return task.info(fields=task._defaults.keys())
