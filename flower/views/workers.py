@@ -15,11 +15,11 @@ class WorkerView(BaseHandler):
     @gen.coroutine
     def get(self, name):
         try:
-            self.application.update_workers(workername=name)
+            yield ListWorkers.update_workers(app=self.application, workername=name)
         except Exception as e:
             logger.error(e)
 
-        worker = self.application.workers.get(name)
+        worker = ListWorkers.worker_cache.get(name)
 
         if worker is None:
             raise web.HTTPError(404, "Unknown worker '%s'" % name)
