@@ -11,13 +11,13 @@
       <div class="span12">
         <div class="page-header">
           <p id="taskid" class="hidden">{{ task.uuid }}</p>
-          <h2>{{ task.kwargs.get('action_id', getattr(task, 'name', None)) }}
+          <h2>{{ task.action_id }}
             <small>{{ task.uuid }}</small>
             {% if task.state in ["STARTED","RUNNING","ALLOCATING"] %}
                 <button style="float: right" class="btn btn-danger" onclick="flower.on_task_terminate(event)">Terminate</button>
             {% elif task.state in ["FAILURE","SUCCESS"] and 'dedicated' not in str(task.worker) %}
                 <button  style="float: right" class="btn btn-danger" onclick="flower.on_task_retry(event)">Retry</button>
-            {% elif task.state == "RECEIVED" or task.state == "RETRY" %}
+            {% elif task.state in ["SENT","RECEIVED","RETRY","PENDING"] %}
                 <button  style="float: right" class="btn btn-danger" onclick="flower.on_task_revoke(event)">Revoke</button>
             {% end %}
           </h2>
@@ -67,11 +67,11 @@
               </tr>
               <tr id='args'>
                 <td>args</td>
-                <td><pre class="collapsable">{{ task.args }}</pre></td>
+                <td><pre class="collapsable">{{ to_json(task.args) }}</pre></td>
               </tr>
               <tr id='kwargs'>
                 <td>kwargs</td>
-                <td><pre class="collapsable">{{ task.kwargs }}</pre></td>
+                <td><pre class="collapsable">{{ to_json(task.kwargs) }}</pre></td>
               </tr>
               <tr id='result'>
                 <td>Result</td>
@@ -86,7 +86,7 @@
                     {{task.result}}
                   </div>
                 {% else %}
-                  {{ getattr(task, 'result', None) }}
+                  <pre class="collapsable">{{ getattr(task, 'result', None) }}</pre>
                 {% end %}</td>
               </tr>
               {% if hasattr(task, 'parent') and task.parent %}

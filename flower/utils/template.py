@@ -1,4 +1,6 @@
 import re
+import sys
+import json
 
 from celery import current_app
 from datetime import datetime
@@ -34,6 +36,14 @@ def smart_truncate(content, length=100, suffix='...'):
         return content
     else:
         return content[:length].rsplit(' ', 1)[0]+suffix
+
+def to_json(content):
+    if isinstance(content, (dict, list)):
+        try:
+            content = json.dumps(content)
+        except:
+            pass
+    return content
 
 def humanize(obj, type=None, length=None):
     if obj is None:

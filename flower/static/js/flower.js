@@ -697,6 +697,11 @@ var flower = (function () {
         timestamp = timestamp.format("YYYY-MM-DD HH:mm:ss "+tz);
         console.log(update)
         switch (status){
+            case "pending":
+                var label = "info",
+                    button = "revoke",
+                    state = "PENDING";
+                break;
             case "sent":
                 var label = "default",
                     button = "revoke",
@@ -711,7 +716,7 @@ var flower = (function () {
                 add_or_update_field('received', timestamp, null, 'sent');
                 add_or_update_field('retries', update.retries, null, 'worker');
                 add_or_update_field('args', update.args, 'state', null);
-                add_or_update_field('kwargs', update.kwargs, 'args', null);
+                add_or_update_field('kwargs', JSON.stringify(JSON.parse(update.kwargs),null,4), 'args', null);
                 add_or_update_field('expires', update.expires, null, 'retries');
                 if (update.eta) {
                     add_or_update_field('eta', update.eta, null, 'expires');
@@ -1364,6 +1369,9 @@ var flower = (function () {
                                             $(".details", this).css("display",'inline');
                                         }
                                         });
+            var kwargs = JSON.stringify(JSON.parse($("#kwargs pre").text()),undefined,4);
+            $("#kwargs pre").text(kwargs);
+            
         } else { return }
         window.last_draw = Date.now();
     });

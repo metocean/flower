@@ -5,6 +5,7 @@ import sys
 import copy
 import logging
 import ast
+import json
 
 
 from tornado import web
@@ -37,8 +38,8 @@ class TaskView(BaseHandler):
         else:
             logfile, logpath = None, None
 
-        action_conf = get_action_conf(task.template or task.action_id) if task.action_id else None
-    
+        action_conf = get_action_conf(task.template or task.action_id) if task.action_id else None    
+
         self.render("task.html", task=task,
                                  action_conf=action_conf,
                                  logfile=logfile,
