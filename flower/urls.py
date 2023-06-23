@@ -12,13 +12,9 @@ from .views.workers import WorkerView
 from .views.tasks import TaskView, TasksView, TasksDataTable
 from .views.cycles import CyclesView, CyclesDataTable
 from .views.error import NotFoundErrorHandler
-<<<<<<< HEAD
-from .views.dashboard import DashboardView
-=======
 from .views.dashboard import DashboardView, DashboardUpdateHandler
 from .views.tailer import UpdateLogfile
 from .views.action import ActionView
->>>>>>> e8a5860 (Added progress bar, logfile tail and action config)
 from .utils import gen_cookie_secret
 
 
