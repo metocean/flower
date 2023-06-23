@@ -11,6 +11,7 @@ from .views.broker import BrokerView
 from .views.workers import WorkerView
 from .views.tasks import TaskView, TasksView, TasksDataTable
 from .views.cycles import CyclesView, CyclesDataTable
+from .views.crontab import CrontabView, CrontabDataTable
 from .views.error import NotFoundErrorHandler
 from .views.dashboard import DashboardView, DashboardUpdateHandler
 from .views.tailer import UpdateLogfile
@@ -38,6 +39,8 @@ handlers = [
     url(r"/cycles", CyclesView, name='cycles'),
     url(r"/cycles/datatable", CyclesDataTable),
     url(r"/tasks/datatable", TasksDataTable),
+    url(r"/crontab", CrontabView, name='crontab'),
+    url(r"/crontab/datatable", CrontabDataTable),
     url(r"/broker", BrokerView, name='broker'),
     # Worker API
     (r"/api/workers", workers.ListWorkers),

@@ -70,59 +70,69 @@ class CyclesDataTable(BaseHandler):
 
     @web.authenticated
     def get(self):
-        try:
-            app = self.application
-            draw = self.get_argument('draw', type=int)
-            start = self.get_argument('start', type=int)
-            length = self.get_argument('length', type=int)
-            search = self.get_argument('search[value]', type=str)
+        app = self.application
+        draw = self.get_argument('draw', type=int)
+        start = self.get_argument('start', type=int)
+        length = self.get_argument('length', type=int)
+        search = self.get_argument('search[value]', type=str)
 
-            column = self.get_argument('order[0][column]', type=int)
-            sort_by = self.get_argument('columns[%s][data]' % column, type=str)
-            sort_order = self.get_argument('order[0][dir]', type=str) == 'asc'
-            cycle_dt = self.get_argument('cycle_dt', type=str)
+        column = self.get_argument('order[0][column]', type=int)
+        sort_by = self.get_argument('columns[%s][data]' % column, type=str)
+        sort_order = self.get_argument('order[0][dir]', type=str) == 'asc'
+        cycle_dt = self.get_argument('cycle_dt', type=str)
 
-            tasks = sorted(iter_tasks(app.events, search=search),
-                           key=lambda x: getattr(x[1], sort_by),
-                           reverse=sort_order)
+        if not cycle_dt:
+            self.write(dict(draw=draw, data=[],
+                            recordsTotal=0,
+                            recordsFiltered=0))
+            return
 
-            tasks = list(map(self.format_task, tasks))
-            cycle_tasks = ['tasks.WrapperTask',
-                           'tasks.PythonTask',
-                           'tasks.SubprocessTask',
-                           'chain.AllocateChainTask',
-                           'chain.GroupChainTask']
+        tasks = sorted(iter_tasks(app.events, search=search),
+                       key=lambda x: getattr(x[1], sort_by),
+                       reverse=sort_order)
 
-            filtered_tasks = []
-            i = 0
-            for _, task in tasks:
-                if i < start:
-                    i += 1
-                    continue
-                if i >= (start + length):
-                    break
-                task = as_dict(task)
-                if task['name'] not in cycle_tasks:
-                    continue
-                task['kwargs'] = ast.literal_eval(str(task.get('kwargs')))
-                task['cycle_dt'] = task['kwargs'].get('cycle_dt', None)
-                task['action_id'] = task['kwargs'].get('action_id', None)
-                if cycle_dt and task['cycle_dt'] != cycle_dt:
-                    continue
-                task['worker'] = task['worker'].hostname
-                filtered_tasks.append(task)
+        tasks = list(map(self.format_task, tasks))
+
+        cyclic_tasks = ['tasks.WrapperTask',
+                        'tasks.PythonTask',
+                        'tasks.SubprocessTask',
+                        'chain.AllocateChainTask',
+                        'chain.GroupChainTask']
+
+        cycle_tasks = []
+
+        for _, task in tasks:
+            task = as_dict(task)
+            task['kwargs'] = ast.literal_eval(str(task.get('kwargs')))
+            task['cycle_dt'] = task['kwargs'].get('cycle_dt', None)
+            task['action_id'] = task['kwargs'].get('action_id', None)
+
+            if task['name'] not in cyclic_tasks:
+                continue
+
+            if cycle_dt and task['cycle_dt'] != cycle_dt:
+                continue
+                
+            task['worker'] = getattr(task.get('worker',None),'hostname',None)
+            cycle_tasks.append(task)
+
+        cycle_tasks = self._squash_allocation(cycle_tasks)
+            
+        filtered_tasks = []
+        i = 0
+        for task in cycle_tasks:
+            if i < start:
                 i += 1
+                continue
+            if i >= (start + length):
+                break
+            
+            filtered_tasks.append(task)
+            i += 1
 
-            filtered_tasks = self._squash_allocation(filtered_tasks)
-
-            self.write(dict(draw=draw, data=filtered_tasks,
-                            recordsTotal=len(filtered_tasks),
-                            recordsFiltered=len(filtered_tasks)))
-        except Exception:
-            import traceback, StringIO, os
-            exc_buffer = StringIO.StringIO()
-            traceback.print_exc(file=exc_buffer)
-            print exc_buffer.getvalue()
+        self.write(dict(draw=draw, data=filtered_tasks,
+                            recordsTotal=len(cycle_tasks),
+                            recordsFiltered=len(cycle_tasks)))
 
     def format_task(self, args):
         uuid, task = args
