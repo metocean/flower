@@ -856,7 +856,7 @@ var flower = (function () {
                     url: url_prefix() + '/tasks/datatable'
                 },
                 order: [
-                    [7, "asc"]
+                    [8, "asc"]
                 ],
                 oSearch: {
                     "sSearch": $.urlParam('state') ? 'state:' + $.urlParam('state') : ''
@@ -876,28 +876,38 @@ var flower = (function () {
                     render: function (data, type, full, meta) {
                         return '<a href="' + url_prefix() + '/task/' + data + '">' + data + '</a>';
                     }
-                }, {
+                },{
                     targets: 2,
+                    data: 'action_id',
+                    visible: isColumnVisible('action_id'),
+                    orderable: false,
+                },{
+                    targets: 3,
+                    data: 'cycle_dt',
+                    orderable: false,
+                    visible: isColumnVisible('cycle_dt')
+                },{
+                    targets: 4,
                     data: 'state',
                     visible: isColumnVisible('state'),
                     render: render_status
                 }, {
-                    targets: 3,
+                    targets: 5,
                     data: 'args',
                     visible: isColumnVisible('args'),
                     render: render_collapsable
                 }, {
-                    targets: 4,
+                    targets: 6,
                     data: 'kwargs',
                     visible: isColumnVisible('kwargs'),
                     render: render_collapsable
                 }, {
-                    targets: 5,
+                    targets: 7,
                     data: 'result',
                     visible: isColumnVisible('result'),
                     render: render_collapsable
                 }, {
-                    targets: 6,
+                    targets: 8,
                     data: 'received',
                     visible: isColumnVisible('received'),
                     render: function (data, type, full, meta) {
@@ -908,7 +918,7 @@ var flower = (function () {
                     }
 
                 }, {
-                    targets: 7,
+                    targets: 9,
                     data: 'started',
                     visible: isColumnVisible('started'),
                     render: function (data, type, full, meta) {
@@ -918,41 +928,41 @@ var flower = (function () {
                         return data;
                     }
                 }, {
-                    targets: 8,
+                    targets: 10,
                     data: 'runtime',
                     visible: isColumnVisible('runtime'),
                     render: format_duration
                 }, {
-                    targets: 9,
+                    targets: 11,
                     data: 'worker',
                     visible: isColumnVisible('worker')
                 }, {
-                    targets: 10,
+                    targets: 12,
                     data: 'exchange',
                     visible: isColumnVisible('exchange')
                 }, {
-                    targets: 11,
+                    targets: 13,
                     data: 'routing_key',
                     visible: isColumnVisible('routing_key')
                 }, {
-                    targets: 12,
+                    targets: 14,
                     data: 'retries',
                     visible: isColumnVisible('retries')
                 }, {
-                    targets: 13,
+                    targets: 15,
                     data: 'revoked',
                     visible: isColumnVisible('revoked')
                 }, {
-                    targets: 14,
+                    targets: 16,
                     data: 'exception',
                     visible: isColumnVisible('exception'),
                     render: render_collapsable
                 }, {
-                    targets: 15,
+                    targets: 17,
                     data: 'expires',
                     visible: isColumnVisible('expires')
                 }, {
-                    targets: 16,
+                    targets: 18,
                     data: 'eta',
                     visible: isColumnVisible('eta')
                 }, ],

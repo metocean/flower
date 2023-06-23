@@ -97,6 +97,17 @@ class TasksDataTable(BaseHandler):
                 task_dict['worker'] = task_dict['worker'].hostname
 
             filtered_tasks.append(task_dict)
+            if task['worker']:
+                task['worker'] = task['worker'].hostname
+
+            task['kwargs'] = ast.literal_eval(str(task.get('kwargs')))
+
+            if task['kwargs']:
+                task['cycle_dt'] = task['kwargs'].get('cycle_dt', None)
+                task['action_id'] = task['kwargs'].get('action_id', None)
+
+            filtered_tasks.append(task)
+            i += 1
 
         self.write(dict(draw=draw, data=filtered_tasks,
                         recordsTotal=len(sorted_tasks),
