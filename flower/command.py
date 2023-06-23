@@ -19,6 +19,12 @@ from .urls import settings
 from .utils import abs_path, prepend_url
 from .options import DEFAULT_CONFIG_FILE, default_options
 
+try:
+    from logging import NullHandler
+except ImportError:
+    from .utils.backports import NullHandler
+
+
 logger = logging.getLogger(__name__)
 ENV_VAR_PREFIX = 'FLOWER_'
 
