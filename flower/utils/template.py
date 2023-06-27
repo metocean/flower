@@ -45,10 +45,9 @@ def smart_truncate(content, length=100, suffix='...'):
 
 def to_json(content):
     try:
-        content = json.dumps(content)
+        return json.dumps(content)
     except:
-        content = json.dumps(str(content))
-    return content
+        return json.dumps(str(content))
 
 def humanize(obj, type=None, length=None):
     if obj is None:

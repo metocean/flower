@@ -130,6 +130,8 @@
                         <a href="{{ reverse_url('task', child.id) }}">{{ child.id }}</a>
                         <br>
                       {% end %}
+                    {% elif name == 'runtime' %}
+                    {{ datetime.timedelta(seconds=getattr(task, name, 0)) }}
                     {% else %}
                       {{ getattr(task, name, None) }}
                     {% end %}
