@@ -136,6 +136,14 @@
                 </tr>
                 {% end %}
               {% end %}
+              <tr id='memory'>
+                <td>Memory (last / limit)</td>
+                <td>{% if task.memory %}
+                  {{ task.memory['usage'] }} / {{ task.memory['limit'] }}
+                {% else %}
+                  Unknown
+                {% end %}</td>
+              </tr>
               </tbody>
             </table>
           </div>           

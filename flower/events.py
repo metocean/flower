@@ -13,6 +13,7 @@ from tornado.ioloop import PeriodicCallback
 from celery.events import EventReceiver
 from celery.events.state import State
 from tornado.options import options
+from celery.events.state import State, Task, states
 
 from . import api
 
@@ -62,8 +63,15 @@ class PrometheusMetrics(object):
         )
 
 
+class SchedulerTask(Task):
+    """Replace some Task methods"""
+    merge_rules = {states.RECEIVED: ('name', 'args', 'kwargs',
+                                     'retries', 'eta', 'expires'),
+                   'RUNNING': ('result')}
+
 class EventsState(State):
     # EventsState object is created and accessed only from ioloop thread
+    Task = SchedulerTask
 
     def __init__(self, *args, **kwargs):
         super(EventsState, self).__init__(*args, **kwargs)

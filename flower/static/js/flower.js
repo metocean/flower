@@ -746,6 +746,8 @@ var flower = (function () {
                     button = "terminate",
                     state = "RUNNING";
                 update_progress($('#result td:eq(1)'), update)
+                console.log(update)
+                add_or_update_field('memory', update.result['memory_usage']+ ' / '+  update.result['memory_limit'], 'client', null);
                 break;
             case "allocating":
                 var label = "queued",
