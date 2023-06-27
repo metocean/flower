@@ -654,7 +654,6 @@ var flower = (function () {
     }
 
     function connect_task_socket(update_func, uuid) {
-        console.log('Connected to task socket')
         var host = $(location).attr('host'),
             protocol = $(location).attr('protocol') === 'http:' ? 'ws://' : 'wss://',
             ws = new WebSocket(protocol + host + "/api/task/events/update-task/"+uuid);
@@ -819,15 +818,8 @@ var flower = (function () {
     }
 
     $(document).ready(function () {
-        if ($.inArray($(location).attr('pathname'), [url_prefix() + '/', url_prefix() + '/dashboard']) !== -1) {
-            var host = $(location).attr('host'),
-                protocol = $(location).attr('protocol') === 'http:' ? 'ws://' : 'wss://',
-                ws = new WebSocket(protocol + host + url_prefix() + "/update-dashboard");
-            ws.onmessage = function (event) {
-                var update = $.parseJSON(event.data);
-                on_dashboard_update(update);
-            };
-        }
+        
+        window.last_draw = Date.now();
 
         //https://github.com/twitter/bootstrap/issues/1768
         var shiftWindow = function () {
@@ -839,105 +831,8 @@ var flower = (function () {
         window.addEventListener("hashchange", shiftWindow);
 
         // Make bootstrap tabs persistent
-        $(document).ready(function () {
-            if (location.hash !== '') {
-                $('a[href="' + location.hash + '"]').tab('show');
-            }
-
-            $('a[data-toggle="tab"]').on('shown', function (e) {
-                location.hash = $(e.target).attr('href').substr(1);
-            });
-        });
-
-        if ($(location).attr('pathname') === url_prefix() + '/monitor') {
-            var sts = current_unix_time(),
-                fts = current_unix_time(),
-                tts = current_unix_time(),
-                updateinterval = parseInt($.urlParam('updateInterval'), 10) || 3000,
-                succeeded_graph = null,
-                failed_graph = null,
-                time_graph = null,
-                broker_graph = null;
-
-            $.ajax({
-                type: 'GET',
-                url: url_prefix() + '/monitor/succeeded-tasks',
-                data: {
-                    lastquery: current_unix_time()
-                },
-                success: function (data) {
-                    succeeded_graph = create_graph(data, '-succeeded');
-                    succeeded_graph.update();
-
-                    succeeded_graph.series.setTimeInterval(updateinterval);
-                    setInterval(function () {
-                        update_graph(succeeded_graph,
-                            url_prefix() + '/monitor/succeeded-tasks',
-                            sts);
-                        sts = current_unix_time();
-                    }, updateinterval);
-
-                },
-            });
-
-            $.ajax({
-                type: 'GET',
-                url: url_prefix() + '/monitor/completion-time',
-                data: {
-                    lastquery: current_unix_time()
-                },
-                success: function (data) {
-                    time_graph = create_graph(data, '-time', null, null, 's');
-                    time_graph.update();
-
-                    time_graph.series.setTimeInterval(updateinterval);
-                    setInterval(function () {
-                        update_graph(time_graph,
-                            url_prefix() + '/monitor/completion-time',
-                            tts);
-                        tts = current_unix_time();
-                    }, updateinterval);
-
-                },
-            });
-
-            $.ajax({
-                type: 'GET',
-                url: url_prefix() + '/monitor/failed-tasks',
-                data: {
-                    lastquery: current_unix_time()
-                },
-                success: function (data) {
-                    failed_graph = create_graph(data, '-failed');
-                    failed_graph.update();
-
-                    failed_graph.series.setTimeInterval(updateinterval);
-                    setInterval(function () {
-                        update_graph(failed_graph,
-                            url_prefix() + '/monitor/failed-tasks',
-                            fts);
-                        fts = current_unix_time();
-                    }, updateinterval);
-
-                },
-            });
-
-            $.ajax({
-                type: 'GET',
-                url: url_prefix() + '/monitor/broker',
-                success: function (data) {
-                    broker_graph = create_graph(data, '-broker');
-                    broker_graph.update();
-
-                    broker_graph.series.setTimeInterval(updateinterval);
-                    setInterval(function () {
-                        update_graph(broker_graph,
-                            url_prefix() + '/monitor/broker');
-                    }, updateinterval);
-
-                },
-            });
-
+        if (location.hash !== '') {
+            $('a[href="' + location.hash + '"]').tab('show');
         }
 
     });
@@ -1016,371 +911,11 @@ var flower = (function () {
             }, autorefresh_interval * 1000);
         }
 
-    });
+    
+        $('a[data-toggle="tab"]').on('shown', function (e) {
+            location.hash = $(e.target).attr('href').substr(1);
+        });
 
-    $(document).ready(function () {
-        if ($.inArray($(location).attr('pathname'), ['/tasks']) !== -1) {
-            $('#tasks-table').DataTable({
-                rowId: 'uuid',
-                searching: true,
-                paginate: true,
-                scrollX: true,
-                scrollCollapse: true,
-                processing: true,
-                serverSide: true,
-                colReorder: true,
-                lengthMenu: [ 50, 100, 200 ],
-                drawCallback: collapse_collapsable,
-                initComplete: function() {
-                  connect_tasks_socket(on_tasks_update);
-                },
-                ajax: {
-                    url: url_prefix() + '/tasks/datatable'
-                },
-                order: [
-                    [8, "asc"]
-                ],
-                oSearch: {
-                    "sSearch": $.urlParam('state') ? 'state:' + $.urlParam('state') : ''
-                },
-                columnDefs: [{
-                    targets: 0,
-                    data: 'name',
-                    visible: isColumnVisible('name'),
-                    render: function (data, type, full, meta) {
-                        return data;
-                    }
-                }, {
-                    targets: 1,
-                    data: 'uuid',
-                    visible: isColumnVisible('uuid'),
-                    orderable: false,
-                    render: function (data, type, full, meta) {
-                        return '<a href="' + url_prefix() + '/task/' + data + '">' + data + '</a>';
-                    }
-                },{
-                    targets: 2,
-                    data: 'action_id',
-                    visible: isColumnVisible('action_id'),
-                    orderable: true,
-                },{
-                    targets: 3,
-                    data: 'cycle_dt',
-                    orderable: true,
-                    visible: isColumnVisible('cycle_dt')
-                },{
-                    targets: 4,
-                    data: 'state',
-                    visible: isColumnVisible('state'),
-                    render: render_status
-                }, {
-                    targets: 5,
-                    data: 'args',
-                    visible: isColumnVisible('args'),
-                    render: render_collapsable
-                }, {
-                    targets: 6,
-                    data: 'kwargs',
-                    visible: isColumnVisible('kwargs'),
-                    render: render_collapsable
-                }, {
-                    targets: 7,
-                    data: 'result',
-                    visible: isColumnVisible('result'),
-                    render: render_collapsable
-                }, {
-                    targets: 8,
-                    data: 'received',
-                    visible: isColumnVisible('received'),
-                    render: function (data, type, full, meta) {
-                        if (data) {
-                            return format_time(data);
-                        }
-                        return data;
-                    }
-
-                }, {
-                    targets: 9,
-                    data: 'started',
-                    visible: isColumnVisible('started'),
-                    render: function (data, type, full, meta) {
-                        if (data) {
-                            return format_time(data);
-                        }
-                        return data;
-                    }
-                }, {
-                    targets: 10,
-                    data: 'runtime',
-                    visible: isColumnVisible('runtime'),
-                    render: format_duration
-                }, {
-                    targets: 11,
-                    data: 'worker',
-                    visible: isColumnVisible('worker')
-                }, {
-                    targets: 12,
-                    data: 'exchange',
-                    visible: isColumnVisible('exchange')
-                }, {
-                    targets: 13,
-                    data: 'routing_key',
-                    visible: isColumnVisible('routing_key')
-                }, {
-                    targets: 14,
-                    data: 'retries',
-                    visible: isColumnVisible('retries')
-                }, {
-                    targets: 15,
-                    data: 'revoked',
-                    visible: isColumnVisible('revoked')
-                }, {
-                    targets: 16,
-                    data: 'exception',
-                    visible: isColumnVisible('exception'),
-                    render: render_collapsable
-                }, {
-                    targets: 17,
-                    data: 'expires',
-                    visible: isColumnVisible('expires'),
-                    render: function (data, type, full, meta) {
-                        if (data) {
-                            return format_isotime(data);
-                        }
-                        return data;
-                    }
-                }, {
-                    targets: 18,
-                    data: 'eta',
-                    visible: isColumnVisible('eta'),
-                    render: function (data, type, full, meta) {
-                        if (data) {
-                            return format_isotime(data);
-                        }
-                        return data;
-                    }
-                }, ],
-            });
-        } else if ($.inArray($(location).attr('pathname'), ['/cycles']) !== -1) {
-            $('#cycles-table').DataTable({
-                rowId: 'uuid',
-                searching: true,
-                paginate: true,
-                scrollX: true,
-                scrollCollapse: true,
-                processing: true,
-                serverSide: true,
-                colReorder: true,
-                lengthMenu: [ 50, 100, 200 ],
-                initComplete: function() {
-                  connect_tasks_socket(on_cycles_update);
-                },
-                ajax: {
-                    url: url_prefix() + '/cycles/datatable',
-                    data: function ( d ) {
-                        d.selected = $('#select-cycle option:selected').val();
-                    }   
-                },
-                order: [
-                    [6, "asc"]
-                ],
-                oSearch: {
-                    "sSearch": $.urlParam('state') ? 'state:' + $.urlParam('state') : ''
-                },
-                columnDefs: [{
-                    targets: 0,
-                    data: 'action_id',
-                    visible: isColumnVisible('action_id'),
-                    orderable: true,
-                    render: function (data, type, full, meta) {
-                        return '<a href="' + url_prefix() + '/task/' + full.uuid + '">' + data + '</a>';
-                    }
-                },{
-                    targets: 1,
-                    data: 'cycle_dt',
-                    orderable: true,
-                    visible: isColumnVisible('cycle_dt')
-                }, {
-                    targets: 2,
-                    data: 'state',
-                    visible: isColumnVisible('state'),
-                    render: render_status
-                }, {
-                    targets: 3,
-                    data: 'received',
-                    visible: isColumnVisible('received'),
-                    render: function (data, type, full, meta) {
-                        if (data) {
-                            return format_time(data);
-                        }
-                        return data;
-                    }
-
-                }, {
-                    targets: 4,
-                    data: 'started',
-                    visible: isColumnVisible('started'),
-                    render: function (data, type, full, meta) {
-                        if (data) {
-                            return format_time(data);
-                        }
-                        return data;
-                    }
-                }, {
-                    targets: 5,
-                    data: 'eta',
-                    visible: isColumnVisible('eta'),
-                    render: function (data, type, full, meta) {
-                        if (data) {
-                            return format_isotime(data);
-                        }
-                        return data;
-                    }
-                }, {
-                    targets: 6,
-                    data: 'timestamp',
-                    visible: isColumnVisible('timestamp'),
-                    render: function (data, type, full, meta) {
-                        if (data) {
-                            return format_time(data);
-                        }
-                        return data;
-                    }
-                },{
-                    targets: 7,
-                    data: 'runtime',
-                    visible: isColumnVisible('runtime'),
-                    render: format_duration
-                }, {
-                    targets: 8,
-                    data: 'worker',
-                    visible: isColumnVisible('worker')
-                }, {
-                    targets: 9,
-                    data: 'routing_key',
-                    visible: isColumnVisible('routing_key')
-                }, {
-                    targets: 10,
-                    data: 'retries',
-                    visible: isColumnVisible('retries')
-                },{
-                    targets: 11,
-                    data: 'expires',
-                    visible: isColumnVisible('expires'),
-                    render: function (data, type, full, meta) {
-                        if (data) {
-                            return format_isotime(data);
-                        }
-                        return data;
-                    }
-                },],
-            });
-            $('#select-cycle').change(function(){
-                var table = $('#cycles-table').DataTable();
-                table.draw();
-            });
-        } else if ($.inArray($(location).attr('pathname'), ['/crontab']) !== -1) {
-            $('#crontab-table').DataTable({
-                rowId: 'uuid',
-                searching: true,
-                paginate: true,
-                scrollX: true,
-                scrollCollapse: true,
-                processing: true,
-                serverSide: true,
-                colReorder: true,
-                lengthMenu: [ 50, 100, 200, 500],
-                initComplete: function() {
-                  connect_tasks_socket(on_tasks_update);
-                },
-                ajax: {
-                    url: url_prefix() + '/crontab/datatable',
-                    data: function ( d ) {
-                        d.actions = $('#actions').val();
-                    }
-                },
-                order: [
-                    [6, "asc"]
-                ],
-                oSearch: {
-                    "sSearch": $.urlParam('state') ? 'state:' + $.urlParam('state') : ''
-                },
-                columnDefs: [{
-                    targets: 0,
-                    data: 'action_id',
-                    visible: isColumnVisible('action_id'),
-                    orderable: true,
-                    render: function (data, type, full, meta) {
-                        return '<a href="' + url_prefix() + '/task/' + full.uuid + '">' + data + '</a>';
-                    }
-                },{
-                    targets: 1,
-                    data: 'cycle_dt',
-                    orderable: true,
-                    visible: isColumnVisible('cycle_dt')
-                }, {
-                    targets: 2,
-                    data: 'state',
-                    visible: isColumnVisible('state'),
-                    render: render_status
-                }, {
-                    targets: 3,
-                    data: 'received',
-                    visible: isColumnVisible('received'),
-                    render: function (data, type, full, meta) {
-                        if (data) {
-                            return format_time(data);
-                        }
-                        return data;
-                    }
-
-                }, {
-                    targets: 5,
-                    data: 'eta',
-                    visible: isColumnVisible('eta'),
-                    render: function (data, type, full, meta) {
-                        if (data) {
-                            return format_isotime(data);
-                        }
-                        return data;
-                    }
-                }, {
-                    targets: 4,
-                    data: 'started',
-                    visible: isColumnVisible('started'),
-                    render: function (data, type, full, meta) {
-                        if (data) {
-                            return format_time(data);
-                        }
-                        return data;
-                    }
-                },  {
-                    targets: 6,
-                    data: 'timestamp',
-                    visible: isColumnVisible('timestamp'),
-                    render: function (data, type, full, meta) {
-                        if (data) {
-                            return format_time(data);
-                        }
-                        return data;
-                    }
-                },{
-                    targets: 7,
-                    data: 'runtime',
-                    visible: isColumnVisible('runtime'),
-                    render: format_duration
-                }, {
-                    targets: 8,
-                    data: 'worker',
-                    visible: isColumnVisible('worker')
-                },],
-            });
-            $('#select-cycle').change(function(){
-                var table = $('#cycles-table').DataTable();
-                table.draw();
-            });
-        } else { return }
-        window.last_draw = Date.now();
     });
 
     return {
@@ -1389,21 +924,37 @@ var flower = (function () {
         on_refresh_all: on_refresh_all,
         on_worker_pool_restart: on_worker_pool_restart,
         on_worker_shutdown: on_worker_shutdown,
+        connect_tail_socket: connect_tail_socket,
+        connect_task_socket: connect_task_socket,
+        connect_tasks_socket: connect_tasks_socket,
+        format_duration, format_duration,
+        format_isotime: format_isotime,
+        format_time: format_time,
+        isColumnVisible: isColumnVisible,
+        on_add_consumer: on_add_consumer,
+        on_alert_close: on_alert_close,
+        on_cancel_consumer: on_cancel_consumer,
+        on_cancel_task_filter: on_cancel_task_filter,
+        on_cycles_update: on_cycles_update,
+        on_dashboard_update: on_dashboard_update,
+        on_pool_autoscale: on_pool_autoscale,
         on_pool_grow: on_pool_grow,
         on_pool_shrink: on_pool_shrink,
-        on_pool_autoscale: on_pool_autoscale,
-        on_add_consumer: on_add_consumer,
-        on_cancel_consumer: on_cancel_consumer,
-        on_task_timeout: on_task_timeout,
         on_task_rate_limit: on_task_rate_limit,
-        on_cancel_task_filter: on_cancel_task_filter,
+        on_task_retry: on_task_retry,
         on_task_revoke: on_task_revoke,
         on_task_terminate: on_task_terminate,
-        on_task_retry: on_task_retry,
+        on_task_timeout: on_task_timeout,
         on_task_update: on_task_update,
+        on_tasks_update: on_tasks_update,
+        on_worker_refresh: on_worker_refresh,
         pprint_json: pprint_json,
-        connect_task_socket: connect_task_socket,
-        connect_tail_socket: connect_tail_socket,
+        refresh_selected: refresh_selected,
+        render_collapsable: render_collapsable,
+        render_status: render_status,
+        restart_selected: restart_selected,
+        shutdown_selected: shutdown_selected,
+        url_prefix: url_prefix,
     };
 
 }(jQuery));
