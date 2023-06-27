@@ -86,11 +86,11 @@ handlers = [
     (r"/update-dashboard", DashboardUpdateHandler),
     (r"/update-logfile/(.*)", UpdateLogfile),
     # Monitors
-    url(r"/monitor", monitor.Monitor, name='monitor'),
-    (r"/monitor/succeeded-tasks", monitor.SucceededTaskMonitor),
-    (r"/monitor/failed-tasks", monitor.FailedTaskMonitor),
-    (r"/monitor/completion-time", monitor.TimeToCompletionMonitor),
-    (r"/monitor/broker", monitor.BrokerMonitor),
+    # url(r"/monitor", monitor.Monitor, name='monitor'),
+    # (r"/monitor/succeeded-tasks", monitor.SucceededTaskMonitor),
+    # (r"/monitor/failed-tasks", monitor.FailedTaskMonitor),
+    # (r"/monitor/completion-time", monitor.TimeToCompletionMonitor),
+    # (r"/monitor/broker", monitor.BrokerMonitor),
     # Metrics
     (r"/metrics", monitor.Metrics),
     (r"/healthcheck", monitor.Healthcheck),
