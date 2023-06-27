@@ -1,6 +1,7 @@
 import re
 import sys
 import json
+import six
 
 from celery import current_app
 from datetime import datetime
@@ -66,14 +67,14 @@ def humanize(obj, type=None, length=None):
             obj = naturaltime(delta)
         else:
             obj = format_time(float(obj), tz) if obj else ''
-    elif isinstance(obj, str) and not re.match(UUID_REGEX, obj):
+    elif isinstance(obj, six.string_types) and not re.match(UUID_REGEX, obj):
         obj = obj.replace('-', ' ').replace('_', ' ')
         obj = re.sub('|'.join(KEYWORDS_UP),
                      lambda m: m.group(0).upper(), obj)
         if obj and obj not in KEYWORDS_DOWN:
             obj = obj[0].upper() + obj[1:]
     elif isinstance(obj, list):
-        if all(isinstance(x, (int, float, str)) for x in obj):
+        if all(isinstance(x, (int, float) + six.string_types) for x in obj):
             obj = ', '.join(map(str, obj))
     if length is not None and len(obj) > length:
         obj = obj[:length - 4] + ' ...'
