@@ -843,6 +843,7 @@ var flower = (function () {
     });
 
     $(document).ready(function () {
+        // if ($.inArray($(location).attr('pathname'), [url_prefix() + '/tasks', url_prefix() + '/broker', url_prefix() + '/monitor']) !== -1) {
         if ($.inArray($(location).attr('pathname'), [url_prefix() + '/tasks', url_prefix() + '/broker', url_prefix() + '/monitor']) !== -1) {
             return;
         }
@@ -916,9 +917,141 @@ var flower = (function () {
             }, autorefresh_interval * 1000);
         }
 
-    
-        $('a[data-toggle="tab"]').on('shown', function (e) {
-            location.hash = $(e.target).attr('href').substr(1);
+    });
+
+    $(document).ready(function () {
+        // if (!active_page('/tasks')) {
+        if ($.inArray($(location).attr('pathname'), [url_prefix() + '/', url_prefix() + '/dashboard', url_prefix() + '/broker', url_prefix() + '/monitor']) !== -1) {           
+            return;
+        }
+
+        $('#tasks-table').DataTable({
+            rowId: 'uuid',
+            searching: true,
+            paginate: true,
+            scrollX: true,
+            scrollCollapse: true,
+            processing: true,
+            serverSide: true,
+            colReorder: true,
+            ajax: {
+                type: 'POST',
+                url: url_prefix() + '/tasks/datatable'
+            },
+            order: [
+                [7, "desc"]
+            ],
+            oSearch: {
+                "sSearch": $.urlParam('state') ? 'state:' + $.urlParam('state') : ''
+            },
+            columnDefs: [{
+                targets: 0,
+                data: 'name',
+                visible: isColumnVisible('name'),
+                render: function (data, type, full, meta) {
+                    return data;
+                }
+            }, {
+                targets: 1,
+                data: 'uuid',
+                visible: isColumnVisible('uuid'),
+                orderable: false,
+                render: function (data, type, full, meta) {
+                    return '<a href="' + url_prefix() + '/task/' + encodeURIComponent(data) + '">' + data + '</a>';
+                }
+            }, {
+                targets: 2,
+                data: 'state',
+                visible: isColumnVisible('state'),
+                render: function (data, type, full, meta) {
+                    switch (data) {
+                    case 'SUCCESS':
+                        return '<span class="label label-success">' + data + '</span>';
+                    case 'FAILURE':
+                        return '<span class="label label-important">' + data + '</span>';
+                    default:
+                        return '<span class="label label-default">' + data + '</span>';
+                    }
+                }
+            }, {
+                targets: 3,
+                data: 'args',
+                visible: isColumnVisible('args'),
+                render: htmlEscapeEntities
+            }, {
+                targets: 4,
+                data: 'kwargs',
+                visible: isColumnVisible('kwargs'),
+                render: htmlEscapeEntities
+            }, {
+                targets: 5,
+                data: 'result',
+                visible: isColumnVisible('result'),
+                render: htmlEscapeEntities
+            }, {
+                targets: 6,
+                data: 'received',
+                visible: isColumnVisible('received'),
+                render: function (data, type, full, meta) {
+                    if (data) {
+                        return format_time(data);
+                    }
+                    return data;
+                }
+
+            }, {
+                targets: 7,
+                data: 'started',
+                visible: isColumnVisible('started'),
+                render: function (data, type, full, meta) {
+                    if (data) {
+                        return format_time(data);
+                    }
+                    return data;
+                }
+            }, {
+                targets: 8,
+                data: 'runtime',
+                visible: isColumnVisible('runtime'),
+                render: function (data, type, full, meta) {
+                    return data ? data.toFixed(3) : data;
+                }
+            }, {
+                targets: 9,
+                data: 'worker',
+                visible: isColumnVisible('worker'),
+                render: function (data, type, full, meta) {
+                    return '<a href="' + url_prefix() + '/worker/' + encodeURIComponent(data) + '">' + data + '</a>';
+                }
+            }, {
+                targets: 10,
+                data: 'exchange',
+                visible: isColumnVisible('exchange')
+            }, {
+                targets: 11,
+                data: 'routing_key',
+                visible: isColumnVisible('routing_key')
+            }, {
+                targets: 12,
+                data: 'retries',
+                visible: isColumnVisible('retries')
+            }, {
+                targets: 13,
+                data: 'revoked',
+                visible: isColumnVisible('revoked')
+            }, {
+                targets: 14,
+                data: 'exception',
+                visible: isColumnVisible('exception')
+            }, {
+                targets: 15,
+                data: 'expires',
+                visible: isColumnVisible('expires')
+            }, {
+                targets: 16,
+                data: 'eta',
+                visible: isColumnVisible('eta')
+            }, ],
         });
 
     });
@@ -932,7 +1065,7 @@ var flower = (function () {
         connect_tail_socket: connect_tail_socket,
         connect_task_socket: connect_task_socket,
         connect_tasks_socket: connect_tasks_socket,
-        format_duration, format_duration,
+        format_duration: format_duration,
         format_isotime: format_isotime,
         format_time: format_time,
         isColumnVisible: isColumnVisible,
