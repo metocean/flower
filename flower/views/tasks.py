@@ -192,10 +192,6 @@ class TasksView(BaseHandler):
             tasks=[],
             columns=app.options.tasks_columns,
             time=time,
-<<<<<<< HEAD
-        )
-=======
             task_types=sorted(task_types),
             states=get_states(),
         )
->>>>>>> 8ca7ee0 (Added state and task type selectors to Tasks page and refactor a bit)
