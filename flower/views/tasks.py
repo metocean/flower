@@ -98,8 +98,8 @@ class TasksDataTable(BaseHandler):
         sort_by = self.get_argument('columns[%s][data]' % column, type=str)
         sort_order = self.get_argument('order[0][dir]', type=str) == 'desc'
 
-        task_type = self.get_argument('task_type', type=str)
-        state = self.get_argument('state', type=str)
+        task_type = self.get_argument('task_type[value]', type=str, default='')
+        state = self.get_argument('state', type=str, default='')
         
         def key(item):
             val = getattr(item[1], sort_by)

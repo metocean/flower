@@ -18,6 +18,40 @@ logger = logging.getLogger(__name__)
 
 
 class ControlHandler(BaseApiHandler):
+    INSPECT_METHODS = ('stats', 'active_queues', 'registered', 'scheduled',
+                       'active', 'reserved', 'revoked', 'conf')
+    worker_cache = collections.defaultdict(dict)
+
+    @gen.coroutine
+    def update_cache(self, workername=None):
+        yield self.update_workers(workername=workername,
+                                  app=self.application)
+
+    @classmethod
+    @gen.coroutine
+    def update_workers(cls, app, workername=None):
+        logger.debug("Updating %s worker's cache...", workername or 'all')
+        futures = []
+        destination = [workername] if workername else None
+        timeout = app.options.inspect_timeout / 2000.0
+        inspect = app.capp.control.inspect(
+            timeout=timeout, destination=destination)
+        for method in cls.INSPECT_METHODS:
+            futures.append(app.delay(getattr(inspect, method)))
+
+        results = yield futures
+
+        for i, result in enumerate(results):
+            if result is None:
+                logger.warning("'%s' inspect method failed",
+                               cls.INSPECT_METHODS[i])
+                continue
+            for worker, response in result.items():
+                if response is not None:
+                    info = cls.worker_cache[worker]
+                    info[cls.INSPECT_METHODS[i]] = response
+                    info['timestamp'] = time.time()
+
     def is_worker(self, workername):
         return workername and workername in self.application.workers
 
@@ -433,7 +467,7 @@ Revoke a task
         self.capp.control.revoke(taskid, terminate=terminate, signal=signal)
         self.write(dict(message="Revoked '%s'" % taskid))
 
-class TaskTerminate(BaseHandler):
+class TaskTerminate(BaseApiHandler):
     @web.authenticated
     def post(self, taskid):
         """
@@ -477,7 +511,7 @@ Terminate a task
         self.write(dict(message="Terminated '%s'" % taskid))
 
 
-class TaskRetry(BaseHandler):
+class TaskRetry(BaseApiHandler):
     DATE_FORMAT = '%Y-%m-%d %H:%M:%S.%f'
 
     @web.authenticated
