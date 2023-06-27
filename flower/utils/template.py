@@ -15,6 +15,8 @@ except ImportError:
 from humanize import naturaltime
 from pytz import timezone, utc
 
+from scheduler.settings import APPLICATION as scheduler_app
+
 
 KEYWORDS_UP = ('ssl', 'uri', 'url', 'uuid', 'eta')
 KEYWORDS_DOWN = ('args', 'kwargs')
@@ -30,6 +32,9 @@ def format_isotime(time):
     return dt.strftime("%Y-%m-%d %H:%M:%S %Z")
 
 format_progress = lambda x: x*100
+
+def sched_app():
+    return scheduler_app.title()
 
 def smart_truncate(content, length=100, suffix='...'):
     content = str(content)
