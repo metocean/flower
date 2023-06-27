@@ -44,11 +44,10 @@ def smart_truncate(content, length=100, suffix='...'):
         return content[:length].rsplit(' ', 1)[0]+suffix
 
 def to_json(content):
-    if isinstance(content, (dict, list)):
-        try:
-            content = json.dumps(content)
-        except:
-            pass
+    try:
+        content = json.dumps(content)
+    except:
+        content = json.dumps(str(content))
     return content
 
 def humanize(obj, type=None, length=None):

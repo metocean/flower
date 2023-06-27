@@ -60,10 +60,10 @@ define("enable_events", type=bool, default=True,
        help="periodically enable Celery events")
 define("format_task", type=types.FunctionType, default=None,
        help="use custom task formatter")
-define("natural_time", type=bool, default=False,
+define("natural_time", type=bool, default=True,
        help="show time in relative format")
 define("tasks_columns", type=str,
-       default="name,uuid,action_id,cycle_dt,state,args,kwargs,runtime,result,received,started,worker,expires",
+       default="name,uuid,action_id,cycle_dt,state,eta,runtime,received,started,expires,worker,retries",
        help="slugs of columns on /tasks/ page, delimited by comma")
 define("auth_provider", default='flower.views.auth.GoogleAuth2LoginHandler',
        help="auth handler class")
