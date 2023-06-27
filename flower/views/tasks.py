@@ -1,6 +1,5 @@
-from functools import total_ordering
 from __future__ import absolute_import
-
+from functools import total_ordering
 import sys
 import copy
 import logging
