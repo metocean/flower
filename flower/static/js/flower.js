@@ -553,18 +553,6 @@ var flower = (function () {
         var table = $('#workers-table').DataTable();
         $('a#btn-active').text('Active: ' + table.column(2).data().reduce(sum, 0));
         $('a#btn-processed').text('Processed: ' + table.column(3).data().reduce(sum, 0));
-
-        $.each(update, function (name, info) {
-            var row = table.row('#' + name);
-            if (row) {
-                row.data(info);
-            } else {
-                table.row.add(info);
-            }
-        });
-        table.draw();
-
-        $('a#btn-active').text('Active: ' + table.column(2).data().reduce(sum, 0));
         $('a#btn-failed').text('Failed: ' + table.column(4).data().reduce(sum, 0));
         $('a#btn-succeeded').text('Succeeded: ' + table.column(5).data().reduce(sum, 0));
         $('a#btn-retried').text('Retried: ' + table.column(6).data().reduce(sum, 0));
@@ -951,8 +939,8 @@ var flower = (function () {
     });
 
     $(document).ready(function () {
+        if (!active_page('/') && !active_page('/dashboard')) {
         // if ($.inArray($(location).attr('pathname'), [url_prefix() + '/tasks', url_prefix() + '/broker', url_prefix() + '/monitor']) !== -1) {
-        if ($.inArray($(location).attr('pathname'), [url_prefix() + '/tasks', url_prefix() + '/broker', url_prefix() + '/monitor']) !== -1) {
             return;
         }
 
@@ -1028,8 +1016,8 @@ var flower = (function () {
     });
 
     $(document).ready(function () {
-        // if (!active_page('/tasks')) {
-        if ($.inArray($(location).attr('pathname'), [url_prefix() + '/', url_prefix() + '/dashboard', url_prefix() + '/broker', url_prefix() + '/monitor']) !== -1) {           
+        if (!active_page('/tasks')) {
+        // if ($.inArray($(location).attr('pathname'), [url_prefix() + '/', url_prefix() + '/dashboard', url_prefix() + '/broker', url_prefix() + '/monitor']) !== -1) {           
             return;
         }
 
@@ -1069,6 +1057,16 @@ var flower = (function () {
                 }
             }, {
                 targets: 2,
+                data: 'action_id',
+                visible: isColumnVisible('action_id'),
+                orderable: true,
+            },{
+                targets: 3,
+                data: 'cycle_dt',
+                orderable: true,
+                visible: isColumnVisible('cycle_dt'),
+            },{
+                targets: 4,
                 data: 'state',
                 visible: isColumnVisible('state'),
                 render: function (data, type, full, meta) {
@@ -1082,22 +1080,22 @@ var flower = (function () {
                     }
                 }
             }, {
-                targets: 3,
+                targets: 5,
                 data: 'args',
                 visible: isColumnVisible('args'),
                 render: htmlEscapeEntities
             }, {
-                targets: 4,
+                targets: 6,
                 data: 'kwargs',
                 visible: isColumnVisible('kwargs'),
                 render: htmlEscapeEntities
             }, {
-                targets: 5,
+                targets: 7,
                 data: 'result',
                 visible: isColumnVisible('result'),
                 render: htmlEscapeEntities
             }, {
-                targets: 6,
+                targets: 8,
                 data: 'received',
                 visible: isColumnVisible('received'),
                 render: function (data, type, full, meta) {
@@ -1108,7 +1106,7 @@ var flower = (function () {
                 }
 
             }, {
-                targets: 7,
+                targets: 9,
                 data: 'started',
                 visible: isColumnVisible('started'),
                 render: function (data, type, full, meta) {
@@ -1118,45 +1116,55 @@ var flower = (function () {
                     return data;
                 }
             }, {
-                targets: 8,
+                targets: 10,
+                data: 'timestamp',
+                visible: isColumnVisible('timestamp'),
+                render: function (data, type, full, meta) {
+                    if (data) {
+                        return format_time(data);
+                    }
+                    return data;
+                }
+            },{
+                targets: 11,
                 data: 'runtime',
                 visible: isColumnVisible('runtime'),
                 render: function (data, type, full, meta) {
                     return data ? data.toFixed(3) : data;
                 }
             }, {
-                targets: 9,
+                targets: 12,
                 data: 'worker',
                 visible: isColumnVisible('worker'),
                 render: function (data, type, full, meta) {
                     return '<a href="' + url_prefix() + '/worker/' + encodeURIComponent(data) + '">' + data + '</a>';
                 }
             }, {
-                targets: 10,
+                targets: 13,
                 data: 'exchange',
                 visible: isColumnVisible('exchange')
             }, {
-                targets: 11,
+                targets: 14,
                 data: 'routing_key',
                 visible: isColumnVisible('routing_key')
             }, {
-                targets: 12,
+                targets: 15,
                 data: 'retries',
                 visible: isColumnVisible('retries')
             }, {
-                targets: 13,
+                targets: 16,
                 data: 'revoked',
                 visible: isColumnVisible('revoked')
             }, {
-                targets: 14,
+                targets: 17,
                 data: 'exception',
                 visible: isColumnVisible('exception')
             }, {
-                targets: 15,
+                targets: 18,
                 data: 'expires',
                 visible: isColumnVisible('expires')
             }, {
-                targets: 16,
+                targets: 19,
                 data: 'eta',
                 visible: isColumnVisible('eta')
             }, ],
@@ -1193,7 +1201,7 @@ var flower = (function () {
         on_task_timeout: on_task_timeout,
         on_task_update: on_task_update,
         on_tasks_update: on_tasks_update,
-        on_worker_refresh: on_worker_refresh,
+        // on_worker_refresh: on_worker_refresh,
         pprint_json: pprint_json,
         refresh_selected: refresh_selected,
         render_collapsable: render_collapsable,
