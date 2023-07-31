@@ -17,6 +17,18 @@
     <div class="panel panel-default">
         <div class="panel-body">
 
+    <div class="btn-group">
+        <button class="btn" onclick="flower.shutdown_selected(event);">Shut Down</button>
+        <button class="btn dropdown-toggle" data-toggle="dropdown"><span
+            class="caret"></span></button>
+        <ul class="dropdown-menu">
+            <li><a href="#" onclick="flower.shutdown_selected(event);">Shut Down</a></li>
+            <li><a href="#" onclick="flower.restart_selected(event);">Restart Pool</a></li>
+            <li><a href="#" onclick="flower.refresh_selected(event);">Refresh</a></li>
+        </ul>
+        </div>
+    </div>
+
     <table id="workers-table" class="table table-bordered table-striped">
       <thead>
         <tr>
@@ -54,68 +66,6 @@
 
 {% block extra_scripts %}
 <script type="text/javascript">
-
-var host = $(location).attr('host'),
-    protocol = $(location).attr('protocol') === 'http:' ? 'ws://' : 'wss://',
-    ws = new WebSocket(protocol + host + flower.url_prefix() + "/update-dashboard");
-ws.onmessage = function (event) {
-    var update = $.parseJSON(event.data);
-    flower.on_dashboard_update(update);
-};
-
-$('#workers-table').DataTable({
-  rowId: 'name',
-  searching: true,
-  paginate: false,
-  select: true,
-  scrollX: true,
-  scrollY: 500,
-  scrollCollapse: true,
-  order: [
-      [1, "asc"]
-  ],
-  columnDefs: [{
-      targets: 0,
-      data: 'name',
-      render: function (data, type, full, meta) {
-          return '<a href="' + flower.url_prefix() + '/worker/' + data + '">' + data + '</a>';
-      }
-  }, {
-      targets: 1,
-      data: 'status',
-      render: function (data, type, full, meta) {
-          if (data) {
-              return '<span class="label label-success">Online</span>';
-          } else {
-              return '<span class="label label-important">Offline</span>';
-          }
-      }
-  }, {
-      targets: 2,
-      data: 'active'
-  }, {
-      targets: 3,
-      data: 'processed'
-  }, {
-      targets: 4,
-      data: 'failed'
-  }, {
-      targets: 5,
-      data: 'succeeded'
-  }, {
-      targets: 6,
-      data: 'retried'
-  }, {
-      targets: 7,
-      data: 'loadavg',
-      render: function (data, type, full, meta) {
-          if (Array.isArray(data)) {
-              return data.join(', ');
-          }
-          return data;
-      }
-  }, ],
-});
     var autorefresh = {{ autorefresh }};
 </script>
 {% end %}
