@@ -3,6 +3,7 @@ import os
 from tornado.web import StaticFileHandler, url
 
 from .api import control
+from .api import events
 from .api import tasks
 from .api import workers
 from .views import auth
@@ -72,16 +73,16 @@ handlers = [
     (r"/api/task/terminate/(.+)", control.TaskTerminate),
     (r"/api/task/retry/(.+)", control.TaskRetry),
     # # Events WebSocket API
-    # (r"/api/task/events/task-sent/(.*)", events.TaskSent),
-    # (r"/api/task/events/task-received/(.*)", events.TaskReceived),
-    # (r"/api/task/events/task-started/(.*)", events.TaskStarted),
-    # (r"/api/task/events/task-succeeded/(.*)", events.TaskSucceeded),
-    # (r"/api/task/events/task-failed/(.*)", events.TaskFailed),
-    # (r"/api/task/events/task-revoked/(.*)", events.TaskRevoked),
-    # (r"/api/task/events/task-retried/(.*)", events.TaskRetried),
-    # (r"/api/task/events/task-custom/(.*)", events.TaskCustom),
-    # (r"/api/task/events/update-tasks/", events.TasksUpdate),
-    # (r"/api/task/events/update-task/(.*)", events.TasksUpdate),
+    (r"/api/task/events/task-sent/(.*)", events.TaskSent),
+    (r"/api/task/events/task-received/(.*)", events.TaskReceived),
+    (r"/api/task/events/task-started/(.*)", events.TaskStarted),
+    (r"/api/task/events/task-succeeded/(.*)", events.TaskSucceeded),
+    (r"/api/task/events/task-failed/(.*)", events.TaskFailed),
+    (r"/api/task/events/task-revoked/(.*)", events.TaskRevoked),
+    (r"/api/task/events/task-retried/(.*)", events.TaskRetried),
+    (r"/api/task/events/task-custom/(.*)", events.TaskCustom),
+    (r"/api/task/events/update-tasks/", events.TasksUpdate),
+    (r"/api/task/events/update-task/(.*)", events.TasksUpdate),
     # WebSocket Updates
     (r"/update-dashboard", DashboardUpdateHandler),
     (r"/update-logfile/(.*)", UpdateLogfile),
@@ -91,9 +92,6 @@ handlers = [
     # (r"/monitor/failed-tasks", monitor.FailedTaskMonitor),
     # (r"/monitor/completion-time", monitor.TimeToCompletionMonitor),
     # (r"/monitor/broker", monitor.BrokerMonitor),
-    # Metrics
-    (r"/metrics", monitor.Metrics),
-    (r"/healthcheck", monitor.Healthcheck),
     # Static
     (r"/static/(.*)", StaticFileHandler,
      {"path": settings['static_path']}),
