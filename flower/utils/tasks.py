@@ -7,9 +7,6 @@ import six
 from .search import satisfies_search_terms, parse_search_terms
 from celery.events.state import Task
 
-fields = list(Task._fields)
-fields.extend(['cycle_dt', 'action_id'])
-Task._fields = tuple(fields)
 
 
 SCHEDUELER_TASKS = [
@@ -23,7 +20,7 @@ SCHEDUELER_TASKS = [
     'base.SchedulerTask'
 ]
 
-def iter_tasks(events, limit=None, type=None, worker=None, state=None,
+def iter_tasks(events, limit=None, offset=0, type=None, worker=None, state=None,
                sort_by=None, received_start=None, received_end=None,
                started_start=None, started_end=None, search=None,
                parent=None, actions=None, follow_children=False):
@@ -76,8 +73,8 @@ def iter_tasks(events, limit=None, type=None, worker=None, state=None,
         if parent and hasattr(task,'parent') and task.parent not in parent:
             orphan_childs.append((uuid,task))
             continue
-
-        yield uuid, task
+        if i >= offset:
+            yield uuid, task
         i += 1
         if limit != None:
             if i == limit + offset:
