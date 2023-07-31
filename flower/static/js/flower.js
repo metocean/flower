@@ -1,8 +1,5 @@
-<<<<<<< HEAD
-=======
 /*jslint browser: true */
 /*global $, WebSocket, jQuery */
->>>>>>> 0cf411066ce5cb1ce36122aad512ea3f7f54ebca
 
 var flower = (function () {
     "use strict";
