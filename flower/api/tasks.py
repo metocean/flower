@@ -1,25 +1,20 @@
 import json
 import logging
-
+from collections import OrderedDict
 from datetime import datetime
 
+from celery import states
+from celery.backends.base import DisabledBackend
+from celery.contrib.abortable import AbortableAsyncResult
+from celery.result import AsyncResult
 from tornado import web
-from tornado import gen
-from tornado.ioloop import IOLoop
 from tornado.escape import json_decode
+from tornado.ioloop import IOLoop
 from tornado.web import HTTPError
 
-from celery import states
-from celery.result import AsyncResult
-from celery.contrib.abortable import AbortableAsyncResult
-from celery.backends.base import DisabledBackend
-
 from ..utils import tasks
-from . import BaseApiHandler
 from ..utils.broker import Broker
-from ..api.control import ControlHandler
-from collections import OrderedDict
-
+from . import BaseApiHandler
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +27,7 @@ class BaseTaskHandler(BaseApiHandler):
             body = self.request.body
             options = json_decode(body) if body else {}
         except ValueError as e:
-            raise HTTPError(400, str(e))
+            raise HTTPError(400, str(e)) from e
 
         if not isinstance(options, dict):
             raise HTTPError(400, 'invalid options')
@@ -79,14 +74,12 @@ class BaseTaskHandler(BaseApiHandler):
             json.dumps(result)
         except TypeError:
             return repr(result)
-        else:
-            return result
+        return result
 
 
 class TaskApply(BaseTaskHandler):
     @web.authenticated
-    @gen.coroutine
-    def post(self, taskname):
+    async def post(self, taskname):
         """
 Execute a task by name and wait results
 
@@ -132,18 +125,18 @@ Execute a task by name and wait results
 
         try:
             task = self.capp.tasks[taskname]
-        except KeyError:
-            raise HTTPError(404, "Unknown task '%s'" % taskname)
+        except KeyError as exc:
+            raise HTTPError(404, f"Unknown task '{taskname}'") from exc
 
         try:
             self.normalize_options(options)
-        except ValueError:
-            raise HTTPError(400, 'Invalid option')
+        except ValueError as exc:
+            raise HTTPError(400, 'Invalid option') from exc
 
         result = task.apply_async(args=args, kwargs=kwargs, **options)
         response = {'task-id': result.task_id}
 
-        response = yield IOLoop.current().run_in_executor(
+        response = await IOLoop.current().run_in_executor(
             None, self.wait_results, result, response)
         self.write(response)
 
@@ -207,13 +200,13 @@ Execute a task
 
         try:
             task = self.capp.tasks[taskname]
-        except KeyError:
-            raise HTTPError(404, "Unknown task '%s'" % taskname)
+        except KeyError as exc:
+            raise HTTPError(404, f"Unknown task '{taskname}'") from exc
 
         try:
             self.normalize_options(options)
-        except ValueError:
-            raise HTTPError(400, 'Invalid option')
+        except ValueError as exc:
+            raise HTTPError(400, 'Invalid option') from exc
 
         result = task.apply_async(args=args, kwargs=kwargs, **options)
         response = {'task-id': result.task_id}
@@ -361,13 +354,12 @@ Abort a running task
 
         result.abort()
 
-        self.write(dict(message="Aborted '%s'" % taskid))
+        self.write(dict(message=f"Aborted '{taskid}'"))
 
 
 class GetQueueLengths(BaseTaskHandler):
     @web.authenticated
-    @gen.coroutine
-    def get(self):
+    async def get(self):
         """
 Return length of all active queues
 
@@ -399,26 +391,16 @@ Return length of all active queues
 :statuscode 503: result backend is not configured
         """
         app = self.application
-        broker_options = self.capp.conf.BROKER_TRANSPORT_OPTIONS
 
         http_api = None
         if app.transport == 'amqp' and app.options.broker_api:
             http_api = app.options.broker_api
 
-        broker_use_ssl = None
-        if self.capp.conf.BROKER_USE_SSL:
-            broker_use_ssl = self.capp.conf.BROKER_USE_SSL
-
         broker = Broker(app.capp.connection().as_uri(include_password=True),
-                        http_api=http_api, broker_options=broker_options, broker_use_ssl=broker_use_ssl)
+                        http_api=http_api, broker_options=self.capp.conf.broker_transport_options,
+                        broker_use_ssl=self.capp.conf.broker_use_ssl)
 
-        queue_names = self.get_active_queue_names()
-
-        if not queue_names:
-            queue_names = set([self.capp.conf.CELERY_DEFAULT_QUEUE]) |\
-                set([q.name for q in self.capp.conf.CELERY_QUEUES or [] if q.name])
-
-        queues = yield broker.queues(sorted(queue_names))
+        queues = await broker.queues(self.get_active_queue_names())
         self.write({'active_queues': queues})
 
 
@@ -524,6 +506,7 @@ List tasks
         received_start = self.get_argument('received_start', None)
         received_end = self.get_argument('received_end', None)
         sort_by = self.get_argument('sort_by', None)
+        search = self.get_argument('search', None)
 
         limit = limit and int(limit)
         offset = max(offset, 0)
@@ -536,7 +519,9 @@ List tasks
                 app.events, limit=limit, offset=offset, sort_by=sort_by, type=type,
                 worker=worker, state=state,
                 received_start=received_start,
-                received_end=received_end):
+                received_end=received_end,
+                search=search
+        ):
             task = tasks.as_dict(task)
             worker = task.pop('worker', None)
             if worker is not None:
@@ -644,7 +629,7 @@ Get a task info
 
         task = tasks.get_task_by_id(self.application.events, taskid)
         if not task:
-            raise HTTPError(404, "Unknown task '%s'" % taskid)
+            raise HTTPError(404, f"Unknown task '{taskid}'")
 
         response = task.as_dict()
         if task.worker is not None:

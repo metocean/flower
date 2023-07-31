@@ -1,26 +1,21 @@
+<<<<<<< HEAD
+=======
+/*jslint browser: true */
+/*global $, WebSocket, jQuery */
+>>>>>>> 0cf411066ce5cb1ce36122aad512ea3f7f54ebca
 
 var flower = (function () {
     "use strict";
-    /*jslint browser: true */
-    /*jslint unparam: true, node: true */
-    /*global $, WebSocket, jQuery */
 
-    function on_alert_close(event) {
-        event.preventDefault();
-        event.stopPropagation();
-        $(event.target).parent().hide();
-    }
-
-    function show_error_alert(message) {
-        $("#alert").removeClass("alert-success").addClass("alert-error");
-        $("#alert-message").html("<strong>Error!</strong>    " + message);
-        $("#alert").show();
-    }
-
-    function show_success_alert(message) {
-        $("#alert").removeClass("alert-error").addClass("alert-success");
-        $("#alert-message").html("<strong>Success!</strong>    " + message);
-        $("#alert").show();
+    var alertContainer = document.getElementById('alert-container');
+    function show_alert(message, type) {
+        var wrapper = document.createElement('div');
+        wrapper.innerHTML = `
+            <div class="alert alert-${type} alert-dismissible" role="alert">
+                <div>${message}</div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>`;
+        alertContainer.appendChild(wrapper);
     }
 
     function get_selected_workers() {
@@ -91,13 +86,13 @@ var flower = (function () {
     }
 
     function url_prefix() {
-        var url_prefix = $('#url_prefix').val();
-        if (url_prefix) {
-            url_prefix = url_prefix.replace(/\/+$/, '');
-            if (url_prefix.startsWith('/')) {
-                return url_prefix;
+        var prefix = $('#url_prefix').val();
+        if (prefix) {
+            prefix = prefix.replace(/\/+$/, '');
+            if (prefix.startsWith('/')) {
+                return prefix;
             } else {
-                return '/' + url_prefix;
+                return '/' + prefix;
             }
         }
         return '';
@@ -212,6 +207,7 @@ var flower = (function () {
     function on_worker_refresh(event) {
         event.preventDefault();
         event.stopPropagation();
+        $('.dropdown-toggle').dropdown('hide');
 
         var workername = $('#workername').text();
 
@@ -224,17 +220,18 @@ var flower = (function () {
                 refresh: 1
             },
             success: function (data) {
-                show_success_alert(data.message || 'Refreshed');
+                show_alert(data.message || 'Successfully refreshed', 'success');
             },
             error: function (data) {
-                show_error_alert(data.responseText);
+                show_alert(data.responseText, "danger");
             }
         });
-    }
+    });
 
-    function on_refresh_all(event) {
+    $('#worker-refresh-all').on('click', function (event) {
         event.preventDefault();
         event.stopPropagation();
+        $('.dropdown-toggle').dropdown('hide');
 
         $.ajax({
             type: 'GET',
@@ -244,17 +241,18 @@ var flower = (function () {
                 refresh: 1
             },
             success: function (data) {
-                show_success_alert(data.message || 'Refreshed All Workers');
+                show_alert(data.message || 'Refreshed All Workers', 'success');
             },
             error: function (data) {
-                show_error_alert(data.responseText);
+                show_alert(data.responseText, "danger");
             }
         });
-    }
+    });
 
-    function on_worker_pool_restart(event) {
+    $('#worker-pool-restart').on('click', function (event) {
         event.preventDefault();
         event.stopPropagation();
+        $('.dropdown-toggle').dropdown('hide');
 
         var workername = $('#workername').text();
 
@@ -266,17 +264,18 @@ var flower = (function () {
                 workername: workername
             },
             success: function (data) {
-                show_success_alert(data.message);
+                show_alert(data.message, "success");
             },
             error: function (data) {
-                show_error_alert(data.responseText);
+                show_alert(data.responseText, "danger");
             }
         });
-    }
+    });
 
-    function on_worker_shutdown(event) {
+    $('#worker-shutdown').on('click', function (event) {
         event.preventDefault();
         event.stopPropagation();
+        $('.dropdown-toggle').dropdown('hide');
 
         var workername = $('#workername').text();
 
@@ -288,15 +287,15 @@ var flower = (function () {
                 workername: workername
             },
             success: function (data) {
-                show_success_alert(data.message);
+                show_alert(data.message, "success");
             },
             error: function (data) {
-                show_error_alert(data.responseText);
+                show_alert(data.responseText, "danger");
             }
         });
-    }
+    });
 
-    function on_pool_grow(event) {
+    $('#worker-pool-grow').on('click', function (event) {
         event.preventDefault();
         event.stopPropagation();
 
@@ -312,15 +311,15 @@ var flower = (function () {
                 'n': grow_size,
             },
             success: function (data) {
-                show_success_alert(data.message);
+                show_alert(data.message, "success");
             },
             error: function (data) {
-                show_error_alert(data.responseText);
+                show_alert(data.responseText, "danger");
             }
         });
-    }
+    });
 
-    function on_pool_shrink(event) {
+    $('#worker-pool-shrink').on('click', function (event) {
         event.preventDefault();
         event.stopPropagation();
 
@@ -336,15 +335,15 @@ var flower = (function () {
                 'n': shrink_size,
             },
             success: function (data) {
-                show_success_alert(data.message);
+                show_alert(data.message, "success");
             },
             error: function (data) {
-                show_error_alert(data.responseText);
+                show_alert(data.responseText, "danger");
             }
         });
-    }
+    });
 
-    function on_pool_autoscale(event) {
+    $('#worker-pool-autoscale').on('click', function (event) {
         event.preventDefault();
         event.stopPropagation();
 
@@ -362,15 +361,15 @@ var flower = (function () {
                 'max': max,
             },
             success: function (data) {
-                show_success_alert(data.message);
+                show_alert(data.message, "success");
             },
             error: function (data) {
-                show_error_alert(data.responseText);
+                show_alert(data.responseText, "danger");
             }
         });
-    }
+    });
 
-    function on_add_consumer(event) {
+    $('#worker-add-consumer').on('click', function (event) {
         event.preventDefault();
         event.stopPropagation();
 
@@ -386,20 +385,21 @@ var flower = (function () {
                 'queue': queue,
             },
             success: function (data) {
-                show_success_alert(data.message);
-                setTimeout(function () {
-                    $('#tab-queues').load('/worker/' + workername + ' #tab-queues').fadeIn('show');
-                }, 10000);
+                show_alert(data.message, "success");
             },
             error: function (data) {
-                show_error_alert(data.responseText);
+                show_alert(data.responseText, "danger");
             }
         });
-    }
+    });
 
-    function on_cancel_consumer(event) {
+    $('#worker-queues').on('click', function (event) {
         event.preventDefault();
         event.stopPropagation();
+
+        if (!event.target.id.startsWith("worker-cancel-consumer")) {
+            return;
+        }
 
         var workername = $('#workername').text(),
             queue = $(event.target).closest("tr").children("td:eq(0)").text();
@@ -413,76 +413,67 @@ var flower = (function () {
                 'queue': queue,
             },
             success: function (data) {
-                show_success_alert(data.message);
-                setTimeout(function () {
-                    $('#tab-queues').load('/worker/' + workername + ' #tab-queues').fadeIn('show');
-                }, 10000);
+                show_alert(data.message, "success");
             },
             error: function (data) {
-                show_error_alert(data.responseText);
+                show_alert(data.responseText, "danger");
             }
         });
-    }
+    });
 
-    function on_task_timeout(event) {
-        event.preventDefault();
-        event.stopPropagation();
+    $('#limits-table').on('click', function (event) {
+        if (event.target.id.startsWith("task-timeout-")) {
+            var timeout = parseInt($(event.target).siblings().closest("input").val()),
+                type = $(event.target).text().toLowerCase(),
+                taskname = $(event.target).closest("tr").children("td:eq(0)").text(),
+                post_data = {'workername': $('#workername').text()};
 
-        var post_data = {
-                'workername': $('#workername').text()
-            },
-            taskname = $(event.target).closest("tr").children("td:eq(0)").text(),
-            type = $(event.target).text().toLowerCase(),
-            timeout = $(event.target).siblings().closest("input").val();
+            taskname = taskname.split(' ')[0]; // removes [rate_limit=xxx]
+            post_data[type] = timeout;
 
-        taskname = taskname.split(' ')[0]; // removes [rate_limit=xxx]
-        post_data[type] = timeout;
-
-        $.ajax({
-            type: 'POST',
-            url: url_prefix() + '/api/task/timeout/' + taskname,
-            dataType: 'json',
-            data: post_data,
-            success: function (data) {
-                show_success_alert(data.message);
-            },
-            error: function (data) {
-                show_error_alert(data.responseText);
+            if (!Number.isInteger(timeout)) {
+                show_alert("Invalid timeout value", "danger");
+                return;
             }
-        });
-    }
 
-    function on_task_rate_limit(event) {
-        event.preventDefault();
-        event.stopPropagation();
+            $.ajax({
+                type: 'POST',
+                url: url_prefix() + '/api/task/timeout/' + taskname,
+                dataType: 'json',
+                data: post_data,
+                success: function (data) {
+                    show_alert(data.message, "success");
+                },
+                error: function (data) {
+                    show_alert($(data.responseText).text(), "danger");
+                }
+            });
+        } else if (event.target.id.startsWith("task-rate-limit-")) {
+            var taskname = $(event.target).closest("tr").children("td:eq(0)").text(),
+                workername = $('#workername').text(),
+                ratelimit = parseInt($(event.target).prev().val());
 
-        var workername = $('#workername').text(),
-            taskname = $(event.target).closest("tr").children("td:eq(0)").text(),
-            ratelimit = $(event.target).prev().val();
+            taskname = taskname.split(' ')[0]; // removes [rate_limit=xxx]
 
-        taskname = taskname.split(' ')[0]; // removes [rate_limit=xxx]
+            $.ajax({
+                type: 'POST',
+                url: url_prefix() + '/api/task/rate-limit/' + taskname,
+                dataType: 'json',
+                data: {
+                    'workername': workername,
+                    'ratelimit': ratelimit,
+                },
+                success: function (data) {
+                    show_alert(data.message, "success");
+                },
+                error: function (data) {
+                    show_alert(data.responseText, "danger");
+                }
+            });
+        }
+    });
 
-        $.ajax({
-            type: 'POST',
-            url: url_prefix() + '/api/task/rate-limit/' + taskname,
-            dataType: 'json',
-            data: {
-                'workername': workername,
-                'ratelimit': ratelimit,
-            },
-            success: function (data) {
-                show_success_alert(data.message);
-                setTimeout(function () {
-                    $('#tab-limits').load('/worker/' + workername + ' #tab-limits').fadeIn('show');
-                }, 10000);
-            },
-            error: function (data) {
-                show_error_alert(data.responseText);
-            }
-        });
-    }
-
-    function on_task_revoke(event) {
+    $('#task-revoke').on('click', function (event) {
         event.preventDefault();
         event.stopPropagation();
 
@@ -496,15 +487,17 @@ var flower = (function () {
                 'terminate': false,
             },
             success: function (data) {
-                show_success_alert(data.message);
+                show_alert(data.message, "success");
+                document.getElementById("task-revoke").disabled = true;
+                setTimeout(function() {location.reload();}, 5000);
             },
             error: function (data) {
-                show_error_alert(data.responseText);
+                show_alert(data.responseText, "danger");
             }
         });
-    }
+    });
 
-    function on_task_terminate(event) {
+    $('#task-terminate').on('click', function (event) {
         event.preventDefault();
         event.stopPropagation();
 
@@ -519,13 +512,15 @@ var flower = (function () {
                 'destination': destination,
             },
             success: function (data) {
-                show_success_alert(data.message);
+                show_alert(data.message, "success");
+                document.getElementById("task-terminate").disabled = true;
+                setTimeout(function() {location.reload();}, 5000);
             },
             error: function (data) {
-                show_error_alert(data.responseText);
+                show_alert(data.responseText, "danger");
             }
         });
-    }
+    });
 
     function on_task_retry(event) {
         event.preventDefault();
@@ -934,31 +929,54 @@ var flower = (function () {
                 $('a[href="' + location.hash + '"]').tab('show');
             }
 
-            $('a[data-toggle="tab"]').on('shown', function (e) {
-                location.hash = $(e.target).attr('href').substr(1);
+            // Listen for tab shown events and update the URL hash fragment accordingly
+            $('.nav-tabs a[data-bs-toggle="tab"]').on('shown.bs.tab', function (event) {
+                const tabPaneId = $(event.target).attr('href').substr(1);
+                if (tabPaneId) {
+                    window.location.hash = tabPaneId;
+                }
             });
         });
-
     });
 
     $(document).ready(function () {
-        if (!active_page('/') && !active_page('/dashboard')) {
-        // if ($.inArray($(location).attr('pathname'), [url_prefix() + '/tasks', url_prefix() + '/broker', url_prefix() + '/monitor']) !== -1) {
+        if (!active_page('/') && !active_page('/workers')) {
             return;
         }
 
         $('#workers-table').DataTable({
             rowId: 'name',
             searching: true,
-            paginate: false,
             select: false,
-            scrollX: true,
-            scrollY: true,
+            paging: true,
             scrollCollapse: true,
-            ajax: url_prefix() + '/dashboard?json=1',
+            lengthMenu: [15, 30, 50, 100],
+            pageLength: 15,
+            language: {
+                lengthMenu: 'Show _MENU_ workers',
+                info: 'Showing _START_ to _END_ of _TOTAL_ workers',
+                infoFiltered: '(filtered from _MAX_ total workers)'
+            },
+            ajax: url_prefix() + '/workers?json=1',
             order: [
-                [1, "asc"]
+                [1, "des"]
             ],
+            footerCallback: function( tfoot, data, start, end, display ) {
+                var api = this.api();
+                var columns = {2:"STARTED", 3:"", 4:"FAILURE", 5:"SUCCESS", 6:"RETRY"};
+                for (const [column, state] of Object.entries(columns)) {
+                    var total = api.column(column).data().reduce(sum, 0);
+                    var footer = total;
+                    if (total !== 0) {
+                        footer = '<a href="/tasks';
+                        if (state !== "") {
+                            footer += '?state=' + state;
+                        }
+                        footer += '">' + total + '</a>';
+                    }
+                    $(api.column(column).footer()).html(footer);
+                }
+            },
             columnDefs: [{
                 targets: 0,
                 data: 'hostname',
@@ -969,37 +987,54 @@ var flower = (function () {
             }, {
                 targets: 1,
                 data: 'status',
+                className: "text-center",
+                width: "10%",
                 render: function (data, type, full, meta) {
                     if (data) {
-                        return '<span class="label label-success">Online</span>';
+                        return '<span class="badge bg-success">Online</span>';
                     } else {
-                        return '<span class="label label-important">Offline</span>';
+                        return '<span class="badge bg-secondary">Offline</span>';
                     }
                 }
             }, {
                 targets: 2,
                 data: 'active',
+                className: "text-center",
+                width: "10%",
                 defaultContent: 0
             }, {
                 targets: 3,
                 data: 'task-received',
+                className: "text-center",
+                width: "10%",
                 defaultContent: 0
             }, {
                 targets: 4,
                 data: 'task-failed',
+                className: "text-center",
+                width: "10%",
                 defaultContent: 0
             }, {
                 targets: 5,
                 data: 'task-succeeded',
+                className: "text-center",
+                width: "10%",
                 defaultContent: 0
             }, {
                 targets: 6,
                 data: 'task-retried',
+                className: "text-center",
+                width: "10%",
                 defaultContent: 0
             }, {
                 targets: 7,
                 data: 'loadavg',
+                width: "10%",
+                className: "text-center text-nowrap",
                 render: function (data, type, full, meta) {
+                    if (!full.status) {
+                        return 'N/A';
+                    }
                     if (Array.isArray(data)) {
                         return data.join(', ');
                     }
@@ -1011,8 +1046,7 @@ var flower = (function () {
         var autorefresh_interval = $.urlParam('autorefresh') || 1;
         if (autorefresh !== 0) {
             setInterval( function () {
-                $('#workers-table').DataTable().ajax.reload();
-                update_dashboard_counters();
+                $('#workers-table').DataTable().ajax.reload(null, false);
             }, autorefresh_interval * 1000);
         }
 
@@ -1027,12 +1061,18 @@ var flower = (function () {
         $('#tasks-table').DataTable({
             rowId: 'uuid',
             searching: true,
-            paginate: true,
             scrollX: true,
             scrollCollapse: true,
             processing: true,
             serverSide: true,
             colReorder: true,
+            lengthMenu: [15, 30, 50, 100],
+            pageLength: 15,
+            language: {
+                lengthMenu: 'Show _MENU_ tasks',
+                info: 'Showing _START_ to _END_ of _TOTAL_ tasks',
+                infoFiltered: '(filtered from _MAX_ total tasks)'
+            },
             ajax: {
                 type: 'POST',
                 url: url_prefix() + '/tasks/datatable'
@@ -1055,6 +1095,7 @@ var flower = (function () {
                 data: 'uuid',
                 visible: isColumnVisible('uuid'),
                 orderable: false,
+                className: "text-nowrap",
                 render: function (data, type, full, meta) {
                     return '<a href="' + url_prefix() + '/task/' + encodeURIComponent(data) + '">' + data + '</a>';
                 }
@@ -1072,34 +1113,39 @@ var flower = (function () {
                 targets: 4,
                 data: 'state',
                 visible: isColumnVisible('state'),
+                className: "text-center",
                 render: function (data, type, full, meta) {
                     switch (data) {
                     case 'SUCCESS':
-                        return '<span class="label label-success">' + data + '</span>';
+                        return '<span class="badge bg-success">' + data + '</span>';
                     case 'FAILURE':
-                        return '<span class="label label-important">' + data + '</span>';
+                        return '<span class="badge bg-danger">' + data + '</span>';
                     default:
-                        return '<span class="label label-default">' + data + '</span>';
+                        return '<span class="badge bg-secondary">' + data + '</span>';
                     }
                 }
             }, {
                 targets: 5,
                 data: 'args',
+                className: "text-nowrap overflow-auto",
                 visible: isColumnVisible('args'),
                 render: htmlEscapeEntities
             }, {
                 targets: 6,
                 data: 'kwargs',
+                className: "text-nowrap overflow-auto",
                 visible: isColumnVisible('kwargs'),
                 render: htmlEscapeEntities
             }, {
                 targets: 7,
                 data: 'result',
                 visible: isColumnVisible('result'),
+                className: "text-nowrap overflow-auto",
                 render: htmlEscapeEntities
             }, {
                 targets: 8,
                 data: 'received',
+                className: "text-nowrap",
                 visible: isColumnVisible('received'),
                 render: function (data, type, full, meta) {
                     if (data) {
@@ -1107,10 +1153,10 @@ var flower = (function () {
                     }
                     return data;
                 }
-
             }, {
                 targets: 9,
                 data: 'started',
+                className: "text-nowrap",
                 visible: isColumnVisible('started'),
                 render: function (data, type, full, meta) {
                     if (data) {
@@ -1131,9 +1177,10 @@ var flower = (function () {
             },{
                 targets: 11,
                 data: 'runtime',
+                className: "text-center",
                 visible: isColumnVisible('runtime'),
                 render: function (data, type, full, meta) {
-                    return data ? data.toFixed(3) : data;
+                    return data ? data.toFixed(2) : data;
                 }
             }, {
                 targets: 12,
@@ -1153,14 +1200,23 @@ var flower = (function () {
             }, {
                 targets: 15,
                 data: 'retries',
+                className: "text-center",
                 visible: isColumnVisible('retries')
             }, {
                 targets: 16,
                 data: 'revoked',
-                visible: isColumnVisible('revoked')
+                className: "text-nowrap",
+                visible: isColumnVisible('revoked'),
+                render: function (data, type, full, meta) {
+                    if (data) {
+                        return format_time(data);
+                    }
+                    return data;
+                }
             }, {
                 targets: 17,
                 data: 'exception',
+                className: "text-nowrap",
                 visible: isColumnVisible('exception')
             }, {
                 targets: 18,
@@ -1174,44 +1230,5 @@ var flower = (function () {
         });
 
     });
-
-    return {
-        on_alert_close: on_alert_close,
-        on_worker_refresh: on_worker_refresh,
-        on_refresh_all: on_refresh_all,
-        on_worker_pool_restart: on_worker_pool_restart,
-        on_worker_shutdown: on_worker_shutdown,
-        connect_tail_socket: connect_tail_socket,
-        connect_task_socket: connect_task_socket,
-        connect_tasks_socket: connect_tasks_socket,
-        format_duration: format_duration,
-        format_isotime: format_isotime,
-        format_time: format_time,
-        isColumnVisible: isColumnVisible,
-        on_add_consumer: on_add_consumer,
-        on_alert_close: on_alert_close,
-        on_cancel_consumer: on_cancel_consumer,
-        on_cancel_task_filter: on_cancel_task_filter,
-        on_cycles_update: on_cycles_update,
-        on_dashboard_update: on_dashboard_update,
-        on_pool_autoscale: on_pool_autoscale,
-        on_pool_grow: on_pool_grow,
-        on_pool_shrink: on_pool_shrink,
-        on_task_rate_limit: on_task_rate_limit,
-        on_task_retry: on_task_retry,
-        on_task_revoke: on_task_revoke,
-        on_task_terminate: on_task_terminate,
-        on_task_timeout: on_task_timeout,
-        on_task_update: on_task_update,
-        on_tasks_update: on_tasks_update,
-        // on_worker_refresh: on_worker_refresh,
-        pprint_json: pprint_json,
-        refresh_selected: refresh_selected,
-        render_collapsable: render_collapsable,
-        render_status: render_status,
-        restart_selected: restart_selected,
-        shutdown_selected: shutdown_selected,
-        url_prefix: url_prefix,
-    };
 
 }(jQuery));

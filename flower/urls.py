@@ -19,7 +19,11 @@ from .views.tailer import UpdateLogfile
 from .views.action import ActionView
 from .views.deps import DependencyPydotView
 from .utils import gen_cookie_secret
-
+from .views import auth, monitor
+from .views.broker import BrokerView
+from .views.error import NotFoundErrorHandler
+from .views.tasks import TasksDataTable, TasksView, TaskView
+from .views.workers import WorkersView, WorkerView
 
 settings = dict(
     template_path=os.path.join(os.path.dirname(__file__), "templates"),
@@ -32,8 +36,8 @@ settings = dict(
 
 handlers = [
     # App
-    url(r"/", DashboardView, name='main'),
-    url(r"/dashboard", DashboardView, name='dashboard'),
+    url(r"/", WorkersView, name='main'),
+    url(r"/workers", WorkersView, name='workers'),
     url(r"/worker/(.+)", WorkerView, name='worker'),
     url(r"/task/(.+)", TaskView, name='task'),
     url(r"/pydot/(.+)", DependencyPydotView, name='deps'),

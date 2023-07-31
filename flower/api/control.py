@@ -1,12 +1,9 @@
-import time
 import logging
 import datetime
 import collections
 import ast
 
 from tornado import web
-from tornado import gen
-from tornado import util
 
 from . import BaseApiHandler
 
@@ -24,9 +21,9 @@ class ControlHandler(BaseApiHandler):
 
     def error_reason(self, workername, response):
         "extracts error message from response"
-        for r in response:
+        for res in response:
             try:
-                return r[workername].get('error', 'Unknown reason')
+                return res[workername].get('error', 'Unknown reason')
             except KeyError:
                 pass
         logger.error("Failed to extract error reason from '%s'", response)
@@ -65,7 +62,7 @@ Shut down a worker
 :statuscode 404: unknown worker
         """
         if not self.is_worker(workername):
-            raise web.HTTPError(404, "Unknown worker '%s'" % workername)
+            raise web.HTTPError(404, f"Unknown worker '{workername}'")
 
         logger.info("Shutting down '%s' worker", workername)
         self.capp.control.broadcast('shutdown', destination=[workername])
@@ -105,21 +102,19 @@ Restart worker's pool
 :statuscode 404: unknown worker
         """
         if not self.is_worker(workername):
-            raise web.HTTPError(404, "Unknown worker '%s'" % workername)
+            raise web.HTTPError(404, f"Unknown worker '{workername}'")
 
         logger.info("Restarting '%s' worker's pool", workername)
         response = self.capp.control.broadcast(
             'pool_restart', arguments={'reload': False},
             destination=[workername], reply=True)
         if response and 'ok' in response[0][workername]:
-            self.write(dict(
-                message="Restarting '%s' worker's pool" % workername))
+            self.write(dict(message=f"Restarting '{workername}' worker's pool"))
         else:
             logger.error(response)
             self.set_status(403)
-            self.write("Failed to restart the '%s' pool: %s" % (
-                workername, self.error_reason(workername, response)
-            ))
+            reason = self.error_reason(workername, response)
+            self.write(f"Failed to restart the '{workername}' pool: {reason}")
 
 
 class WorkerPoolGrow(ControlHandler):
@@ -157,7 +152,7 @@ Grow worker's pool
         """
 
         if not self.is_worker(workername):
-            raise web.HTTPError(404, "Unknown worker '%s'" % workername)
+            raise web.HTTPError(404, f"Unknown worker '{workername}'")
 
         n = self.get_argument('n', default=1, type=int)
 
@@ -165,13 +160,12 @@ Grow worker's pool
         response = self.capp.control.pool_grow(
             n=n, reply=True, destination=[workername])
         if response and 'ok' in response[0][workername]:
-            self.write(dict(
-                message="Growing '%s' worker's pool by %s" % (workername, n)))
+            self.write(dict(message=f"Growing '{workername}' worker's pool by {n}"))
         else:
             logger.error(response)
             self.set_status(403)
-            self.write("Failed to grow '%s' worker's pool: %s" % (
-                workername, self.error_reason(workername, response)))
+            reason = self.error_reason(workername, response)
+            self.write(f"Failed to grow '{workername}' worker's pool: {reason}")
 
 
 class WorkerPoolShrink(ControlHandler):
@@ -209,7 +203,7 @@ Shrink worker's pool
         """
 
         if not self.is_worker(workername):
-            raise web.HTTPError(404, "Unknown worker '%s'" % workername)
+            raise web.HTTPError(404, f"Unknown worker '{workername}'")
 
         n = self.get_argument('n', default=1, type=int)
 
@@ -217,14 +211,12 @@ Shrink worker's pool
         response = self.capp.control.pool_shrink(
             n=n, reply=True, destination=[workername])
         if response and 'ok' in response[0][workername]:
-            self.write(dict(message="Shrinking '%s' worker's pool by %s" % (
-                            workername, n)))
+            self.write(dict(message=f"Shrinking '{workername}' worker's pool by {n}"))
         else:
             logger.error(response)
             self.set_status(403)
-            self.write("Failed to shrink '%s' worker's pool: %s" % (
-                workername, self.error_reason(workername, response)
-            ))
+            reason = self.error_reason(workername, response)
+            self.write(f"Failed to shrink '{workername}' worker's pool: {reason}")
 
 
 class WorkerPoolAutoscale(ControlHandler):
@@ -264,7 +256,7 @@ Autoscale worker pool
         """
 
         if not self.is_worker(workername):
-            raise web.HTTPError(404, "Unknown worker '%s'" % workername)
+            raise web.HTTPError(404, f"Unknown worker '{workername}'")
 
         min = self.get_argument('min', type=int)
         max = self.get_argument('max', type=int)
@@ -275,15 +267,13 @@ Autoscale worker pool
             'autoscale', arguments={'min': min, 'max': max},
             destination=[workername], reply=True)
         if response and 'ok' in response[0][workername]:
-            self.write(dict(message="Autoscaling '%s' worker "
-                                    "(min=%s, max=%s)" % (
-                                        workername, min, max)))
+            self.write(dict(message=f"Autoscaling '{workername}' worker "
+                                    "(min={min}, max={max})"))
         else:
             logger.error(response)
             self.set_status(403)
-            self.write("Failed to autoscale '%s' worker: %s" % (
-                workername, self.error_reason(workername, response)
-            ))
+            reason = self.error_reason(workername, response)
+            self.write(f"Failed to autoscale '{workername}' worker: {reason}")
 
 
 class WorkerQueueAddConsumer(ControlHandler):
@@ -321,7 +311,7 @@ Start consuming from a queue
 :statuscode 404: unknown worker
         """
         if not self.is_worker(workername):
-            raise web.HTTPError(404, "Unknown worker '%s'" % workername)
+            raise web.HTTPError(404, f"Unknown worker '{workername}'")
 
         queue = self.get_argument('queue')
 
@@ -335,9 +325,8 @@ Start consuming from a queue
         else:
             logger.error(response)
             self.set_status(403)
-            self.write("Failed to add '%s' consumer to '%s' worker: %s" % (
-                queue, workername, self.error_reason(workername, response)
-            ))
+            reason = self.error_reason(workername, response)
+            self.write(f"Failed to add '{queue}' consumer to '{workername}' worker: {reason}")
 
 
 class WorkerQueueCancelConsumer(ControlHandler):
@@ -375,7 +364,7 @@ Stop consuming from a queue
 :statuscode 404: unknown worker
         """
         if not self.is_worker(workername):
-            raise web.HTTPError(404, "Unknown worker '%s'" % workername)
+            raise web.HTTPError(404, f"Unknown worker '{workername}'")
 
         queue = self.get_argument('queue')
 
@@ -389,10 +378,8 @@ Stop consuming from a queue
         else:
             logger.error(response)
             self.set_status(403)
-            self.write(
-                "Failed to cancel '%s' consumer from '%s' worker: %s" % (
-                    queue, workername, self.error_reason(workername, response)
-                ))
+            reason = self.error_reason(workername, response)
+            self.write(f"Failed to cancel '{queue}' consumer from '{workername}' worker: {reason}")
 
 
 class TaskRevoke(ControlHandler):
@@ -432,7 +419,7 @@ Revoke a task
         terminate = self.get_argument('terminate', default=False, type=bool)
         signal = self.get_argument('signal', default='SIGTERM', type=str)
         self.capp.control.revoke(taskid, terminate=terminate, signal=signal)
-        self.write(dict(message="Revoked '%s'" % taskid))
+        self.write(dict(message=f"Revoked '{taskid}'"))
 
 class TaskTerminate(BaseApiHandler):
     @web.authenticated
@@ -591,9 +578,9 @@ Change soft and hard time limits for a task
         soft = self.get_argument('soft', default=None, type=float)
 
         if taskname not in self.capp.tasks:
-            raise web.HTTPError(404, "Unknown task '%s'" % taskname)
+            raise web.HTTPError(404, f"Unknown task '{taskname}'")
         if workername is not None and not self.is_worker(workername):
-            raise web.HTTPError(404, "Unknown worker '%s'" % workername)
+            raise web.HTTPError(404, f"Unknown worker '{workername}'")
 
         logger.info("Setting timeouts for '%s' task (%s, %s)",
                     taskname, soft, hard)
@@ -607,8 +594,8 @@ Change soft and hard time limits for a task
         else:
             logger.error(response)
             self.set_status(403)
-            self.write("Failed to set timeouts: '%s'" %
-                       self.error_reason(taskname, response))
+            reason = self.error_reason(taskname, response)
+            self.write(f"Failed to set timeouts: '{reason}'")
 
 
 class TaskRateLimit(ControlHandler):
@@ -650,9 +637,9 @@ Change rate limit for a task
         ratelimit = self.get_argument('ratelimit')
 
         if taskname not in self.capp.tasks:
-            raise web.HTTPError(404, "Unknown task '%s'" % taskname)
+            raise web.HTTPError(404, f"Unknown task '{taskname}'")
         if workername is not None and not self.is_worker(workername):
-            raise web.HTTPError(404, "Unknown worker '%s'" % workername)
+            raise web.HTTPError(404, f"Unknown worker '{workername}'")
 
         logger.info("Setting '%s' rate limit for '%s' task",
                     ratelimit, taskname)
@@ -664,5 +651,5 @@ Change rate limit for a task
         else:
             logger.error(response)
             self.set_status(403)
-            self.write("Failed to set rate limit: '%s'" %
-                       self.error_reason(taskname, response))
+            reason = self.error_reason(taskname, response)
+            self.write(f"Failed to set rate limit: '{reason}'")

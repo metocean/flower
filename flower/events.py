@@ -1,41 +1,33 @@
-import os
-import time
-import shelve
-import logging
-import threading
 import collections
-
+import logging
+import shelve
+import threading
+import time
+from collections import Counter
 from functools import partial
-
-from tornado.ioloop import IOLoop
-from tornado.ioloop import PeriodicCallback
 
 from celery.events import EventReceiver
 from celery.events.state import State
+from prometheus_client import Counter as PrometheusCounter
+from prometheus_client import Gauge, Histogram
+from tornado.ioloop import PeriodicCallback
 from tornado.options import options
 from celery.events.state import State, Task, states
 
-from . import api
-
-from collections import Counter
-
-from prometheus_client import Counter as PrometheusCounter, Histogram, Gauge
-
 logger = logging.getLogger(__name__)
 
-prometheus_metrics = None
+PROMETHEUS_METRICS = None
 
 
 def get_prometheus_metrics():
-    global prometheus_metrics
-    if prometheus_metrics is None:
-        prometheus_metrics = PrometheusMetrics()
+    global PROMETHEUS_METRICS  # pylint: disable=global-statement
+    if PROMETHEUS_METRICS is None:
+        PROMETHEUS_METRICS = PrometheusMetrics()
 
-    return prometheus_metrics
+    return PROMETHEUS_METRICS
 
 
-class PrometheusMetrics(object):
-
+class PrometheusMetrics:
     def __init__(self):
         self.events = PrometheusCounter('flower_events_total', "Number of events", ['worker', 'type', 'task'])
 
@@ -74,13 +66,13 @@ class EventsState(State):
     Task = SchedulerTask
 
     def __init__(self, *args, **kwargs):
-        super(EventsState, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.counter = collections.defaultdict(Counter)
         self.metrics = get_prometheus_metrics()
 
     def event(self, event):
         # Save the event
-        super(EventsState, self).event(event)
+        super().event(event)
 
         worker_name = event['hostname']
         event_type = event['type']
@@ -125,19 +117,18 @@ class EventsState(State):
         if event_type == 'worker-offline':
             self.metrics.worker_online.labels(worker_name).set(0)
 
-        # Save the event
-        super(EventsState, self).event(event)
 
 class Events(threading.Thread):
     events_enable_interval = 5000
 
-    def __init__(self, capp, db=None, persistent=False,
-                 enable_events=True, io_loop=None, state_save_interval=0,
+    # pylint: disable=too-many-arguments
+    def __init__(self, capp, io_loop, db=None, persistent=False,
+                 enable_events=True, state_save_interval=0,
                  **kwargs):
         threading.Thread.__init__(self)
         self.daemon = True
 
-        self.io_loop = io_loop or IOLoop.instance()
+        self.io_loop = io_loop
         self.capp = capp
 
         self.db = db

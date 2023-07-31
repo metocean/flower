@@ -2,9 +2,7 @@ import types
 from secrets import token_urlsafe
 
 from prometheus_client import Histogram
-from tornado.options import define
-from tornado.options import options
-
+from tornado.options import define, options
 
 DEFAULT_CONFIG_FILE = 'flowerconfig.py'
 
@@ -17,7 +15,7 @@ define("unix_socket", default='',
        help="path to unix socket to bind", type=str)
 define("debug", default=False,
        help="run in debug mode", type=bool)
-define("inspect_timeout", default=1000, type=float,
+define("inspect_timeout", default=1000.0, type=float,
        help="inspect timeout (in milliseconds)")
 define("auth", default='', type=str,
        help="regexp of emails to grant access")
@@ -31,7 +29,7 @@ define("oauth2_redirect_uri", type=str, default=None,
        help="OAuth2 redirect uri (requires --auth)")
 define("max_workers", type=int, default=5000,
        help="maximum number of workers to keep in memory")
-define("max_tasks", type=int, default=10000,
+define("max_tasks", type=int, default=100000,
        help="maximum number of tasks to keep in memory")
 define("db", type=str, default='flower',
        help="flower database file")
@@ -50,9 +48,9 @@ define("keyfile", type=str, default=None,
 define("xheaders", type=bool, default=False,
        help="enable support for the 'X-Real-Ip' and 'X-Scheme' headers.")
 define("auto_refresh", default=True,
-       help="refresh dashboards", type=bool)
+       help="refresh workerss", type=bool)
 define("purge_offline_workers", default=None, type=int,
-       help="time (in seconds) after which offline workers are purged from dashboard")
+       help="time (in seconds) after which offline workers are purged from workers")
 define("cookie_secret", type=str, default=token_urlsafe(64),
        help="secure cookie secret")
 define("conf", default=DEFAULT_CONFIG_FILE,
@@ -66,13 +64,10 @@ define("natural_time", type=bool, default=True,
 define("tasks_columns", type=str,
        default="name,uuid,action_id,cycle_dt,state,eta,runtime,started,timestamp,expires,worker,retries",
        help="slugs of columns on /tasks/ page, delimited by comma")
-define("auth_provider", default='flower.views.auth.GoogleAuth2LoginHandler',
-       help="auth handler class")
+define("auth_provider", default=None, type=str, help="auth handler class")
 define("url_prefix", type=str, help="base url prefix")
 define("task_runtime_metric_buckets", type=float, default=Histogram.DEFAULT_BUCKETS,
        multiple=True, help="histogram latency bucket value")
 
-# deprecated options
-define("inspect", default=False, help="inspect workers", type=bool)
 
 default_options = options

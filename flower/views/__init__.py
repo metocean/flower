@@ -3,13 +3,13 @@ import inspect
 import traceback
 import copy
 import logging
+import hmac
 
-from distutils.util import strtobool
 from base64 import b64decode
 
 import tornado
 
-from ..utils import template, bugreport, prepend_url
+from ..utils import template, bugreport, strtobool
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ class BaseHandler(tornado.web.RequestHandler):
             self.set_header('Access-Control-Allow-Methods',
                             ' PUT, DELETE, OPTIONS, POST, GET, PATCH')
 
-    def options(self, *args, **kwargs):
+    def options(self, *_, **__):
         self.set_status(204)
         self.finish()
 
@@ -33,7 +33,7 @@ class BaseHandler(tornado.web.RequestHandler):
         assert not set(map(lambda x: x[0], functions)) & set(kwargs.keys())
         kwargs.update(functions)
         kwargs.update(url_prefix=app_options.url_prefix)
-        super(BaseHandler, self).render(*args, **kwargs)
+        super().render(*args, **kwargs)
 
     def write_error(self, status_code, **kwargs):
         if status_code in (404, 403):
@@ -42,15 +42,13 @@ class BaseHandler(tornado.web.RequestHandler):
                 message = kwargs['exc_info'][1].log_message
             self.render('404.html', message=message)
         elif status_code == 500:
-            error_trace = ""
-            for line in traceback.format_exception(*kwargs['exc_info']):
-                error_trace += line
+            error_trace = "".join(traceback.format_exception(*kwargs['exc_info']))
 
             self.render('error.html',
-                        debug=self.application.options.debug,
-                        status_code=status_code,
-                        error_trace=error_trace,
-                        bugreport=bugreport())
+                    debug=self.application.options.debug,
+                    status_code=status_code,
+                    error_trace=error_trace,
+                    bugreport=bugreport())
         elif status_code == 401:
             self.set_status(status_code)
             self.set_header('WWW-Authenticate', 'Basic realm="flower"')
@@ -72,10 +70,15 @@ class BaseHandler(tornado.web.RequestHandler):
             try:
                 basic, credentials = auth_header.split()
                 credentials = b64decode(credentials.encode()).decode()
-                if basic != 'Basic' or credentials not in basic_auth:
+                if basic != 'Basic':
                     raise tornado.web.HTTPError(401)
-            except ValueError:
-                raise tornado.web.HTTPError(401)
+                for stored_credential in basic_auth:
+                    if hmac.compare_digest(stored_credential, credentials):
+                        break
+                else:
+                    raise tornado.web.HTTPError(401)
+            except ValueError as exc:
+                raise tornado.web.HTTPError(401) from exc
 
         # OAuth2
         if not self.application.options.auth:
@@ -88,8 +91,9 @@ class BaseHandler(tornado.web.RequestHandler):
                 return user
         return None
 
+    # pylint: disable=dangerous-default-value
     def get_argument(self, name, default=[], strip=True, type=None):
-        arg = super(BaseHandler, self).get_argument(name, default, strip)
+        arg = super().get_argument(name, default, strip)
         if arg and isinstance(arg, str):
             arg = tornado.escape.xhtml_escape(arg)
         if type is not None:
@@ -98,13 +102,12 @@ class BaseHandler(tornado.web.RequestHandler):
                     arg = strtobool(str(arg))
                 else:
                     arg = type(arg)
-            except (ValueError, TypeError):
+            except (ValueError, TypeError) as exc:
                 if arg is None and default is None:
                     return arg
                 raise tornado.web.HTTPError(
-                    400,
-                    "Invalid argument '%s' of type '%s'" % (
-                        arg, type.__name__))
+                        400,
+                        f"Invalid argument '{arg}' of type '{type.__name__}'") from exc
         return arg
 
     @property
@@ -117,7 +120,7 @@ class BaseHandler(tornado.web.RequestHandler):
         if custom_format_task:
             try:
                 task = custom_format_task(copy.copy(task))
-            except:
+            except Exception:
                 logger.exception("Failed to format '%s' task", task.uuid)
         return task
 

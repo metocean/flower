@@ -76,7 +76,7 @@ def iter_tasks(events, limit=None, offset=0, type=None, worker=None, state=None,
         if i >= offset:
             yield uuid, task
         i += 1
-        if limit != None:
+        if limit is not None:
             if i == limit + offset:
                 break
 

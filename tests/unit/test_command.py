@@ -1,14 +1,16 @@
 import os
+import subprocess
 import sys
 import tempfile
 import unittest
-import subprocess
 from unittest.mock import Mock, patch
 
+import celery
 from prometheus_client import Histogram
-
-from flower.command import apply_options, warn_about_celery_args_used_in_flower_command, apply_env_options
 from tornado.options import options
+
+from flower.command import (apply_env_options, apply_options, print_banner,
+                            warn_about_celery_args_used_in_flower_command)
 from tests.unit import AsyncHTTPTestCase
 
 
@@ -22,9 +24,9 @@ class TestFlowerCommand(AsyncHTTPTestCase):
         self.assertEqual(Histogram.DEFAULT_BUCKETS, options.task_runtime_metric_buckets)
 
     def test_task_runtime_metric_buckets_read_from_env(self):
-        os.environ["FLOWER_TASK_RUNTIME_METRIC_BUCKETS"] = "2,5,inf"
-        apply_env_options()
-        self.assertEqual([2.0, 5.0, float('inf')], options.task_runtime_metric_buckets)
+        with patch.dict(os.environ, {"FLOWER_TASK_RUNTIME_METRIC_BUCKETS": "2,5,inf"}):
+            apply_env_options()
+            self.assertEqual([2.0, 5.0, float('inf')], options.task_runtime_metric_buckets)
 
     def test_task_runtime_metric_buckets_no_env_value_provided(self):
         apply_env_options()
@@ -40,6 +42,31 @@ class TestFlowerCommand(AsyncHTTPTestCase):
             apply_options('flower', argv=['--address=foo'])
             self.assertEqual('foo', options.address)
 
+    def test_auto_refresh(self):
+        with patch.dict(os.environ, {"FLOWER_AUTO_REFRESH": "false"}):
+            apply_env_options()
+            self.assertFalse(options.auto_refresh)
+
+        with patch.dict(os.environ, {"FLOWER_AUTO_REFRESH": "true"}):
+            apply_env_options()
+            self.assertTrue(options.auto_refresh)
+
+        with patch.dict(os.environ, {"FLOWER_AUTO_REFRESH": "0"}):
+            apply_env_options()
+            self.assertFalse(options.auto_refresh)
+
+        with patch.dict(os.environ, {"FLOWER_AUTO_REFRESH": "1"}):
+            apply_env_options()
+            self.assertTrue(options.auto_refresh)
+
+        with patch.dict(os.environ, {"FLOWER_AUTO_REFRESH": "False"}):
+            apply_env_options()
+            self.assertFalse(options.auto_refresh)
+
+        with patch.dict(os.environ, {"FLOWER_AUTO_REFRESH": "True"}):
+            apply_env_options()
+            self.assertTrue(options.auto_refresh)
+
     def test_autodiscovery(self):
         """
         Simulate basic Django setup:
@@ -54,6 +81,31 @@ class TestFlowerCommand(AsyncHTTPTestCase):
             self.get_app(capp=celery_app)
 
             self.assertTrue(autodiscover.called)
+
+
+class TestPrintBanner(AsyncHTTPTestCase):
+    def test_print_banner(self):
+        celery_app = celery.Celery()
+        with self.assertLogs('', level='INFO') as cm:
+            print_banner(celery_app, False)
+
+            self.assertTrue('INFO:flower.command:Visit me at http://0.0.0.0:5555' in cm.output)
+            self.assertTrue('INFO:flower.command:Broker: amqp://guest:**@localhost:5672//' in cm.output)
+
+    def test_print_banner_with_ssl(self):
+        celery_app = celery.Celery()
+        with self.assertLogs('', level='INFO') as cm:
+            print_banner(celery_app, True)
+
+            self.assertTrue('INFO:flower.command:Visit me at https://0.0.0.0:5555' in cm.output)
+            self.assertTrue('INFO:flower.command:Broker: amqp://guest:**@localhost:5672//' in cm.output)
+
+    def test_print_banner_unix_socket(self):
+        celery_app = celery.Celery()
+        with self.assertLogs('', level='INFO') as cm, self.mock_option('unix_socket', 'foo'):
+            print_banner(celery_app, True)
+
+            self.assertTrue('INFO:flower.command:Visit me via unix socket file: foo' in cm.output)
 
 
 class TestWarnAboutCeleryArgsUsedInFlowerCommand(AsyncHTTPTestCase):
@@ -89,8 +141,8 @@ class TestWarnAboutCeleryArgsUsedInFlowerCommand(AsyncHTTPTestCase):
 
         mock_warning.assert_called_once_with(
             "You have incorrectly specified the following celery arguments after flower command: "
-            "[\'--app\', \'-b\']. Please specify them after celery command instead following"
-            " this template: celery [celery args] flower [flower args]."
+            "%s. Please specify them after celery command instead following"
+            " this template: celery [celery args] flower [flower args].", ['--app', '-b']
         )
 
 
@@ -134,7 +186,7 @@ class TestConfOption(AsyncHTTPTestCase):
             return int(subprocess.check_output(
                 'grep "%s" %s|wc -l' % (patter, filename), shell=True))
 
-        defined = grep('^define(', 'flower/options.py') - 4
+        defined = grep('^define(', 'flower/options.py')
         documented = grep('^~~', 'docs/config.rst')
         self.assertEqual(defined, documented,
                          msg='Missing option documentation. Make sure all options '

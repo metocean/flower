@@ -1,6 +1,6 @@
-import uuid
 import base64
 import os.path
+import uuid
 
 from .. import __version__
 
@@ -12,11 +12,12 @@ def gen_cookie_secret():
 def bugreport(app=None):
     try:
         import celery
-        import tornado
         import humanize
+        import tornado
 
         app = app or celery.Celery()
 
+		# pylint: disable=consider-using-f-string
         return 'flower   -> flower:%s tornado:%s humanize:%s%s' % (
             __version__,
             tornado.version,
@@ -37,3 +38,18 @@ def abs_path(path):
 
 def prepend_url(url, prefix):
     return '/' + prefix.strip('/') + url
+
+
+def strtobool(val):
+    """Convert a string representation of truth to true (1) or false (0).
+
+    True values are 'y', 'yes', 't', 'true', 'on', and '1'; false values
+    are 'n', 'no', 'f', 'false', 'off', and '0'.  Raises ValueError if
+    'val' is anything else.
+    """
+    val = val.lower()
+    if val in ('y', 'yes', 't', 'true', 'on', '1'):
+        return 1
+    if val in ('n', 'no', 'f', 'false', 'off', '0'):
+        return 0
+    raise ValueError(f"invalid truth value {val!r}")

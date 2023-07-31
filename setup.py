@@ -31,10 +31,11 @@ classes = """
     Programming Language :: Python
     Programming Language :: Python :: 3
     Programming Language :: Python :: 3 :: Only
-    Programming Language :: Python :: 3.6
     Programming Language :: Python :: 3.7
     Programming Language :: Python :: 3.8
     Programming Language :: Python :: 3.9
+    Programming Language :: Python :: 3.10
+    Programming Language :: Python :: 3.11
     Programming Language :: Python :: Implementation :: CPython
     Programming Language :: Python :: Implementation :: PyPy
     Operating System :: OS Independent
@@ -52,6 +53,7 @@ setup(
     url='https://github.com/mher/flower',
     license='BSD',
     classifiers=classifiers,
+    python_requires=">=3.7",
     packages=find_packages(exclude=['tests', 'tests.*']),
     install_requires=get_requirements('default.txt'),
     test_suite="tests",
