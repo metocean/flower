@@ -127,3 +127,8 @@ class BaseHandler(tornado.web.RequestHandler):
             for q in info.get('active_queues', []):
                 queues.add(q['name'])
         return queues
+
+    def reverse_url(self, *args):
+        prefix = self.application.options.url_prefix
+        url = super(BaseHandler, self).reverse_url(*args)
+        return prepend_url(url, prefix) if prefix else url
