@@ -102,23 +102,7 @@ class TasksDataTable(BaseHandler):
         state = self.get_argument('state', type=str, default='')
         
         def key(item):
-            val = getattr(item[1], sort_by)
-            if sys.version_info[0] == 3:
-                val = str(val)
-            return val
-        tasks = sorted(iter_tasks(app.events, search=search, type=task_type,
-                                  state=state),
-                       key=key, reverse=sort_order)
-        tasks = list(map(self.format_task, tasks))
-        filtered_tasks = []
-        i = 0
-        for _, task in tasks:
-            if i < start:
-                i += 1
-                continue
-            if i >= (start + length):
-                break
-            task = as_dict(task)
+            return Comparable(getattr(item[1], sort_by))
 
         self.maybe_normalize_for_sort(app.events.state.tasks_by_timestamp(), sort_by)
 
@@ -136,10 +120,7 @@ class TasksDataTable(BaseHandler):
                 task_dict['worker'] = task_dict['worker'].hostname
 
             filtered_tasks.append(task_dict)
-            if task['worker']:
-                task['worker'] = task['worker'].hostname
-            filtered_tasks.append(task)
-            i += 1
+
         self.write(dict(draw=draw, data=filtered_tasks,
                         recordsTotal=len(sorted_tasks),
                         recordsFiltered=len(sorted_tasks)))
