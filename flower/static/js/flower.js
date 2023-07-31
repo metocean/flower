@@ -919,9 +919,6 @@ var flower = (function () {
     }
 
     $(document).ready(function () {
-        
-        window.last_draw = Date.now();
-
         //https://github.com/twitter/bootstrap/issues/1768
         var shiftWindow = function () {
             scrollBy(0, -50);
@@ -932,9 +929,15 @@ var flower = (function () {
         window.addEventListener("hashchange", shiftWindow);
 
         // Make bootstrap tabs persistent
-        if (location.hash !== '') {
-            $('a[href="' + location.hash + '"]').tab('show');
-        }
+        $(document).ready(function () {
+            if (location.hash !== '') {
+                $('a[href="' + location.hash + '"]').tab('show');
+            }
+
+            $('a[data-toggle="tab"]').on('shown', function (e) {
+                location.hash = $(e.target).attr('href').substr(1);
+            });
+        });
 
     });
 
