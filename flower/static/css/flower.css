@@ -42,3 +42,9 @@ div.dataTables_wrapper .dataTables_filter input {
   display: inline;
 }
 
+#tz {
+  visibility: hidden;
+}
+#taskid {
+  visibility: hidden;
+}
