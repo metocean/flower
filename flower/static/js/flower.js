@@ -73,7 +73,7 @@ var flower = (function () {
         
     }    
 
-    function pprint_json(object, pre) {
+    var pprint_json = function pprint_json(object, pre) {
         var text = JSON.stringify(JSON.parse(object.replace(/'/g, '"')),undefined,4);
         if (pre) {
             return '<pre>'+text+'</pre>'
@@ -223,7 +223,7 @@ var flower = (function () {
                 show_alert(data.responseText, "danger");
             }
         });
-    });
+    };
 
     $('#worker-refresh-all').on('click', function (event) {
         event.preventDefault();
@@ -518,24 +518,27 @@ var flower = (function () {
             }
         });
     });
-
-    function on_task_retry(event) {
+    
+    $('#task-retry').on('click', function (event) {
         event.preventDefault();
         event.stopPropagation();
 
-        var task_id = $('#uuid').children('td:eq(1)').text();
+        var taskid = $('#taskid').text();
 
         $.ajax({
             type: 'POST',
-            url: url_prefix() + '/api/task/retry/' + task_id,
+            url: url_prefix() + '/api/task/retry/' + taskid,
+            dataType: 'json',
             success: function (data) {
-                show_success_alert(data.message);
+                show_alert(data.message, "success");
+                document.getElementById("task-retry").disabled = true;
+                setTimeout(function() {location.reload();}, 5000);
             },
-            error: function (data) {    
-                show_error_alert(data.responseText);
+            error: function (data) {
+                show_alert(data.responseText, "danger");
             }
         });
-    }
+    });
 
     function sum(a, b) {
         return parseInt(a, 10) + parseInt(b, 10);
@@ -738,7 +741,7 @@ var flower = (function () {
             ws = new WebSocket(protocol + host + "/api/task/events/update-tasks/");
         ws.onmessage = function (event) {
             var update = $.parseJSON(event.data);
-            update_func(update)
+            update_func(update);
         };
     }
 
@@ -748,7 +751,8 @@ var flower = (function () {
             ws = new WebSocket(protocol + host + "/api/task/events/update-task/"+uuid);
         ws.onmessage = function (event) {
             var update = $.parseJSON(event.data);
-            update_func(update)
+            console.log(update);
+            update_func(update);
         };
     }
 
@@ -798,10 +802,12 @@ var flower = (function () {
         }
     }
 
+
     function on_task_update(update) {
         var timestamp = moment.unix(update.timestamp).utc(),
             tz = $('#tz').text(),
             status = update.type.split('-')[1];
+            console.log(status);
         timestamp = timestamp.format("YYYY-MM-DD HH:mm:ss "+tz);
         switch (status){
             case "pending":
@@ -891,14 +897,14 @@ var flower = (function () {
                 if ($.inArray('dedicated', update.hostname)) {
                     $('h2 button').remove();     
                 } else {
-                    $('h2').append('<button style="float: right" class="btn btn-danger" onclick="flower.on_task_retry(event)">Retry</button>');
+                    $('h2').append('<button class="btn btn-danger float-end" id="task-retry">Retry</button>');
                 }
                 break;
             case 'terminate':
-               $('h2').append('<button style="float: right" class="btn btn-danger" onclick="flower.on_task_terminate(event)">Terminate</button>');
+               $('h2').append('<button class="btn btn-danger float-end" id="task-terminate">Terminate</button>');
                break;
             case 'revoke':
-                $('h2').append('<button  style="float: right" class="btn btn-danger" onclick="flower.on_task_revoke(event)">Revoke</button>');
+                $('h2').append('<button class="btn btn-danger float-end" id="task-revoke">Revoke</button>');
                 break;
             default:
                $('h2 button').remove();
@@ -1225,7 +1231,46 @@ var flower = (function () {
                 visible: isColumnVisible('eta')
             }, ],
         });
-
+        var autorefresh_interval = $.urlParam('autorefresh') || 1;
+        if (autorefresh !== 0) {
+            setInterval( function () {
+                $('#tasks-table').DataTable().ajax.reload(null, false);
+            }, autorefresh_interval * 1000);
+        }
     });
+
+    return {
+        connect_tail_socket: connect_tail_socket,
+        connect_task_socket: connect_task_socket,
+        connect_tasks_socket: connect_tasks_socket,
+        format_duration: format_duration,
+        format_isotime: format_isotime,
+        format_time: format_time,
+        isColumnVisible: isColumnVisible,
+        // on_add_consumer: on_add_consumer,
+        // on_alert_close: on_alert_close,
+        // on_cancel_consumer: on_cancel_consumer,
+        on_cancel_task_filter: on_cancel_task_filter,
+        on_cycles_update: on_cycles_update,
+        // on_dashboard_update: on_dashboard_update,
+        // on_pool_autoscale: on_pool_autoscale,
+        // on_pool_grow: on_pool_grow,
+        // on_pool_shrink: on_pool_shrink,
+        // on_task_rate_limit: on_task_rate_limit,
+        // on_task_retry: on_task_retry,
+        // on_task_revoke: on_task_revoke,
+        // on_task_terminate: on_task_terminate,
+        // on_task_timeout: on_task_timeout,
+        on_task_update: on_task_update,
+        on_tasks_update: on_tasks_update,
+        on_worker_refresh: on_worker_refresh,
+        pprint_json: pprint_json,
+        refresh_selected: refresh_selected,
+        render_collapsable: render_collapsable,
+        render_status: render_status,
+        restart_selected: restart_selected,
+        shutdown_selected: shutdown_selected,
+        url_prefix: url_prefix,
+    };
 
 }(jQuery));
