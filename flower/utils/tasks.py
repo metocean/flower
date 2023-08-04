@@ -42,7 +42,7 @@ def iter_tasks(events, limit=None, offset=0, type=None, worker=None, state=None,
         
         if task.name in SCHEDUELER_TASKS and getattr(task,'cycle_dt',None) is None:
             continue
-        if type and (task.name and task.name not in type or not task.name):
+        if type and task.name != type:
             continue
         if worker and task.worker and task.worker.hostname != worker:
             continue
@@ -60,7 +60,7 @@ def iter_tasks(events, limit=None, offset=0, type=None, worker=None, state=None,
         if started_end and task.started and\
                 task.started > convert(started_end):
             continue
-
+        
         if not satisfies_search_terms(task, search_terms):
             continue
 
