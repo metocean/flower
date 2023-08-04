@@ -40,16 +40,16 @@ def satisfies_search_terms(task, search_terms):
     args_search_terms = search_terms.get('args')
     kwargs_search_terms = search_terms.get('kwargs')
     state_search_terms = search_terms.get('state')
-
+    
     if not any([any_value_search_term, result_search_term, args_search_terms, kwargs_search_terms, state_search_terms]):
         return True
-
+    
     terms = [
         state_search_terms and task.state in state_search_terms,
-        any_value_search_term and any_value_search_term in '|'.join(
+        any_value_search_term and any_value_search_term in '|'.join(map(str,
             filter(None, [task.name, task.uuid, task.state,
                           task.worker.hostname if task.worker else None,
-                          task.args, task.kwargs, safe_str(task.result)])),
+                          task.args, task.kwargs, safe_str(task.result)]))),
         result_search_term and task.result and result_search_term in task.result,
         kwargs_search_terms and all(
             stringified_dict_contains_value(k, v, str(task.kwargs)) for k, v in kwargs_search_terms.items()
