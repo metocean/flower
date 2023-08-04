@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from __future__ import absolute_import
 from functools import total_ordering
 import sys
@@ -9,23 +8,15 @@ import json
 import os
 import celery
 
-=======
-import copy
-import logging
-from functools import total_ordering
->>>>>>> 0cf411066ce5cb1ce36122aad512ea3f7f54ebca
 
 from tornado import web
 
 from ..utils.tasks import as_dict, get_task_by_id, iter_tasks
 from ..views import BaseHandler
-<<<<<<< HEAD
 from ..utils.tasks import iter_tasks, get_task_by_id, as_dict, get_states
 from ..utils.actions import get_action_conf, get_log
 
 from scheduler.core import get_action_logfile, get_cycle_logfile
-=======
->>>>>>> 0cf411066ce5cb1ce36122aad512ea3f7f54ebca
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +34,6 @@ class TaskView(BaseHandler):
             tz = 'UTC'
 
         if task is None:
-<<<<<<< HEAD
             raise web.HTTPError(404, "Unknown task '%s'" % task_id)
 
         if task.action_id and task.cycle_dt:
@@ -64,7 +54,7 @@ class TaskView(BaseHandler):
             parent_task = get_task_by_id(self.application.events, task.parent)
         else:
             parent_task = None
-
+        task = self.format_task(task)
         self.render("task.html", task=task,
                                  action_conf=action_conf,
                                  template_conf=template_conf,
@@ -73,12 +63,8 @@ class TaskView(BaseHandler):
                                  cycle_dt=task.cycle_dt,
                                  parent_task=parent_task,
                                  child_tasks=child_tasks,
-                                 tz=tz)
-=======
-            raise web.HTTPError(404, f"Unknown task '{task_id}'")
-        task = self.format_task(task)
-        self.render("task.html", task=task)
->>>>>>> 0cf411066ce5cb1ce36122aad512ea3f7f54ebca
+                                 tz=tz,
+                                 autorefresh=1 if self.application.options.auto_refresh else 0,)
 
 
 @total_ordering
@@ -190,4 +176,5 @@ class TasksView(BaseHandler):
             time=time,
             task_types=sorted(task_types),
             states=get_states(),
+            autorefresh=1 if self.application.options.auto_refresh else 0,
         )
