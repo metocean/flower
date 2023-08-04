@@ -82,7 +82,10 @@ class EventsState(State):
         if event_type.startswith('task-'):
             task_id = event['uuid']
             task = self.tasks.get(task_id)
-            task_name = event.get('name', '')
+            if "kwargs" in event:
+                task_name = eval(event.get("kwargs")).get("action_id", '')
+            else:
+                task_name = event.get('name', '')
             if not task_name and task_id in self.tasks:
                 task_name = task.name or ''
             self.metrics.events.labels(worker_name, event_type, task_name).inc()
