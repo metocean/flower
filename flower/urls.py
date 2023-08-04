@@ -14,7 +14,7 @@ from .views.tasks import TaskView, TasksView, TasksDataTable
 from .views.cycles import CyclesView, CyclesDataTable
 from .views.crontab import CrontabView, CrontabDataTable
 from .views.error import NotFoundErrorHandler
-from .views.dashboard import DashboardView, DashboardUpdateHandler
+# from .views.dashboard import DashboardView, DashboardUpdateHandler
 from .views.tailer import UpdateLogfile
 from .views.action import ActionView
 from .views.deps import DependencyPydotView
@@ -88,7 +88,7 @@ handlers = [
     (r"/api/task/events/update-tasks/", events.TasksUpdate),
     (r"/api/task/events/update-task/(.*)", events.TasksUpdate),
     # WebSocket Updates
-    (r"/update-dashboard", DashboardUpdateHandler),
+    # (r"/update-dashboard", DashboardUpdateHandler),
     (r"/update-logfile/(.*)", UpdateLogfile),
     # Monitors
     # url(r"/monitor", monitor.Monitor, name='monitor'),
