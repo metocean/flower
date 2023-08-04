@@ -7,23 +7,23 @@
 {% block container %}
   <div id="tz" class="hidden">{{tz}}</div>
   <div id='task-page' class="container-fluid mt-3">
-    <div class="row-fluid">
+    <div class="row">
       <div class="col-lg-12">
         <div class="page-header">
-          <p id="taskid" class="hidden">{{ task.uuid }}</p>
+          <p id="taskid" class="d-none">{{ task.uuid }}</p>
           <h2>{{ task.action_id or task.name }} 
             <small>{{ task.uuid }} <a href="{{ reverse_url('deps', task.uuid) }}">Dependencies graph</a></small>
             {% if task.state in ["STARTED","RUNNING","ALLOCATING"] %}
-                <button style="float: right" class="btn btn-danger" onclick="flower.on_task_terminate(event)">Terminate</button>
+                <button class="btn btn-danger float-end" id="task-terminate">Terminate</button>
             {% elif task.state in ["FAILURE","SUCCESS"] and 'dedicated' not in str(task.worker) %}
-                <button  style="float: right" class="btn btn-danger" onclick="flower.on_task_retry(event)">Retry</button>
+                <button class="btn btn-danger float-end" id="task-retry">Retry</button>
             {% elif task.state in ["SENT","RECEIVED","RETRY","PENDING"] %}
-                <button  style="float: right" class="btn btn-danger" onclick="flower.on_task_revoke(event)">Revoke</button>
+                <button class="btn btn-danger float-end" id="task-revoke">Revoke</button>
             {% end %}
           </h2>
         </div>
-        <div class="row-fluid">
-          <div class="col-lg-6">
+        <div class="row">
+          <div class="col-6 col-sm-6">
             <table class="table table-bordered table-striped">
               <tbody>
               {% if hasattr(task, 'action_id') %}
@@ -50,27 +50,27 @@
                 <td>State</td>
                 <td>
                   {% if task.state == "SUCCESS" %}
-                    <span class="label label-success">{{ task.state }}</span>
+                    <span class="badge bg-success">{{ task.state }}</span>
                   {% elif task.state in ["FAILURE","REVOKED"] %}
-                    <span class="label label-important">{{ task.state }}</span>
+                    <span class="badge bg-danger">{{ task.state }}</span>
                   {% elif task.state in ["ALLOCATING"] %}
-                    <span class="label label-queued">{{ task.state }}</span>
+                    <span class="badge bg-secondary">{{ task.state }}</span>
                   {% elif task.state in ["STARTED","RUNNING"] %}
-                    <span class="label label-info">{{ task.state }}</span>
+                    <span class="badge bg-secondary">{{ task.state }}</span>
                   {% elif task.state in ["RETRY"] %}
-                    <span class="label label-warning">{{ task.state }}</span>
+                    <span class="badge bg-warning">{{ task.state }}</span>
                   {% else %}
-                    <span class="label label-default">{{ task.state }}</span>
+                    <span class="badge bg-default">{{ task.state }}</span>
                   {% end %}
                 </td>
               </tr>
               <tr id='args'>
                 <td>args</td>
-                <td><pre id="args-content" class="collapse" style="min-height: 20px;" class="collapse">{{ to_json(task.args) }}</pre><a data-toggle="collapse" href="#args-content">show all</a></td>
+                <td>{{ task.args }}</td>
               </tr>
               <tr id='kwargs'>
                 <td>kwargs</td>
-                <td><pre id="kwargs-content" class="collapse" style="min-height: 30px;">{{ to_json(task.kwargs) }}</pre><a data-toggle="collapse" href="#kwargs-content">show all</a></td>
+                <td>{{ task.kwargs }}</td>
               </tr>
               <tr id='result'>
                 <td>Result</td>
@@ -105,7 +105,7 @@
             </table>
           </div>
 
-          <div class="span6">
+          <div class="col-6 col-sm-6">
             <table class="table table-bordered table-striped">
               <caption>Advanced task options</caption>
               <tbody>
@@ -151,8 +151,8 @@
             </table>
           </div>           
       </div>
-    <div class="row-fluid">
-      <div class="span6">
+    <div class="row">
+      <div class="col-6 col-md6">
           {% if action_conf %}
           <h3>Action configuration <small> - <a href="{{ reverse_url('deps', task.uuid) }}">Dependencies graph</a></small></h3>
           <pre>{{ action_conf }}</pre>
@@ -191,7 +191,7 @@
           {% end %}
         </div>
 
-        <div class="span6">
+        <div class="col-6 col-md-6">
           {% if logfile %}
           <h3>Logfile <small> {{ logpath }} </small>
             <div id="logpath" hidden>{{ logpath }}</div>
@@ -204,7 +204,7 @@
               </button>
             </span>
           </h3>
-          <pre id='logfile' class="prettyprint linenums languague-css" style="overflow-y: scroll; max-height:500px">
+          <pre id='logfile' class="prettyprint linenums language-css" style="overflow-y: scroll; max-height:500px">
             {{ logfile }}
           </pre>
           {% else %}
@@ -220,20 +220,13 @@
 {% block extra_scripts %}
 
 <script type="text/javascript">
-  var json_fields=['args', 'kwargs'];
-  json_fields.forEach(function (field) {
-    var content = $('#'+field+' pre');
-    if (content != undefined) {
-      content.text(flower.pprint_json(content.text()));
-    }
-  });
                         
   if ($('#logfile').length > 0) {
     $('#logfile').scrollTop($('#logfile')[0].scrollHeight);
   }
   var uuid = $(location).attr('pathname').split('/')[2],
       logpath = $('#logpath').text();
-
+  
   flower.connect_task_socket(flower.on_task_update, uuid);
 
   if (logpath){
