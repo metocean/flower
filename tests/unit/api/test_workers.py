@@ -31,7 +31,7 @@ class ListWorkersTest(BaseApiTestCase):
 
         r = self.get('/api/workers?refresh=1')
         celery.control.inspect.assert_called_once_with(
-            timeout=0.5,
+            timeout=1,
             destination=None
         )
 
