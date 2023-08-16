@@ -83,7 +83,10 @@ class EventsState(State):
             task_id = event['uuid']
             task = self.tasks.get(task_id)
             if "kwargs" in event:
-                task_name = eval(event.get("kwargs")).get("action_id", '')
+                try:
+                    task_name = eval(event.get("kwargs")).get("action_id", '')
+                except:
+                    task_name = event.get('kwargs').get('action_id', '')
             else:
                 task_name = event.get('name', '')
             if not task_name and task_id in self.tasks:
