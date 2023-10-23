@@ -41,6 +41,7 @@ class CyclesView(BaseHandler):
             selected='',
             time=time,
             states=get_states(),
+            autorefresh=1 if self.application.options.auto_refresh else 0,
         )
 
 class CyclesDataTable(BaseHandler):
