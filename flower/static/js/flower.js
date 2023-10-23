@@ -1051,7 +1051,132 @@ var flower = (function () {
         }
 
     });
-
+    $(document).ready(function () {
+        if (!active_page('/cycles')) {
+            return;
+        }
+        $('#cycles-table').DataTable({
+            rowId: 'uuid',
+            searching: true,
+            paginate: true,
+            scrollX: true,
+            scrollCollapse: true,
+            processing: true,
+            serverSide: true,
+            colReorder: true,
+            lengthMenu: [ 50, 100, 200 ],
+            initComplete: function() {
+              flower.connect_tasks_socket(flower.on_cycles_update);
+            },
+            ajax: {
+                url: url_prefix() + '/cycles/datatable',
+                data: function ( d ) {
+                    d.selected = $('#select-cycle option:selected').val();
+                    d.state = $('#select-state option:selected').val();
+                }   
+            },
+            order: [
+                [6, "asc"]
+            ],
+            oSearch: {
+                "sSearch": $.urlParam('state') ? 'state:' + $.urlParam('state') : ''
+            },
+            columnDefs: [{
+                targets: 0,
+                data: 'action_id',
+                visible: flower.isColumnVisible('action_id'),
+                orderable: true,
+                render: function (data, type, full, meta) {
+                    return '<a href="' + flower.url_prefix() + '/task/' + full.uuid + '">' + data + '</a>';
+                }
+            },{
+                targets: 1,
+                data: 'cycle_dt',
+                orderable: true,
+                visible: flower.isColumnVisible('cycle_dt')
+            }, {
+                targets: 2,
+                data: 'state',
+                visible: flower.isColumnVisible('state'),
+                render: flower.render_status
+            }, {
+                targets: 3,
+                data: 'received',
+                visible: flower.isColumnVisible('received'),
+                render: function (data, type, full, meta) {
+                    if (data) {
+                        return flower.format_time(data);
+                    }
+                    return data;
+                }
+          
+            }, {
+                targets: 4,
+                data: 'started',
+                visible: flower.isColumnVisible('started'),
+                render: function (data, type, full, meta) {
+                    if (data) {
+                        return flower.format_time(data);
+                    }
+                    return data;
+                }
+            }, {
+                targets: 5,
+                data: 'eta',
+                visible: flower.isColumnVisible('eta'),
+                render: function (data, type, full, meta) {
+                    if (data) {
+                        return flower.format_isotime(data);
+                    }
+                    return data;
+                }
+            }, {
+                targets: 6,
+                data: 'timestamp',
+                visible: flower.isColumnVisible('timestamp'),
+                render: function (data, type, full, meta) {
+                    if (data) {
+                        return flower.format_time(data);
+                    }
+                    return data;
+                }
+            },{
+                targets: 7,
+                data: 'runtime',
+                visible: flower.isColumnVisible('runtime'),
+                render: flower.format_duration
+            }, {
+                targets: 8,
+                data: 'worker',
+                visible: flower.isColumnVisible('worker')
+            }, {
+                targets: 9,
+                data: 'routing_key',
+                visible: flower.isColumnVisible('routing_key')
+            }, {
+                targets: 10,
+                data: 'retries',
+                visible: flower.isColumnVisible('retries')
+            },{
+                targets: 11,
+                data: 'expires',
+                visible: flower.isColumnVisible('expires'),
+                render: function (data, type, full, meta) {
+                    if (data) {
+                        return flower.format_isotime(data);
+                    }
+                    return data;
+                }
+            },],
+        });
+        var autorefresh_interval = $.urlParam('autorefresh') || 1;
+        if (autorefresh !== 0) {
+            setInterval( function () {
+                $('#cycles-table').DataTable().ajax.reload(null, false);
+            }, autorefresh_interval * 1000);
+        }
+    });
+          
     $(document).ready(function () {
         if (!active_page('/tasks')) {
         // if ($.inArray($(location).attr('pathname'), [url_prefix() + '/', url_prefix() + '/dashboard', url_prefix() + '/broker', url_prefix() + '/monitor']) !== -1) {           
