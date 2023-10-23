@@ -20,6 +20,10 @@ from scheduler.core import get_action_logfile, get_cycle_logfile
 
 logger = logging.getLogger(__name__)
 
+def json_serializable(obj):
+    if isinstance(obj, type(Ellipsis)):
+        return obj.__str__()
+
 
 class TaskView(BaseHandler):
 
@@ -122,10 +126,10 @@ class TasksDataTable(BaseHandler):
                 task_dict['worker'] = task_dict['worker'].hostname
 
             filtered_tasks.append(task_dict)
-
-        self.write(dict(draw=draw, data=filtered_tasks,
+        
+        self.write(json.dumps(dict(draw=draw, data=filtered_tasks,
                         recordsTotal=len(sorted_tasks),
-                        recordsFiltered=len(sorted_tasks)))
+                        recordsFiltered=len(sorted_tasks)), default=json_serializable))
 
     @classmethod
     def maybe_normalize_for_sort(cls, tasks, sort_by):
