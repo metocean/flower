@@ -82,7 +82,7 @@ def task_running_events(worker, id=None, name=None, kwargs=None):
                   hostname=worker)]
 
 
-def task_succeeded_events(worker, id=None, name=None, runtime=0.1234, retries=0, eta=None):
+def task_succeeded_events(worker, id=None, name=None, runtime=0.1234, retries=0, eta=None, kwargs=None):
     id = id or uuid()
     name = name or 'sometask'
     return [Event('task-received', uuid=id, name=name,
