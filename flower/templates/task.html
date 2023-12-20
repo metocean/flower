@@ -21,138 +21,133 @@
       </h2>
     </div>
     <div class="row row-cols-2">
-      <!-- <div class="col-lg-12"> -->
-
-        <!-- <div class="col"> -->
-          <div class="col">
-            <table class="table table-bordered table-striped table-hover">
-              <tbody>
-              {% if hasattr(task, 'action_id') %}
-              <tr id='action_id'>
-                <td>Action ID</td>
-                <td>{{ task.action_id }}</td>
-              </tr>
+      <div class="col">
+        <table class="table table-bordered table-striped table-hover">
+          <tbody>
+          {% if hasattr(task, 'action_id') %}
+          <tr id='action_id'>
+            <td>Action ID</td>
+            <td>{{ task.action_id }}</td>
+          </tr>
+          {% end %}
+          {% if hasattr(task, 'cycle_dt') %}
+          <tr id='cycle_dt'>
+            <td>Cycle</td>
+            <td>{{ task.cycle_dt }}{% if task.end_cycle_dt %}--{{task.end_cycle_dt}}{% end %}</td>
+          </tr>
+          {% end %}
+          <tr id='name'>
+            <td>Name</td>
+            <td>{{ getattr(task, 'name', None) }}</td>
+          </tr>
+          <tr id='uuid'>
+            <td>UUID</td>
+            <td>{{ task.uuid }}</td>
+          </tr>
+          <tr id='state'>
+            <td>State</td>
+            <td>
+              {% if task.state == "SUCCESS" %}
+                <span class="badge bg-success">{{ task.state }}</span>
+              {% elif task.state in ["FAILURE","REVOKED"] %}
+                <span class="badge bg-danger">{{ task.state }}</span>
+              {% elif task.state in ["ALLOCATING"] %}
+                <span class="badge bg-info">{{ task.state }}</span>
+              {% elif task.state in ["STARTED","RUNNING"] %}
+                <span class="badge bg-primary">{{ task.state }}</span>
+              {% elif task.state in ["RETRY"] %}
+                <span class="badge bg-warning">{{ task.state }}</span>
+              {% else %}
+                <span class="badge bg-secondary">{{ task.state }}</span>
               {% end %}
-              {% if hasattr(task, 'cycle_dt') %}
-              <tr id='cycle_dt'>
-                <td>Cycle</td>
-                <td>{{ task.cycle_dt }}{% if task.end_cycle_dt %}--{{task.end_cycle_dt}}{% end %}</td>
-              </tr>
-              {% end %}
-              <tr id='name'>
-                <td>Name</td>
-                <td>{{ getattr(task, 'name', None) }}</td>
-              </tr>
-              <tr id='uuid'>
-                <td>UUID</td>
-                <td>{{ task.uuid }}</td>
-              </tr>
-              <tr id='state'>
-                <td>State</td>
+            </td>
+          </tr>
+          <tr id='args'>
+            <td>args</td>
+            <td>{{ task.args }}</td>
+          </tr>
+          <tr id='kwargs'>
+            <td>kwargs</td>
+            <td>{{ task.kwargs }}</td>
+          </tr>
+          <tr id='result'>
+            <td>Result</td>
+            <td>{% if isinstance(task.result, dict) and 'progress' in task.result %}
+              <div class="progress">
+                <div class="progress-bar" role="progressbar" style="width: {{format_progress(task.result['progress'])}}%;">
+                {{round(format_progress(task.result['progress']),1)}}%
+                {% if task.result['status'] %}
+                  - {{task.result['status']}}
+                {%end%}
+                </div>
+              </div>
+            {% else %}
+              <pre>{{ task.result }}</pre>
+              <span>View the full <a href="/api/task/result/{{ task.uuid }}">result object</a></span>
+            {% end %}</td>
+          </tr>
+          {% if parent_task %}
+          <tr><td>Parent</td><td>{{ getattr(parent_task, 'name', None) }}(<a href="/task/{{parent_task.uuid}}">{{parent_task.uuid}}</a>)</td>
+          {% end %}
+          {% if child_tasks %}
+          <tr><td>Children</td><td>
+            <ul id="children" class="collapse"  style="min-height: 53px;">{% for cuuid,child in child_tasks %}
+              <li>{% if getattr(child, 'action_id', None) != getattr(task, 'action_id', None) %}<strong>{{ getattr(child, 'action_id', None) }}@{{ getattr(child, 'cycle_dt', None)}}:</strong> {% else %}{{ getattr(child, 'name', None) }}{% end %}(<a href="/task/{{cuuid}}">{{cuuid}}</a>)</li>
+            {% end %}
+            </ul>
+            <a data-toggle="collapse" href="#children">show all</a>
+            </td>
+          </tr>
+          {% end %}
+          </tbody>
+        </table>
+      </div>
+      <div class="col">
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped table-hover">
+            <caption>Advanced task options</caption>
+            <tbody>
+            {% for name in task._fields %}
+              {% if name not in ['name', 'uuid', 'state', 'args', 'kwargs', 'result','cycle_dt','action_id'] and getattr(task, name, None) is not None %}
+              <tr id="{{ name }}">
+                <td>{{ humanize(name) }}</td>
                 <td>
-                  {% if task.state == "SUCCESS" %}
-                    <span class="badge bg-success">{{ task.state }}</span>
-                  {% elif task.state in ["FAILURE","REVOKED"] %}
-                    <span class="badge bg-danger">{{ task.state }}</span>
-                  {% elif task.state in ["ALLOCATING"] %}
-                    <span class="badge bg-info">{{ task.state }}</span>
-                  {% elif task.state in ["STARTED","RUNNING"] %}
-                    <span class="badge bg-primary">{{ task.state }}</span>
-                  {% elif task.state in ["RETRY"] %}
-                    <span class="badge bg-warning">{{ task.state }}</span>
+                  {% if name in ['sent', 'received', 'started', 'succeeded', 'retried', 'timestamp', 'failed', 'revoked'] %}
+                  {{ humanize(getattr(task, name, None), type='time') }}
+                  {% elif name in ['expires', 'eta'] %}
+                  {{ humanize(getattr(task, name, None), type='isotime') }}
+                  {% elif name == 'worker' %}
+                  <a href="{{ reverse_url('worker', task.worker.hostname) }}">{{ task.worker.hostname }}</a>
+                  {% elif name in ['traceback','exception'] %}
+                  <pre>{{ getattr(task, name, None) }}</pre>
+                  {% elif name in ['parent_id', 'root_id'] %}
+                  <a href="{{ reverse_url('task', getattr(task, name, None)) }}">{{ getattr(task, name, None) }}</a>
+                  {% elif name == 'children' %}
+                    {% for child in getattr(task, name, {}) %}
+                      <a href="{{ reverse_url('task', child.id) }}">{{ child.id }}</a>
+                      <br>
+                    {% end %}
+                  {% elif name == 'runtime' %}
+                  {{ datetime.timedelta(seconds=getattr(task, name, 0)) }}
                   {% else %}
-                    <span class="badge bg-secondary">{{ task.state }}</span>
+                    {{ getattr(task, name, None) }}
                   {% end %}
                 </td>
               </tr>
-              <tr id='args'>
-                <td>args</td>
-                <td>{{ task.args }}</td>
-              </tr>
-              <tr id='kwargs'>
-                <td>kwargs</td>
-                <td>{{ task.kwargs }}</td>
-              </tr>
-              <tr id='result'>
-                <td>Result</td>
-                <td>{% if isinstance(task.result, dict) and 'progress' in task.result %}
-                  <div class="progress">
-                    <div class="progress-bar" role="progressbar" style="width: {{format_progress(task.result['progress'])}}%;">
-                    {{round(format_progress(task.result['progress']),1)}}%
-                    {% if task.result['status'] %}
-                     - {{task.result['status']}}
-                    {%end%}
-                    </div>
-                  </div>
-                {% else %}
-                  <pre>{{ task.result }}</pre>
-                  <span>View the full <a href="/api/task/result/{{ task.uuid }}">result object</a></span>
-                {% end %}</td>
-              </tr>
-              {% if parent_task %}
-              <tr><td>Parent</td><td>{{ getattr(parent_task, 'name', None) }}(<a href="/task/{{parent_task.uuid}}">{{parent_task.uuid}}</a>)</td>
               {% end %}
-              {% if child_tasks %}
-              <tr><td>Children</td><td>
-                <ul id="children" class="collapse"  style="min-height: 53px;">{% for cuuid,child in child_tasks %}
-                  <li>{% if getattr(child, 'action_id', None) != getattr(task, 'action_id', None) %}<strong>{{ getattr(child, 'action_id', None) }}@{{ getattr(child, 'cycle_dt', None)}}:</strong> {% else %}{{ getattr(child, 'name', None) }}{% end %}(<a href="/task/{{cuuid}}">{{cuuid}}</a>)</li>
-                {% end %}
-                </ul>
-                <a data-toggle="collapse" href="#children">show all</a>
-                </td>
-              </tr>
-              {% end %}
-              </tbody>
-            </table>
-          </div>
-          <div class="col">
-            <div class="table-responsive">
-              <table class="table table-bordered table-striped table-hover">
-                <caption>Advanced task options</caption>
-                <tbody>
-                {% for name in task._fields %}
-                  {% if name not in ['name', 'uuid', 'state', 'args', 'kwargs', 'result','cycle_dt','action_id'] and getattr(task, name, None) is not None %}
-                  <tr id="{{ name }}">
-                    <td>{{ humanize(name) }}</td>
-                    <td>
-                      {% if name in ['sent', 'received', 'started', 'succeeded', 'retried', 'timestamp', 'failed', 'revoked'] %}
-                      {{ humanize(getattr(task, name, None), type='time') }}
-                      {% elif name in ['expires', 'eta'] %}
-                      {{ humanize(getattr(task, name, None), type='isotime') }}
-                      {% elif name == 'worker' %}
-                      <a href="{{ reverse_url('worker', task.worker.hostname) }}">{{ task.worker.hostname }}</a>
-                      {% elif name in ['traceback','exception'] %}
-                      <pre>{{ getattr(task, name, None) }}</pre>
-                      {% elif name in ['parent_id', 'root_id'] %}
-                      <a href="{{ reverse_url('task', getattr(task, name, None)) }}">{{ getattr(task, name, None) }}</a>
-                      {% elif name == 'children' %}
-                        {% for child in getattr(task, name, {}) %}
-                          <a href="{{ reverse_url('task', child.id) }}">{{ child.id }}</a>
-                          <br>
-                        {% end %}
-                      {% elif name == 'runtime' %}
-                      {{ datetime.timedelta(seconds=getattr(task, name, 0)) }}
-                      {% else %}
-                        {{ getattr(task, name, None) }}
-                      {% end %}
-                    </td>
-                  </tr>
-                  {% end %}
-                {% end %}
-                <tr id='memory'>
-                  <td>Memory (last / max / limit)</td>
-                  <td>{% if task.memory %}
-                    {{ task.memory['usage'] }} / {{ task.memory['max'] }} / {{ task.memory['limit'] }}
-                  {% else %}
-                    Unknown
-                  {% end %}</td>
-                </tr>
-                </tbody>
-              </table>
-            </div> 
-          </div>          
-      <!-- </div> -->
-    <!-- <div class="col"> -->
+            {% end %}
+            <tr id='memory'>
+              <td>Memory (last / max / limit)</td>
+              <td>{% if task.memory %}
+                {{ task.memory['usage'] }} / {{ task.memory['max'] }} / {{ task.memory['limit'] }}
+              {% else %}
+                Unknown
+              {% end %}</td>
+            </tr>
+            </tbody>
+          </table>
+        </div> 
+      </div>          
       <div class="col">
           {% if action_conf %}
           <h3>Action configuration <small> - <a href="{{ reverse_url('deps', task.uuid) }}">Dependencies graph</a></small></h3>
@@ -213,7 +208,6 @@
           {% end %}
         </div>
       </div>
-    <!-- </div> -->
   </div>
 </div>
 {% end %}
