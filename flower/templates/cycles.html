@@ -13,90 +13,94 @@
 
 <div class="container-fluid">
   <div id="active-cycles-accordion" class="accordion">
-    <div class="accordion-group">
-      <div class="accordion-heading">
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#active-cycles-accordion" href="#active-cycles-container">
+    <div class="accordion-item">
+      <div class="accordion-header" id="panelOne-headingOne">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#active-cycles-container" aria-expanded="true" aria-controls="active-cycles-container">
           Show active cycles tasks
-        </a>
+        </button>
       </div>
-      <div id="active-cycles-container" class="collapse" style="height: 0px;">
-        <table class="table table-bordered table-striped">
-          <thead>
-          <tr>
-            <th>UUID</th>
-            <th>Cycle</th>
-            <th>Workflow</th>
-            <th>State</th>      
-            <th>Started</th>
-            <th>Timestamp</th>
-            <th>Worker</th>    
-          </tr>
-          </thead>
-          <tbody>
-          {% for uuid, task in cycle_tasks %}
-          {% if task.state in ["RECEIVED","STARTED","RUNNING","RETRY"] and task.cycle_dt %}
-          <tr id="{{ uuid }}">
-            <td><a href="/task/{{uuid}}">{{ task.uuid }}</a></td>
-            <td>{{ task.cycle_dt }}{% if task.end_cycle_dt %}--{{task.end_cycle_dt}}{% end %}</td>
-            <td>
-              [{{smart_truncate(', '.join(task.workflows_id+task.actions_id),64)}}]
-            </td>
-            <td>
-            {% if isinstance(task.result, dict) and 'progress' in task.result and task.result['progress'] and task.state == 'RUNNING' %}
-            <div class="progress">
-              <div class="bar" style="width: {{task.result['progress']*100}}%;">{{round(task.result['progress']*100,1)}}%
-              {% if task.result['status'] %} - {{task.result['status']}}{%end%}</div>
-            </div>
-            {% else %}
-            {{ task.state }}
-            {% end %}</td>
-            <td>{{ humanize(task.started, type=time) }}</td>
-            <td>{{ humanize(task.timestamp, type=time) }}</td>
-            <td>{{ task.worker.hostname }}</td>
-          </tr>
-          {% end %}
-          {% end %}
-          </tbody>
-        </table>
+      <div id="active-cycles-container" class="accordion-collapse collapse show" aria-labelledby="panelOne-headingOne" style="height: 0px;">
+        <div class="accordion-body">
+          <table class="table table-bordered table-striped">
+            <thead>
+            <tr>
+              <th>UUID</th>
+              <th>Cycle</th>
+              <th>Workflow</th>
+              <th>State</th>      
+              <th>Started</th>
+              <th>Timestamp</th>
+              <th>Worker</th>    
+            </tr>
+            </thead>
+            <tbody>
+            {% for uuid, task in cycle_tasks %}
+            {% if task.state in ["RECEIVED","STARTED","RUNNING","RETRY"] and task.cycle_dt %}
+            <tr id="{{ uuid }}">
+              <td><a href="/task/{{uuid}}">{{ task.uuid }}</a></td>
+              <td>{{ task.cycle_dt }}{% if task.end_cycle_dt %}--{{task.end_cycle_dt}}{% end %}</td>
+              <td>
+                [{{smart_truncate(', '.join(task.workflows_id+task.actions_id),64)}}]
+              </td>
+              <td>
+              {% if isinstance(task.result, dict) and 'progress' in task.result and task.result['progress'] and task.state == 'RUNNING' %}
+              <div class="progress">
+                <div class="progress-bar" role="progressbar" style="width: {{task.result['progress']*100}}%;">{{round(task.result['progress']*100,1)}}%
+                {% if task.result['status'] %} - {{task.result['status']}}{%end%}</div>
+              </div>
+              {% else %}
+              {{ task.state }}
+              {% end %}</td>
+              <td>{{ humanize(task.started, type=time) }}</td>
+              <td>{{ humanize(task.timestamp, type=time) }}</td>
+              <td>{{ task.worker.hostname }}</td>
+            </tr>
+            {% end %}
+            {% end %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-    <div class="accordion-group">
-      <div class="accordion-heading">
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#previous-cycles-accordion" href="#previous-cycles-container">
+    <div class="accordion-item">
+      <div class="accordion-header" id="panelOne-headingTwo">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#previous-cycles-container" aria-expanded="false" aria-controls="previous-cycles-container">
           Show previous cycles tasks
-        </a>
+        </button>
       </div>
-      <div id="previous-cycles-container" class="collapse" style="height: 0px;">
-        <table class="table table-bordered table-striped">
-          <thead>
-          <tr>
-            <th>UUID</th>
-            <th>Cycle</th>
-            <th>Workflow</th>
-            <th>State</th>      
-            <th>Started</th>
-            <th>Timestamp</th>
-            <th>Worker</th>    
-          </tr>
-          </thead>
-          <tbody>
-          {% for uuid, task in cycle_tasks %}
-          {% if task.state in ["FAILURE","SUCCESS","REVOKED"] %}
-          <tr id="{{ uuid }}">
-            <td><a href="/task/{{uuid}}">{{ task.uuid }}</a></td>
-            <td>{{ task.cycle_dt }}{% if task.end_cycle_dt %}--{{task.end_cycle_dt}}{% end %}</td>
-            <td>
-              [{{smart_truncate(', '.join(task.workflows_id+task.actions_id),64)}}]
-            </td>
-            <td>{{ task.state }}</td>
-            <td>{{ humanize(task.started, type=time) }}</td>
-            <td>{{ humanize(task.timestamp, type=time) }}</td>
-            <td>{{ task.worker.hostname }}</td>
-          </tr>
-          {% end %}
-          {% end %}
-          </tbody>
-        </table>
+      <div id="previous-cycles-container" class="accordion-collapse collapse" aria-labelledby="panelOne-headingTwo" style="height: 0px;">
+        <div class="accordion-body">
+          <table class="table table-bordered table-striped">
+            <thead>
+            <tr>
+              <th>UUID</th>
+              <th>Cycle</th>
+              <th>Workflow</th>
+              <th>State</th>      
+              <th>Started</th>
+              <th>Timestamp</th>
+              <th>Worker</th>    
+            </tr>
+            </thead>
+            <tbody>
+            {% for uuid, task in cycle_tasks %}
+            {% if task.state in ["FAILURE","SUCCESS","REVOKED"] %}
+            <tr id="{{ uuid }}">
+              <td><a href="/task/{{uuid}}">{{ task.uuid }}</a></td>
+              <td>{{ task.cycle_dt }}{% if task.end_cycle_dt %}--{{task.end_cycle_dt}}{% end %}</td>
+              <td>
+                [{{smart_truncate(', '.join(task.workflows_id+task.actions_id),64)}}]
+              </td>
+              <td>{{ task.state }}</td>
+              <td>{{ humanize(task.started, type=time) }}</td>
+              <td>{{ humanize(task.timestamp, type=time) }}</td>
+              <td>{{ task.worker.hostname }}</td>
+            </tr>
+            {% end %}
+            {% end %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -156,7 +160,7 @@
       </td>
       <td>{{ humanize(task.timestamp) }}</td>
       <td>{{ task.eta }}</td>
-      <td>{{ task.worker }}</td>
+      <td>{{ task.worker.hostname }}</td>
       <td>{{ task.routing_key }}</td>
       <td>{{ task.retries }}</td>   
       <td>{{ task.expires }}</td>      
