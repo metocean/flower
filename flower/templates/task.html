@@ -6,25 +6,26 @@
 
 {% block container %}
   <div id="tz" class="hidden">{{tz}}</div>
-  <div id='task-page' class="container-fluid mt-3">
-    <div class="row">
-      <div class="col-lg-12">
-        <div class="page-header">
-          <p id="taskid" class="d-none">{{ task.uuid }}</p>
-          <h2>{{ task.action_id or task.name }} 
-            <small>{{ task.uuid }} <a href="{{ reverse_url('deps', task.uuid) }}">Dependencies graph</a></small>
-            {% if task.state in ["STARTED","RUNNING","ALLOCATING"] %}
-                <button class="btn btn-danger float-end" id="task-terminate">Terminate</button>
-            {% elif task.state in ["FAILURE","SUCCESS"] and 'dedicated' not in str(task.worker) %}
-                <button class="btn btn-danger float-end" id="task-retry">Retry</button>
-            {% elif task.state in ["SENT","RECEIVED","RETRY","PENDING"] %}
-                <button class="btn btn-danger float-end" id="task-revoke">Revoke</button>
-            {% end %}
-          </h2>
-        </div>
-        <div class="row">
-          <div class="col-6 col-sm-6">
-            <table class="table table-bordered table-striped">
+  <div id='task-page' class="container-fluid">
+    <div class="page-header">
+      <p id="taskid" class="d-none">{{ task.uuid }}</p>
+      <h2>{{ task.action_id or task.name }} 
+        <small>{{ task.uuid }} <a href="{{ reverse_url('deps', task.uuid) }}">Dependencies graph</a></small>
+        {% if task.state in ["STARTED","RUNNING","ALLOCATING"] %}
+            <button class="btn btn-danger float-end" id="task-terminate">Terminate</button>
+        {% elif task.state in ["FAILURE","SUCCESS"] and 'dedicated' not in str(task.worker) %}
+            <button class="btn btn-danger float-end" id="task-retry">Retry</button>
+        {% elif task.state in ["SENT","RECEIVED","RETRY","PENDING"] %}
+            <button class="btn btn-danger float-end" id="task-revoke">Revoke</button>
+        {% end %}
+      </h2>
+    </div>
+    <div class="row row-cols-2">
+      <!-- <div class="col-lg-12"> -->
+
+        <!-- <div class="col"> -->
+          <div class="col">
+            <table class="table table-bordered table-striped table-hover">
               <tbody>
               {% if hasattr(task, 'action_id') %}
               <tr id='action_id'>
@@ -54,13 +55,13 @@
                   {% elif task.state in ["FAILURE","REVOKED"] %}
                     <span class="badge bg-danger">{{ task.state }}</span>
                   {% elif task.state in ["ALLOCATING"] %}
-                    <span class="badge bg-secondary">{{ task.state }}</span>
+                    <span class="badge bg-info">{{ task.state }}</span>
                   {% elif task.state in ["STARTED","RUNNING"] %}
-                    <span class="badge bg-secondary">{{ task.state }}</span>
+                    <span class="badge bg-primary">{{ task.state }}</span>
                   {% elif task.state in ["RETRY"] %}
                     <span class="badge bg-warning">{{ task.state }}</span>
                   {% else %}
-                    <span class="badge bg-default">{{ task.state }}</span>
+                    <span class="badge bg-secondary">{{ task.state }}</span>
                   {% end %}
                 </td>
               </tr>
@@ -76,7 +77,7 @@
                 <td>Result</td>
                 <td>{% if isinstance(task.result, dict) and 'progress' in task.result %}
                   <div class="progress">
-                    <div class="bar" style="width: {{format_progress(task.result['progress'])}}%;">
+                    <div class="progress-bar" role="progressbar" style="width: {{format_progress(task.result['progress'])}}%;">
                     {{round(format_progress(task.result['progress']),1)}}%
                     {% if task.result['status'] %}
                      - {{task.result['status']}}
@@ -104,55 +105,55 @@
               </tbody>
             </table>
           </div>
-
-          <div class="col-6 col-sm-6">
-            <table class="table table-bordered table-striped">
-              <caption>Advanced task options</caption>
-              <tbody>
-              {% for name in task._fields %}
-                {% if name not in ['name', 'uuid', 'state', 'args', 'kwargs', 'result','cycle_dt','action_id'] and getattr(task, name, None) is not None %}
-                <tr id="{{ name }}">
-                  <td>{{ humanize(name) }}</td>
-                  <td>
-                    {% if name in ['sent', 'received', 'started', 'succeeded', 'retried', 'timestamp', 'failed', 'revoked'] %}
-                    {{ humanize(getattr(task, name, None), type='time') }}
-                    {% elif name in ['expires', 'eta'] %}
-                    {{ humanize(getattr(task, name, None), type='isotime') }}
-                    {% elif name == 'worker' %}
-                    <a href="{{ reverse_url('worker', task.worker.hostname) }}">{{ task.worker.hostname }}</a>
-                    {% elif name in ['traceback','exception'] %}
-                    <pre>{{ getattr(task, name, None) }}</pre>
-                    {% elif name in ['parent_id', 'root_id'] %}
-                    <a
-                        href="{{ reverse_url('task', getattr(task, name, None)) }}">{{ getattr(task, name, None) }}</a>
-                    {% elif name == 'children' %}
-                      {% for child in getattr(task, name, {}) %}
-                        <a href="{{ reverse_url('task', child.id) }}">{{ child.id }}</a>
-                        <br>
+          <div class="col">
+            <div class="table-responsive">
+              <table class="table table-bordered table-striped table-hover">
+                <caption>Advanced task options</caption>
+                <tbody>
+                {% for name in task._fields %}
+                  {% if name not in ['name', 'uuid', 'state', 'args', 'kwargs', 'result','cycle_dt','action_id'] and getattr(task, name, None) is not None %}
+                  <tr id="{{ name }}">
+                    <td>{{ humanize(name) }}</td>
+                    <td>
+                      {% if name in ['sent', 'received', 'started', 'succeeded', 'retried', 'timestamp', 'failed', 'revoked'] %}
+                      {{ humanize(getattr(task, name, None), type='time') }}
+                      {% elif name in ['expires', 'eta'] %}
+                      {{ humanize(getattr(task, name, None), type='isotime') }}
+                      {% elif name == 'worker' %}
+                      <a href="{{ reverse_url('worker', task.worker.hostname) }}">{{ task.worker.hostname }}</a>
+                      {% elif name in ['traceback','exception'] %}
+                      <pre>{{ getattr(task, name, None) }}</pre>
+                      {% elif name in ['parent_id', 'root_id'] %}
+                      <a href="{{ reverse_url('task', getattr(task, name, None)) }}">{{ getattr(task, name, None) }}</a>
+                      {% elif name == 'children' %}
+                        {% for child in getattr(task, name, {}) %}
+                          <a href="{{ reverse_url('task', child.id) }}">{{ child.id }}</a>
+                          <br>
+                        {% end %}
+                      {% elif name == 'runtime' %}
+                      {{ datetime.timedelta(seconds=getattr(task, name, 0)) }}
+                      {% else %}
+                        {{ getattr(task, name, None) }}
                       {% end %}
-                    {% elif name == 'runtime' %}
-                    {{ datetime.timedelta(seconds=getattr(task, name, 0)) }}
-                    {% else %}
-                      {{ getattr(task, name, None) }}
-                    {% end %}
-                  </td>
-                </tr>
+                    </td>
+                  </tr>
+                  {% end %}
                 {% end %}
-              {% end %}
-              <tr id='memory'>
-                <td>Memory (last / max / limit)</td>
-                <td>{% if task.memory %}
-                  {{ task.memory['usage'] }} / {{ task.memory['max'] }} / {{ task.memory['limit'] }}
-                {% else %}
-                  Unknown
-                {% end %}</td>
-              </tr>
-              </tbody>
-            </table>
-          </div>           
-      </div>
-    <div class="row">
-      <div class="col-6 col-md6">
+                <tr id='memory'>
+                  <td>Memory (last / max / limit)</td>
+                  <td>{% if task.memory %}
+                    {{ task.memory['usage'] }} / {{ task.memory['max'] }} / {{ task.memory['limit'] }}
+                  {% else %}
+                    Unknown
+                  {% end %}</td>
+                </tr>
+                </tbody>
+              </table>
+            </div> 
+          </div>          
+      <!-- </div> -->
+    <!-- <div class="col"> -->
+      <div class="col">
           {% if action_conf %}
           <h3>Action configuration <small> - <a href="{{ reverse_url('deps', task.uuid) }}">Dependencies graph</a></small></h3>
           <pre>{{ action_conf }}</pre>
@@ -191,19 +192,19 @@
           {% end %}
         </div>
 
-        <div class="col-6 col-md-6">
+        <div class="col">
           {% if logfile %}
-          <h3>Logfile <small> {{ logpath }} </small>
+          <p><b>Logfile </b><small> {{ logpath }} </small>
             <div id="logpath" hidden>{{ logpath }}</div>
             <span style="float: right">
-              <button style="line-height: 11px; padding: 3px 7px;" class="btn-small" onclick="$('#logfile').scrollTop(0)" name="top">
-                <span class="icon-circle-arrow-up"></span>
+              <button style="line-height: 9px; padding: 3px 7px;" class="btn-small" onclick="$('#logfile').scrollTop(0)" name="top">
+                <span data-feather="arrow-up-circle"></span>
               </button>
-              <button style="line-height: 11px;  padding: 3px 7px;" class="btn-small" onclick="$('#logfile').scrollTop($('#logfile')[0].scrollHeight)" name="bottom">
-                <span class="icon-circle-arrow-down"></span>
+              <button style="line-height: 9px;  padding: 3px 7px;" class="btn-small" onclick="$('#logfile').scrollTop($('#logfile')[0].scrollHeight)" name="bottom">
+                <span data-feather="arrow-down-circle"></span>
               </button>
             </span>
-          </h3>
+          </p>
           <pre id='logfile' class="prettyprint linenums language-css" style="overflow-y: scroll; max-height:500px">
             {{ logfile }}
           </pre>
@@ -212,7 +213,7 @@
           {% end %}
         </div>
       </div>
-    </div>
+    <!-- </div> -->
   </div>
 </div>
 {% end %}
@@ -232,6 +233,7 @@
   if (logpath){
     flower.connect_tail_socket(logpath)
   };
+  feather.replace();
 </script>
 
 {% end %}
