@@ -104,7 +104,7 @@ class TasksDataTable(BaseHandler):
         sort_by = self.get_argument(f'columns[{column}][data]', type=str)
         sort_order = self.get_argument('order[0][dir]', type=str) == 'desc'
 
-        task_type = self.get_argument('task_type', type=str, default='')
+        task_type = self.get_argument('selected', type=str, default='')
         state = self.get_argument('state', type=str, default='')
         
         def key(item):
@@ -113,11 +113,11 @@ class TasksDataTable(BaseHandler):
         self.maybe_normalize_for_sort(app.events.state.tasks_by_timestamp(), sort_by)
 
         sorted_tasks = sorted(
-            iter_tasks(app.events, search=search),
+            iter_tasks(app.events, search=search, type=task_type, state=state),
             key=key,
             reverse=sort_order
         )
-
+        
         filtered_tasks = []
 
         for task in sorted_tasks[start:start + length]:
