@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import copy
 import logging
 import ast
+import json
 from operator import itemgetter
 
 try:
@@ -18,7 +19,9 @@ from .tasks import TasksDataTable
 
 logger = logging.getLogger(__name__)
 
-
+def json_serializable(obj):
+    if isinstance(obj, type(Ellipsis)):
+        return obj.__str__()
 
 class CyclesView(BaseHandler):
     @web.authenticated
@@ -27,12 +30,13 @@ class CyclesView(BaseHandler):
         capp = self.application.capp
 
         time = 'natural-time' if app.options.natural_time else 'time'
+        
         if capp.conf.CELERY_TIMEZONE:
             time += '-' + capp.conf.CELERY_TIMEZONE
         columns = 'action_id,cycle_dt,state,received,eta,started,timestamp,runtime,worker,routing_key,retries,expires'
         cycle_tasks = sorted(iter_tasks(app.events, type='cycle.CycleTask'), 
                              key=lambda x: str(x[1].cycle_dt), reverse=True,)
-
+        
         self.render(
             "cycles.html",
             tasks=[],
@@ -51,7 +55,8 @@ class CyclesDataTable(BaseHandler):
         if selected == 'none':
             seleted_cycle_tasks.append(None)
         else:
-            tasks = sorted(iter_tasks(self.application.events, type='cycle.CycleTask'))
+            tasks = sorted(list(iter_tasks(self.application.events, type='cycle.CycleTask')))
+
             for uuid, task in tasks:
                 kwargs = ast.literal_eval(str(getattr(task, 'kwargs', {}))) or {}
                 if selected == 'active'  and task.state in ['STARTED', 'RUNNING','RETRY']:
@@ -65,24 +70,26 @@ class CyclesDataTable(BaseHandler):
         return seleted_cycle_tasks
 
     def _squash_allocation(self, selected_cycles, state, search):
-        alloc_tasks = list(map(self.format_task, iter_tasks(self.application.events,
+        alloc_tasks = list(iter_tasks(self.application.events,
                                                 search=search, 
                                                 state=state,
                                                 type=['chain.AllocateChainTask'],
                                                 parent=selected_cycles,
-                                                follow_children=True)))
-
+                                                follow_children=True))
+        
         alloc_uuid = [uuid for uuid,task in alloc_tasks if task.name=='chain.AllocateChainTask']
+        
 
         wrapper_tasks = ['wrappers.WrapperTask',
                          'wrappers.SubprocessTask',
                          'chain.GroupChainTask']
-        other_tasks = list(map(self.format_task, iter_tasks(self.application.events,
+        other_tasks = list(iter_tasks(self.application.events,
                                                  search=search, 
                                                  state=state,
                                                  type=wrapper_tasks,
                                                  parent=alloc_uuid+selected_cycles,
-                                                 follow_children=True)))
+                                                 follow_children=True))
+        
         for uuid, task in other_tasks+alloc_tasks:
             if task.name == 'chain.AllocateChainTask' and task.state in \
             ['RUNNING', 'SUCCESS']:
@@ -91,7 +98,7 @@ class CyclesDataTable(BaseHandler):
                 continue
             else:
                 yield task
-
+        
     @web.authenticated
     def get(self):
         app = self.application
@@ -105,9 +112,9 @@ class CyclesDataTable(BaseHandler):
         sort_order = self.get_argument('order[0][dir]', type=str) == 'asc'
         selected = self.get_argument('selected', type=str, default='all')
         state = self.get_argument('state', type=str, default='')
-        
-        selected_cycles = self._get_cycles(selected)
 
+        selected_cycles = self._get_cycles(selected)
+        
         if not selected_cycles:
             self.write(dict(draw=draw, data=[],
                             recordsTotal=0,
@@ -130,11 +137,15 @@ class CyclesDataTable(BaseHandler):
 
         filtered_tasks = sorted(filtered_tasks, key=lambda x: x.get(sort_by), 
                                 reverse=sort_order)
-
-        self.write(dict(draw=draw, data=filtered_tasks,
+        
+        self.write(json.dumps(dict(draw=draw, data=filtered_tasks,
                             recordsTotal=len(filtered_tasks),
-                            recordsFiltered=len(filtered_tasks)))
-
+                            recordsFiltered=len(filtered_tasks)), default=json_serializable))
+        
+    @web.authenticated
+    def post(self):
+        return self.get()
+    
     def format_task(self, task):
         uuid, task = task
         custom_format_task = self.application.options.format_task
