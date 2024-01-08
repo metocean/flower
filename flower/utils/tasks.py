@@ -42,7 +42,7 @@ def iter_tasks(events, limit=None, offset=0, type=None, worker=None, state=None,
         
         if task.name in SCHEDUELER_TASKS and getattr(task,'cycle_dt',None) is None:
             continue
-        if type and task.name != type:
+        if type and (task.name and task.name not in type or not task.name):
             continue
         if worker and task.worker and task.worker.hostname != worker:
             continue
@@ -73,19 +73,20 @@ def iter_tasks(events, limit=None, offset=0, type=None, worker=None, state=None,
         if parent and hasattr(task,'parent') and task.parent not in parent:
             orphan_childs.append((uuid,task))
             continue
+
         if i >= offset:
             yield uuid, task
         i += 1
         if limit is not None:
             if i == limit + offset:
                 break
-
+    
     if follow_children and orphan_childs:
         for uuid, task in orphan_childs:
             child_parent_task = get_task_by_id(events, task.parent)
             if getattr(child_parent_task,'parent',None) in parent:
                 yield uuid,task
-
+                
 sort_keys = {'name': str, 'state': str, 'received': float, 'started': float}
 
 
@@ -110,7 +111,7 @@ def get_task_by_id(events, task_id):
         task = events.state.tasks.get(task_id)
         if task is not None:
             task._fields = _fields
-        return expand_kwargs(task)
+    return expand_kwargs(task)
 
 
 def get_states():
