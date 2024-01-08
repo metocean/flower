@@ -26,27 +26,27 @@ var flower = (function () {
     function render_status(data, type, full, meta) {
         switch (data) {
         case 'SUCCESS':
-            return '<span class="label label-success">' + data + '</span>';
+            return '<span class="badge bg-success">' + data + '</span>';
         case 'FAILURE':
-            return '<span class="label label-important">' + data + '</span>';
+            return '<span class="badge bg-danger">' + data + '</span>';
         case 'REVOKED':
-            return '<span class="label label-important">' + data + '</span>';
+            return '<span class="badge bg-important">' + data + '</span>';
         case 'RUNNING':
             if (full.result && full.result.hasOwnProperty('progress')){
                 var progress = full.result.progress * 100,
                     status = '- ' + full.result.status;
-                return '<div class="progress"><div class="bar" style="width: '+progress+'%;">'+progress.toFixed(1)+'% '+status+'</div>'
+                return '<div class="progress"><div class="progress-bar" role="progressbar" style="width: '+progress+'%;">'+progress.toFixed(1)+'% '+status+'</div>'
             } else {
-            return '<span class="label label-info">' + data + '</span>';
+            return '<span class="badge bg-info">' + data + '</span>';
             }
         case 'STARTED':
-            return '<span class="label label-info">' + data + '</span>';
+            return '<span class="badge bg-info">' + data + '</span>';
         case 'ALLOCATING':
-            return '<span class="label label-queued">' + data + '</span>';
+            return '<span class="badge bg-primary">' + data + '</span>';
         case 'RETRY':
-            return '<span class="label label-warning">' + data + '</span>';
+            return '<span class="badge bg-warning">' + data + '</span>';
         default:
-            return '<span class="label label-default">' + data + '</span>';
+            return '<span class="badge bg-secondary">' + data + '</span>';
         }
     }
 
@@ -637,6 +637,7 @@ var flower = (function () {
     function on_cycles_update(update) {
         var table = $('#cycles-table').DataTable(),
             cycles_uuid = $('#cycles-tasks').val().split(',');
+            console.log(cycles_uuid);
         if (update.name == 'cycle.CycleTask' ||  $.inArray(update.uuid,cycles_uuid)>-1) { 
             if ($.inArray(update.type, ['task-received','task-succeeded','task-failed']) > -1 ) {
                 window.location.reload();
@@ -741,8 +742,10 @@ var flower = (function () {
             ws = new WebSocket(protocol + host + "/api/task/events/update-tasks/");
         ws.onmessage = function (event) {
             var update = $.parseJSON(event.data);
+            console.log(update);
             update_func(update);
         };
+        console.log(ws);
     }
 
     function connect_task_socket(update_func, uuid) {
@@ -764,7 +767,7 @@ var flower = (function () {
             if (container.children('.progress').length == 0) {
                 container.text("");
                 var pbar = container.prepend('<div class="progress"></div>').children(),
-                    bar = pbar.append('<div class="bar" style="width:'+ 
+                    bar = pbar.append('<div class="progress-bar" role="progressbar" style="width:'+ 
                                                  progress + '%"'+state+'></div>').children();
                 if (state) {
                     bar.text(progress.toFixed(1)+'% - '+state);
@@ -1066,7 +1069,7 @@ var flower = (function () {
             colReorder: true,
             lengthMenu: [ 50, 100, 200 ],
             initComplete: function() {
-              flower.connect_tasks_socket(flower.on_cycles_update);
+              connect_tasks_socket(on_cycles_update);
             },
             ajax: {
                 url: url_prefix() + '/cycles/datatable',
@@ -1084,28 +1087,28 @@ var flower = (function () {
             columnDefs: [{
                 targets: 0,
                 data: 'action_id',
-                visible: flower.isColumnVisible('action_id'),
+                visible: isColumnVisible('action_id'),
                 orderable: true,
                 render: function (data, type, full, meta) {
-                    return '<a href="' + flower.url_prefix() + '/task/' + full.uuid + '">' + data + '</a>';
+                    return '<a href="' + url_prefix() + '/task/' + full.uuid + '">' + data + '</a>';
                 }
             },{
                 targets: 1,
                 data: 'cycle_dt',
                 orderable: true,
-                visible: flower.isColumnVisible('cycle_dt')
+                visible: isColumnVisible('cycle_dt')
             }, {
                 targets: 2,
                 data: 'state',
-                visible: flower.isColumnVisible('state'),
-                render: flower.render_status
+                visible: isColumnVisible('state'),
+                render: render_status
             }, {
                 targets: 3,
                 data: 'received',
-                visible: flower.isColumnVisible('received'),
+                visible: isColumnVisible('received'),
                 render: function (data, type, full, meta) {
                     if (data) {
-                        return flower.format_time(data);
+                        return format_time(data);
                     }
                     return data;
                 }
@@ -1113,57 +1116,57 @@ var flower = (function () {
             }, {
                 targets: 4,
                 data: 'started',
-                visible: flower.isColumnVisible('started'),
+                visible: isColumnVisible('started'),
                 render: function (data, type, full, meta) {
                     if (data) {
-                        return flower.format_time(data);
+                        return format_time(data);
                     }
                     return data;
                 }
             }, {
                 targets: 5,
                 data: 'eta',
-                visible: flower.isColumnVisible('eta'),
+                visible: isColumnVisible('eta'),
                 render: function (data, type, full, meta) {
                     if (data) {
-                        return flower.format_isotime(data);
+                        return format_isotime(data);
                     }
                     return data;
                 }
             }, {
                 targets: 6,
                 data: 'timestamp',
-                visible: flower.isColumnVisible('timestamp'),
+                visible: isColumnVisible('timestamp'),
                 render: function (data, type, full, meta) {
                     if (data) {
-                        return flower.format_time(data);
+                        return format_time(data);
                     }
                     return data;
                 }
             },{
                 targets: 7,
                 data: 'runtime',
-                visible: flower.isColumnVisible('runtime'),
-                render: flower.format_duration
+                visible: isColumnVisible('runtime'),
+                render: format_duration
             }, {
                 targets: 8,
                 data: 'worker',
-                visible: flower.isColumnVisible('worker')
+                visible: isColumnVisible('worker')
             }, {
                 targets: 9,
                 data: 'routing_key',
-                visible: flower.isColumnVisible('routing_key')
+                visible: isColumnVisible('routing_key')
             }, {
                 targets: 10,
                 data: 'retries',
-                visible: flower.isColumnVisible('retries')
+                visible: isColumnVisible('retries')
             },{
                 targets: 11,
                 data: 'expires',
-                visible: flower.isColumnVisible('expires'),
+                visible: isColumnVisible('expires'),
                 render: function (data, type, full, meta) {
                     if (data) {
-                        return flower.format_isotime(data);
+                        return format_isotime(data);
                     }
                     return data;
                 }
@@ -1192,7 +1195,7 @@ var flower = (function () {
             serverSide: true,
             colReorder: true,
             lengthMenu: [15, 30, 50, 100],
-            pageLength: 15,
+            pageLength: 50,
             language: {
                 lengthMenu: 'Show _MENU_ tasks',
                 info: 'Showing _START_ to _END_ of _TOTAL_ tasks',
@@ -1200,7 +1203,11 @@ var flower = (function () {
             },
             ajax: {
                 type: 'POST',
-                url: url_prefix() + '/tasks/datatable'
+                url: url_prefix() + '/tasks/datatable',
+                data: function (d) {
+                    d.selected = $('#select-type option:selected').val();
+                    d.state = $('#select-state option:selected').val();
+                }
             },
             order: [
                 [7, "desc"]
@@ -1239,16 +1246,7 @@ var flower = (function () {
                 data: 'state',
                 visible: isColumnVisible('state'),
                 className: "text-center",
-                render: function (data, type, full, meta) {
-                    switch (data) {
-                    case 'SUCCESS':
-                        return '<span class="badge bg-success">' + data + '</span>';
-                    case 'FAILURE':
-                        return '<span class="badge bg-danger">' + data + '</span>';
-                    default:
-                        return '<span class="badge bg-secondary">' + data + '</span>';
-                    }
-                }
+                render: render_status
             }, {
                 targets: 5,
                 data: 'args',
