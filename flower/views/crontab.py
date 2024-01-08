@@ -35,9 +35,9 @@ def get_crontab_next_run(cron, countdown=0):
 class CrontabView(BaseHandler):
     def __init__(self, *args, **kwargs):
         super(CrontabView, self).__init__(*args,**kwargs)
-        self.pool = self.application.pool
+        self.executor = self.application.executor
     
-    @run_on_executor(executor='pool')
+    @run_on_executor(executor='executor')
     def _get_crontab_actions(self):
         beats = SchedulerBeat(cycles=False)
         actions = beats.crontab_actions
@@ -75,7 +75,8 @@ class CrontabView(BaseHandler):
             columns=columns,
             time=flower_time,
             crontab_actions=actions,
-            action_ids=','.join(action_ids)
+            action_ids=','.join(action_ids),
+            autorefresh=1 if self.application.options.auto_refresh else 0,
         )
 
 
