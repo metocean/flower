@@ -89,10 +89,9 @@ def blocking(method):
 class DependencyPydotView(BaseHandler):
     def __init__(self, *args, **kwargs):
         super(DependencyPydotView, self).__init__(*args,**kwargs)
-        self.executor = ThreadPoolExecutor(max_workers=4)
+        self.executor = self.application.executor
 
-    # @run_on_executor
-    @onthread
+    @run_on_executor(executor='executor')
     def _plot_deps(self, task_id):
         task = get_task_by_id(self.application.events, task_id)
         if task:
