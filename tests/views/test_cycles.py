@@ -6,8 +6,8 @@ from celery.events import Event
 from celery.utils import uuid
 
 from flower.events import EventsState
-from .unit import AsyncHTTPTestCase
-from .unit.utils import cycle_task, task_succeeded_events, task_running_events, task_failed_events
+from tests.unit import AsyncHTTPTestCase
+from tests.unit.utils import cycle_task, task_succeeded_events, task_running_events, task_failed_events
 
 
 class CycleTest(AsyncHTTPTestCase):
