@@ -70,12 +70,12 @@ class CyclesDataTable(BaseHandler):
         return seleted_cycle_tasks
 
     def _squash_allocation(self, selected_cycles, state, search):
-        alloc_tasks = list(iter_tasks(self.application.events,
+        alloc_tasks = list(map(self.format_task, list(iter_tasks(self.application.events,
                                                 search=search, 
                                                 state=state,
                                                 type=['chain.AllocateChainTask'],
                                                 parent=selected_cycles,
-                                                follow_children=True))
+                                                follow_children=True))))
         
         alloc_uuid = [uuid for uuid,task in alloc_tasks if task.name=='chain.AllocateChainTask']
         
@@ -83,12 +83,12 @@ class CyclesDataTable(BaseHandler):
         wrapper_tasks = ['wrappers.WrapperTask',
                          'wrappers.SubprocessTask',
                          'chain.GroupChainTask']
-        other_tasks = list(iter_tasks(self.application.events,
+        other_tasks = list(map(self.format_task, list(iter_tasks(self.application.events,
                                                  search=search, 
                                                  state=state,
                                                  type=wrapper_tasks,
                                                  parent=alloc_uuid+selected_cycles,
-                                                 follow_children=True))
+                                                 follow_children=True))))
         
         for uuid, task in other_tasks+alloc_tasks:
             if task.name == 'chain.AllocateChainTask' and task.state in \
