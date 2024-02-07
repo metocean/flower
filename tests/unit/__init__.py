@@ -20,6 +20,11 @@ from flower.events import Events
 from flower.urls import handlers, settings
 
 
+def app_delay(method, *args, **kwargs):
+    future = Future()
+    future.set_result(method(*args, **kwargs))
+    return future
+
 class AsyncHTTPTestCase(tornado.testing.AsyncHTTPTestCase):
 
     def _get_celery_app(self):
@@ -31,6 +36,7 @@ class AsyncHTTPTestCase(tornado.testing.AsyncHTTPTestCase):
         events = Events(capp, IOLoop.current())
         app = Flower(capp=capp, events=events,
                      options=options, handlers=handlers, **settings)
+        app.delay = lambda method, *args, **kwargs: app_delay(method, *args, **kwargs)
         return app
 
     def get(self, url, **kwargs):
