@@ -95,31 +95,6 @@ var flower = (function () {
         return '';
     }
 
-    function shutdown_selected(event) {
-        var selected_workers = get_selected_workers();
-        if (selected_workers.length === 0) {
-            show_error_alert('Please select a worker');
-            return;
-        }
-
-        $.each(selected_workers, function (index, worker) {
-            $.ajax({
-                type: 'POST',
-                url: url_prefix() + '/api/worker/shutdown/' + worker,
-                dataType: 'json',
-                data: {
-                    workername: worker
-                },
-                success: function (data) {
-                    show_success_alert(data.message);
-                },
-                error: function (data) {
-                    show_error_alert(data.responseText);
-                }
-            });
-        });
-    }
-
     //https://github.com/DataTables/DataTables/blob/1.10.11/media/js/jquery.dataTables.js#L14882
     function htmlEscapeEntities(d) {
         return typeof d === 'string' ?
@@ -136,94 +111,6 @@ var flower = (function () {
             return pathname.startsWith(url_prefix() + name);
         }
     }
-
-    function restart_selected(event) {
-        var selected_workers = get_selected_workers();
-        if (selected_workers.length === 0) {
-            show_error_alert('Please select a worker');
-            return;
-        }
-
-        $.each(selected_workers, function (index, worker) {
-
-            $.ajax({
-                type: 'POST',
-                url: url_prefix() + '/api/worker/pool/restart/' + worker,
-                dataType: 'json',
-                data: {
-                    workername: worker
-                },
-                success: function (data) {
-                    show_success_alert(data.message);
-                },
-                error: function (data) {
-                    show_error_alert(data.responseText);
-                }
-            });
-        });
-    }
-
-    function refresh_selected(event) {
-        var selected_workers = get_selected_workers();
-
-        if (!selected_workers.length) {
-            $.ajax({
-                type: 'GET',
-                url: url_prefix() + '/api/workers',
-                data: {
-                    refresh: 1
-                },
-                success: function (data) {
-                    show_success_alert('Refreshed');
-                },
-                error: function (data) {
-                    show_error_alert(data.responseText);
-                }
-            });
-        }
-
-        $.each(selected_workers, function (index, worker) {
-            $.ajax({
-                type: 'GET',
-                url: url_prefix() + '/api/workers',
-                dataType: 'json',
-                data: {
-                    workername: unescape(worker),
-                    refresh: 1
-                },
-                success: function (data) {
-                    show_success_alert(data.message || 'Refreshed');
-                },
-                error: function (data) {
-                    show_error_alert(data.responseText);
-                }
-            });
-        });
-    }
-
-    function on_worker_refresh(event) {
-        event.preventDefault();
-        event.stopPropagation();
-        $('.dropdown-toggle').dropdown('hide');
-
-        var workername = $('#workername').text();
-
-        $.ajax({
-            type: 'GET',
-            url: url_prefix() + '/api/workers',
-            dataType: 'json',
-            data: {
-                workername: unescape(workername),
-                refresh: 1
-            },
-            success: function (data) {
-                show_alert(data.message || 'Successfully refreshed', 'success');
-            },
-            error: function (data) {
-                show_alert(data.responseText, "danger");
-            }
-        });
-    };
 
     $('#worker-refresh-all').on('click', function (event) {
         event.preventDefault();
@@ -544,33 +431,6 @@ var flower = (function () {
         return parseInt(a, 10) + parseInt(b, 10);
     }
 
-    function update_dashboard_counters() {
-        var table = $('#workers-table').DataTable();
-        $('a#btn-active').text('Active: ' + table.column(2).data().reduce(sum, 0));
-        $('a#btn-processed').text('Processed: ' + table.column(3).data().reduce(sum, 0));
-        $('a#btn-failed').text('Failed: ' + table.column(4).data().reduce(sum, 0));
-        $('a#btn-succeeded').text('Succeeded: ' + table.column(5).data().reduce(sum, 0));
-        $('a#btn-retried').text('Retried: ' + table.column(6).data().reduce(sum, 0));
-    }
-
-    function on_dashboard_update(update) {
-        var table = $('#workers-table').DataTable();
-
-        $.each(update, function (name, info) {
-            var row = table.row('#' + name);
-            if (row) {
-                row.data(info);
-            } else {
-                table.row.add(info);
-            }
-        });
-        table.draw();
-
-        $('a#btn-active').text('Active: ' + table.column(2).data().reduce(sum, 0));
-        $('a#btn-failed').text('Failed: ' + table.column(4).data().reduce(sum, 0));
-        $('a#btn-succeeded').text('Succeeded: ' + table.column(5).data().reduce(sum, 0));
-        $('a#btn-retried').text('Retried: ' + table.column(6).data().reduce(sum, 0));
-    }
 
     function update_row_data(rowdata, update){
         var rowdata = rowdata;
@@ -624,7 +484,7 @@ var flower = (function () {
                 var rowdata = row.data();    
                 rowdata = update_row_data(rowdata, update);     
                 row.data(rowdata);
-                collapse_collapsable();
+                // collapse_collapsable();
             }
         }
     }
@@ -1367,29 +1227,13 @@ var flower = (function () {
         format_isotime: format_isotime,
         format_time: format_time,
         isColumnVisible: isColumnVisible,
-        // on_add_consumer: on_add_consumer,
-        // on_alert_close: on_alert_close,
-        // on_cancel_consumer: on_cancel_consumer,
         on_cancel_task_filter: on_cancel_task_filter,
         on_cycles_update: on_cycles_update,
-        // on_dashboard_update: on_dashboard_update,
-        // on_pool_autoscale: on_pool_autoscale,
-        // on_pool_grow: on_pool_grow,
-        // on_pool_shrink: on_pool_shrink,
-        // on_task_rate_limit: on_task_rate_limit,
-        // on_task_retry: on_task_retry,
-        // on_task_revoke: on_task_revoke,
-        // on_task_terminate: on_task_terminate,
-        // on_task_timeout: on_task_timeout,
         on_task_update: on_task_update,
         on_tasks_update: on_tasks_update,
-        on_worker_refresh: on_worker_refresh,
         pprint_json: pprint_json,
-        refresh_selected: refresh_selected,
         render_collapsable: render_collapsable,
         render_status: render_status,
-        restart_selected: restart_selected,
-        shutdown_selected: shutdown_selected,
         url_prefix: url_prefix,
     };
 
