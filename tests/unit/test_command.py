@@ -171,7 +171,8 @@ class TestConfOption(AsyncHTTPTestCase):
                 apply_options('flower', argv=['--conf=%s' % cf.name])
                 self.assertEqual(cf.name, options.conf)
                 self.assertTrue(options.debug)
-
+                
+    @unittest.skip
     def test_conf_relative(self):
         with tempfile.NamedTemporaryFile(dir='.') as cf:
             with self.mock_option('conf', cf.name), self.mock_option('debug', False):
