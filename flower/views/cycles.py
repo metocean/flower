@@ -138,9 +138,9 @@ class CyclesDataTable(BaseHandler):
         filtered_tasks = sorted(filtered_tasks, key=lambda x: x.get(sort_by), 
                                 reverse=sort_order)
         
-        self.write(json.dumps(dict(draw=draw, data=filtered_tasks,
+        self.write(dict(draw=draw, data=filtered_tasks,
                             recordsTotal=len(filtered_tasks),
-                            recordsFiltered=len(filtered_tasks)), default=json_serializable))
+                            recordsFiltered=len(filtered_tasks)))
         
     @web.authenticated
     def post(self):
