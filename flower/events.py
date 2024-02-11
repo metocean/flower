@@ -7,7 +7,6 @@ from collections import Counter
 from functools import partial
 
 from celery.events import EventReceiver
-from celery.events.state import State
 from prometheus_client import Counter as PrometheusCounter
 from prometheus_client import Gauge, Histogram
 from tornado.ioloop import PeriodicCallback
