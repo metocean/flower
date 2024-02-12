@@ -191,14 +191,6 @@
           {% if logfile %}
           <p><b>Logfile </b><small> {{ logpath }} </small>
             <div id="logpath" hidden>{{ logpath }}</div>
-            <span style="float: right">
-              <button style="line-height: 9px; padding: 3px 7px;" class="btn-small" onclick="$('#logfile').scrollTop(0)" name="top">
-                <span data-feather="arrow-up-circle"></span>
-              </button>
-              <button style="line-height: 9px;  padding: 3px 7px;" class="btn-small" onclick="$('#logfile').scrollTop($('#logfile')[0].scrollHeight)" name="bottom">
-                <span data-feather="arrow-down-circle"></span>
-              </button>
-            </span>
           </p>
           <pre id='logfile' class="prettyprint linenums language-css" style="overflow-y: scroll; max-height:500px">
             {{ logfile }}
