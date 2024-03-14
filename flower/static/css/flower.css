@@ -1,9 +1,9 @@
 .bg-green {
-  background-color: #f0ffeb;
+  background-color: #ebfaff;
 }
 
 .dataTables_wrapper {
-  border: 1px solid #c7ecb8;
+  border: 1px solid #b8dfec;
 }
 
 .dataTables_filter input {
@@ -18,7 +18,7 @@
 div.dataTables_wrapper .dataTables_filter input {
   width: 100%;
   margin: 10px;
-  border: 1px solid #c7ecb8;
+  border: 1px solid #b8dfec;
 }
 
 .dataTables_info {
