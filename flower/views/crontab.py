@@ -1,12 +1,9 @@
 from __future__ import absolute_import
 
-import copy
 import logging
-import ast
 import datetime
 import time
-import pytz
-from operator import itemgetter
+import json
 
 try:
     from itertools import imap
@@ -20,12 +17,17 @@ from tornado.concurrent import run_on_executor
 from celery.schedules import crontab
 
 from ..views import BaseHandler
-from ..utils.tasks import iter_tasks, get_task_by_id, as_dict
-from .tasks import TasksDataTable
+from ..utils.tasks import iter_tasks, as_dict
 
 from scheduler.beat import SchedulerBeat
 
 logger = logging.getLogger(__name__)
+
+
+def set_default(obj):
+    if isinstance(obj, set):
+        return list(obj)
+    raise TypeError
 
 def get_crontab_next_run(cron, countdown=0):
     delta = crontab(**cron).remaining_estimate(datetime.datetime.utcnow())
@@ -115,6 +117,8 @@ class CrontabDataTable(BaseHandler):
             filtered_tasks.append(task)
             i += 1
         
-        self.write(dict(draw=draw, data=filtered_tasks,
-                        recordsTotal=len(tasks),
-                        recordsFiltered=len(filtered_tasks)))
+        self.write(json.dumps(dict(draw=draw, 
+                                   data=filtered_tasks,
+                                    recordsTotal=len(tasks),
+                                    recordsFiltered=len(filtered_tasks)), 
+                                default=set_default))
