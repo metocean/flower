@@ -1,13 +1,8 @@
 from __future__ import absolute_import
 from functools import total_ordering
-import sys
 import copy
 import logging
-import ast
 import json
-import os
-import celery
-
 
 from tornado import web
 
