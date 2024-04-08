@@ -1070,7 +1070,7 @@ var flower = (function () {
                 }
             },
             order: [
-                [7, "desc"]
+                [9, "desc"]
             ],
             oSearch: {
                 "sSearch": $.urlParam('state') ? 'state:' + $.urlParam('state') : ''
