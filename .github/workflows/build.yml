@@ -31,7 +31,7 @@ jobs:
 
     - name: Lint with pylint
       run: |
-        pylint flower  --rcfile .pylintrc
+        pylint flower --rcfile .pylintrc
 
     - name: Run unit tests
       run: |
