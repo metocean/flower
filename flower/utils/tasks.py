@@ -9,6 +9,7 @@ from .search import satisfies_search_terms, parse_search_terms
 
 
 
+
 SCHEDUELER_TASKS = [
     'cycle.CycleTask',
     'wrappers.WrapperTask',
@@ -125,8 +126,17 @@ def sort_tasks(tasks, sort_by):
             reverse=reverse):
         yield task
 
-
 def get_task_by_id(events, task_id):
+    """
+    Retrieve a task by its ID from the given events.
+
+    Args:
+        events (Events): The events object containing the tasks.
+        task_id (str): The ID of the task to retrieve.
+
+    Returns:
+        Task: The task object with the specified ID, or None if not found.
+    """
     if hasattr(Task, '_fields'):  # Old version
         return expand_kwargs(events.state.tasks.get(task_id))
     else:
