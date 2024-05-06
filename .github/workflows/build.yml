@@ -23,7 +23,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install @github.com/metocean/scheuduler.git@sched_v5
+        pip install git+https://github.com/metocean/scheuduler.git@sched_v5
         pip install celery==${{ matrix.celery-version }}
         pip install tornado==${{ matrix.tornado-version }}
         pip install -r requirements/default.txt
