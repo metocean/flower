@@ -148,24 +148,54 @@ def get_task_by_id(events, task_id):
 
 
 def get_states():
+    """
+    Get a list of states including 'ALLOCATING', 'SENT', 'RUNNING'.
+
+    Returns:
+        list: A sorted list of states.
+    """
     states = set(celery.states.ALL_STATES)
     states.update({'ALLOCATING','SENT','RUNNING'})
     return sorted(list(states))
 
 def as_dict(task):
-    # as_dict is new in Celery 3.1.7
+    """
+    Convert a task object to a dictionary representation.
+
+    This function checks if the `as_dict` method is available in the `Task` class.
+    If it is available, it calls the `as_dict` method on the `task` object and adds
+    additional attributes (`action_id`, `cycle_dt`, `parent`) to the resulting dictionary.
+    If the `as_dict` method is not available, it falls back to calling the `info` method
+    on the `task` object and returns a dictionary with the default fields.
+
+    Args:
+        task: The task object to convert to a dictionary.
+
+    Returns:
+        A dictionary representation of the task object.
+    """
     if hasattr(Task, 'as_dict'):
         action_id = getattr(task, 'action_id', None)
         cycle_dt = getattr(task, 'cycle_dt', None)
         parent = getattr(task, 'parent', None)
         result = task.as_dict()
-        result.update(dict(action_id=action_id,cycle_dt=cycle_dt,parent=parent))
+        result.update(dict(action_id=action_id, cycle_dt=cycle_dt, parent=parent))
         return result
-    # old version
     else:
         return task.info(fields=task._defaults.keys())
 
 def to_python(val, _type=None):
+    """
+    Convert the given value to a Python object of the specified type.
+
+    Args:
+        val: The value to be converted.
+        _type: The desired type of the converted value.
+
+    Returns:
+        The converted value of the specified type, or None if the conversion fails.
+
+    """
     if isinstance(val, six.string_types):
         try:
             return ast.literal_eval(val)
@@ -180,6 +210,15 @@ def to_python(val, _type=None):
 
 
 def expand_kwargs(task):
+    """
+    Expand the keyword arguments of a task.
+
+    Args:
+        task (object): The task object to expand the keyword arguments for.
+
+    Returns:
+        object: The task object with expanded keyword arguments.
+    """
     if task is not None:
         task.kwargs = to_python(task.kwargs, dict)
         task.args = to_python(task.args, list)
