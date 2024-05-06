@@ -4,8 +4,8 @@ import ast
 import celery
 import six
 
-from .search import satisfies_search_terms, parse_search_terms
 from celery.events.state import Task
+from .search import satisfies_search_terms, parse_search_terms
 
 
 
@@ -24,6 +24,29 @@ def iter_tasks(events, limit=None, offset=0, type=None, worker=None, state=None,
                sort_by=None, received_start=None, received_end=None,
                started_start=None, started_end=None, search=None,
                parent=None, actions=None, follow_children=False):
+    """
+    Iterate over tasks based on specified filters and parameters.
+
+    Args:
+        events (Events): The events object containing task information.
+        limit (int, optional): The maximum number of tasks to return. Defaults to None.
+        offset (int, optional): The number of tasks to skip before starting to return. Defaults to 0.
+        type (list, optional): A list of task names to filter by. Defaults to None.
+        worker (str, optional): The hostname of the worker to filter by. Defaults to None.
+        state (str, optional): The state of the tasks to filter by. Defaults to None.
+        sort_by (str, optional): The field to sort the tasks by. Defaults to None.
+        received_start (str, optional): The start date for received tasks. Defaults to None.
+        received_end (str, optional): The end date for received tasks. Defaults to None.
+        started_start (str, optional): The start date for started tasks. Defaults to None.
+        started_end (str, optional): The end date for started tasks. Defaults to None.
+        search (dict, optional): A dictionary of search terms to filter tasks by. Defaults to None.
+        parent (list, optional): A list of parent task IDs to filter by. Defaults to None.
+        actions (list, optional): A list of action IDs to filter tasks by. Defaults to None.
+        follow_children (bool, optional): Whether to include orphaned child tasks. Defaults to False.
+
+    Yields:
+        tuple: A tuple containing the UUID and task object for each matching task.
+    """
     i = 0
     parent = parent or []
     actions = actions or []
@@ -140,7 +163,7 @@ def to_python(val, _type=None):
             return val        
     elif (_type and isinstance(val, _type)) or (val and _type is None):
         return val
-    elif val == None and _type:
+    elif val is None and _type:
         return _type()
     else:
         return None
