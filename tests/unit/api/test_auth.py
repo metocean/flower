@@ -2,7 +2,14 @@ from tests.unit import AsyncHTTPTestCase
 
 
 class BasicAuthTests(AsyncHTTPTestCase):
+    """
+    This class tests the basic authentication functionality.
+    """
+
     def test_auth(self):
+        """
+        Test the authentication process.
+        """
         with self.mock_option('basic_auth', ['user1:pswd1', 'user2:pswd2']):
             r = self.fetch('/api/workers')
             self.assertEqual(401, r.code)
