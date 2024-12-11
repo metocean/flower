@@ -43,3 +43,5 @@ class AsyncHTTPTestCase(tornado.testing.AsyncHTTPTestCase):
 
     def mock_option(self, name, value):
         return mock.patch.object(options.mockable(), name, value)
+    
+    def runTest(self): pass
